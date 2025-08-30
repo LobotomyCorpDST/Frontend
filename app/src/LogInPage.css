@@ -1,3 +1,81 @@
-.LoginPage {
-    background: #BBCDE9;
+/* Container and overall page styling */
+.login-page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    background-color: #b9cae6;
+    font-family: inherit; /* Inherit font from global styles */
 }
+
+/* Main content container */
+.login-form-container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    position: relative;
+}
+
+/* Login form paper */
+.login-paper {
+    padding: 32px; /* p: 4 in MUI is 32px */
+    border-radius: 8px; /* borderRadius: 2 is 8px */
+    text-align: center;
+    min-width: 300px;
+    max-width: 400px;
+    border: 1px solid #1d3e7d;
+}
+
+/* Login title typography */
+.login-title {
+    color: #1d3e7d;
+    margin-bottom: 24px; /* mb: 3 is 24px */
+    font-weight: 700;
+    font-family: inherit;
+}
+
+/* Text field styling */
+.login-textfield .MuiOutlinedInput-root {
+    margin-bottom: 16px; /* mb: 2 is 16px */
+    border-radius: 8px;
+    background-color: #e4ebf6;
+}
+
+.login-textfield .MuiOutlinedInput-root fieldset {
+    border: none;
+}
+
+/* Button styling */
+.login-button {
+    background-color: #1d3e7d;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+}
+
+.login-button:hover {
+    background-color: #15305e;
+}
+
+/* Footer and building styling */
+.login-page-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    background-color: transparent;
+    z-index: 1;
+}
+
+/* General building and spacer styles */
+.building, .spacer {
+    border-radius: 0;
+}
+
+/* We still need to use inline styles for width and height because they are dynamic */
+/* The color is now set on the JSX itself in a single spot. */
