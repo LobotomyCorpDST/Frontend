@@ -4,6 +4,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import LoginPage from "./LoginPage";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import App from './App';  // ← Import App instead of LoginPage
 
 // Create theme with Rubik font
 const theme = createTheme({
@@ -48,7 +49,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
-            <LoginPage />
+            <App />  // ← Render App instead of LoginPage
         </ThemeProvider>
     </React.StrictMode>
 );
