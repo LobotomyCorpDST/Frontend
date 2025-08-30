@@ -21,6 +21,10 @@ export default function LoginPage() {
         return baseHeight;                              // Full height on larger screens
     };
 
+    const handleGoHome = () => {
+        window.location.href = '/';
+    }
+
     return (
         <Box
             sx={{
@@ -106,6 +110,7 @@ export default function LoginPage() {
                     />
 
                     <Button
+                        onClick={handleGoHome}
                         variant="contained"
                         sx={{
                             background: '#1d3e7d',
