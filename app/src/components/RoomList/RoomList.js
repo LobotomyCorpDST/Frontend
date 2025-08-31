@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../Header/Header';
+// import Header from '../Header/Header';
 import './RoomList.css';
 
 const placeholderRooms = [
@@ -55,11 +55,10 @@ const placeholderRooms = [
   },
 ];
 
-const RoomList = () => {
+const RoomList = ({ searchTerm, sortBy }) => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Use a placeholder useEffect to simulate fetching data
   useEffect(() => {
@@ -67,6 +66,30 @@ const RoomList = () => {
     // For now, we'll use the placeholder data.
     setRooms(placeholderRooms);
   }, []);
+
+  // Apply external sortBy prop if provided
+  useEffect(() => {
+    if (sortBy) {
+      let sortKey = null;
+      let direction = 'ascending';
+      
+      switch(sortBy) {
+        case 'เลขห้อง':
+          sortKey = 'roomNumber';
+          break;
+        case 'ชื่อ':
+          sortKey = 'occupantName';
+          break;
+        case 'วันที่':
+          sortKey = 'leaseEndDate';
+          break;
+        default:
+          sortKey = 'roomNumber';
+      }
+      
+      setSortConfig({ key: sortKey, direction });
+    }
+  }, [sortBy]);
 
   const handleSort = (key) => {
     let direction = 'ascending';
@@ -79,6 +102,15 @@ const RoomList = () => {
   const sortedRooms = [...rooms].sort((a, b) => {
     if (sortConfig.key === 'roomNumber') {
       return sortConfig.direction === 'ascending' ? a.roomNumber - b.roomNumber : b.roomNumber - a.roomNumber;
+    }
+
+    if (sortConfig.key === 'occupantName') {
+      const nameA = a.occupantName.toLowerCase();
+      const nameB = b.occupantName.toLowerCase();
+      if (sortConfig.direction === 'ascending') {
+        return nameA.localeCompare(nameB);
+      }
+      return nameB.localeCompare(nameA);
     }
 
     if (sortConfig.key === 'leaseEndDate') {
@@ -103,45 +135,25 @@ const RoomList = () => {
     return 0;
   });
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
   const filteredRooms = sortedRooms.filter((room) =>
-    String(room.roomNumber).includes(searchTerm) ||
-    room.occupantName.toLowerCase().includes(searchTerm.toLowerCase())
+    String(room.roomNumber).includes(searchTerm || '') ||
+    room.occupantName.toLowerCase().includes((searchTerm || '').toLowerCase())
   );
-  
+
   const handleRowClick = (roomNumber) => {
     navigate(`/room-details/${roomNumber}`);
   };
 
   return (
     <>
-      <Header title="Room List" />
+      {/* <Header title="Room List" /> */}
       <div className="room-list-container">
-        <div className="header-bar">
-          <div className="header-buttons">
-            <button className="invoice-history-btn" onClick={() => navigate('/invoice-history')}>Invoice History</button>
-            <button className="room-list-btn" onClick={() => navigate('/room-list')}>Room List</button>
-          </div>
-          <div className="search-and-add">
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search by Room or Occupant"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-            </div>
-            <button className="add-room-btn">Add Room</button>
-          </div>
-        </div>
+        {/* Remove the header buttons and search bar since they're now in HomeNavBar */}
         <table className="room-table">
           <thead>
             <tr>
               <th onClick={() => handleSort('roomNumber')} className="sortable">Room No.</th>
-              <th>Occupant's Name</th>
+              <th onClick={() => handleSort('occupantName')} className="sortable">Occupant's Name</th>
               <th onClick={() => handleSort('leaseEndDate')} className="sortable">Lease End Date</th>
               <th onClick={() => handleSort('roomStatus')} className="sortable">Room Status</th>
               <th onClick={() => handleSort('maintenanceStatus')} className="sortable">Maintenance Status</th>

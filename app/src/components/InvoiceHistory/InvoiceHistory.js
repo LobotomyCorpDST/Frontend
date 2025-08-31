@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../Header/Header';
+// import Header from '../Header/Header';
 import './InvoiceHistory.css';
 
 const placeholderInvoices = [
@@ -55,16 +55,40 @@ const placeholderInvoices = [
   },
 ];
 
-const InvoiceHistory = () => {
+const InvoiceHistory = ({ searchTerm, sortBy }) => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     // In a real app, you would fetch data from your database here.
     setInvoices(placeholderInvoices);
   }, []);
+
+  // Apply external sortBy prop if provided
+  useEffect(() => {
+    if (sortBy) {
+      let sortKey = null;
+      let direction = 'ascending';
+      
+      switch(sortBy) {
+        case 'เลขห้อง':
+          sortKey = 'roomNumber';
+          break;
+        case 'ชื่อ':
+          // You might need to adjust this based on your data structure
+          sortKey = 'invoiceId';
+          break;
+        case 'วันที่':
+          sortKey = 'paymentDate';
+          break;
+        default:
+          sortKey = 'roomNumber';
+      }
+      
+      setSortConfig({ key: sortKey, direction });
+    }
+  }, [sortBy]);
 
   const handleSort = (key) => {
     let direction = 'ascending';
@@ -99,13 +123,9 @@ const InvoiceHistory = () => {
     return 0;
   });
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
   const filteredInvoices = sortedInvoices.filter((invoice) =>
-    String(invoice.roomNumber).includes(searchTerm) ||
-    String(invoice.invoiceId).includes(searchTerm)
+    String(invoice.roomNumber).includes(searchTerm || '') ||
+    String(invoice.invoiceId).includes(searchTerm || '')
   );
 
   const handleRoomClick = (roomNumber) => {
@@ -118,25 +138,9 @@ const InvoiceHistory = () => {
 
   return (
     <>
-      <Header title="Invoice History" />
+      {/* <Header title="Invoice History" /> */}
       <div className="invoice-history-container">
-        <div className="header-bar">
-          <div className="header-buttons">
-            <button className="invoice-history-btn" onClick={() => navigate('/invoice-history')}>Invoice History</button>
-            <button className="room-list-btn" onClick={() => navigate('/room-list')}>Room List</button>
-          </div>
-          <div className="search-and-add">
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search by Room or Invoice ID"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-            </div>
-            <button className="add-invoice-btn">Add Invoice</button>
-          </div>
-        </div>
+        {/* Remove the search bar and navigation buttons since they're now in HomeNavBar */}
         <table className="invoice-table">
           <thead>
             <tr>
