@@ -1,8 +1,8 @@
 import './App.css';
-import Home from "./components/Home";
-import InvoiceHistory from "./components/InvoiceHistory";
-import RoomList from "./components/RoomList";
-import LoginPage from "./components/LoginPage";  // ← Import LoginPage
+import Home from "./components/Home/Home";
+import InvoiceHistory from "./components/InvoiceHistory/InvoiceHistory";
+import RoomList from "./components/RoomList/RoomList";
+import LoginPage from "./components/LoginPage/LoginPage";  // ← Import LoginPage
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
