@@ -1,8 +1,6 @@
 import './App.css';
-import Home from "./components/Home/Home";
-import InvoiceHistory from "./components/InvoiceHistory/InvoiceHistory";
-import RoomList from "./components/RoomList/RoomList";
-import LoginPage from "./components/LoginPage/LoginPage";  // ← Import LoginPage
+import HomePage from "./components/Home/Home";
+import LoginPage from "./components/LoginPage/LoginPage";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -10,10 +8,9 @@ function App() {
         <Router>
             <div className="App">
                 <Routes>
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/room-list" element={<RoomList />} />
-                    <Route path="/invoice-history" element={<InvoiceHistory />} />
                     <Route path="/" element={<LoginPage />} />
+                    <Route path="/home" element={<HomePage />} />
+                    {/* Remove individual routes for RoomList and InvoiceHistory */}
                 </Routes>
             </div>
         </Router>
