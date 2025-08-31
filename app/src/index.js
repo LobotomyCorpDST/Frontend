@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import LoginPage from "./LoginPage";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import App from './App';  // ← Import App instead of LoginPage
 
