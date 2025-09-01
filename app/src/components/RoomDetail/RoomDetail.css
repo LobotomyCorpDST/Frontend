@@ -1,6 +1,6 @@
-/* General container styling */
-.room-detail-container {
-    max-width: 1000px;
+/* General container styling for consistency across all main pages */
+.content-container {
+    max-width: 800px;
     margin: 40px auto;
     padding: 20px;
     background-color: #fff;
@@ -36,6 +36,7 @@
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    position: relative;
     border-bottom: 2px solid #ddd;
 }
 
@@ -46,14 +47,40 @@
     cursor: pointer;
     font-size: 1rem;
     color: #888;
-    transition: color 0.2s, border-bottom 0.2s;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s;
 }
 
 .tab-btn.active {
     color: #1d3e7d;
     font-weight: 600;
-    border-bottom: 2px solid #1d3e7d;
 }
+
+.active-bar {
+    position: absolute;
+    bottom: -2px;
+    height: 2px;
+    background-color: #1d3e7d;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Update the transform property based on the active tab in JavaScript */
+.tab-btn:nth-child(1).active ~ .active-bar {
+    width: 100px;
+    transform: translateX(0);
+}
+
+.tab-btn:nth-child(2).active ~ .active-bar {
+    width: 100px;
+    transform: translateX(110px);
+}
+
+.tab-btn:nth-child(3).active ~ .active-bar {
+    width: 100px;
+    transform: translateX(220px);
+}
+
 
 /* Card styling for sections */
 .details-card {
@@ -125,7 +152,8 @@
 }
 
 .status-not-yet-paid,
-.status-room-available {
+.status-room-available,
+.status-Not-yet-paid {
     color: #6c757d;
     font-weight: 600;
 }
@@ -140,7 +168,6 @@
     font-weight: 600;
 }
 
-
 /* Action buttons */
 .action-buttons {
     display: flex;
@@ -149,7 +176,8 @@
     margin-top: 30px;
 }
 
-.action-btn {
+.action-btn,
+.action-button {
     padding: 12px 20px;
     border-radius: 6px;
     border: none;
@@ -185,4 +213,64 @@
 
 .invoice-btn:hover {
     background-color: #218838;
+}
+
+/* New styles for the combined components */
+.button-container {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.add-invoice-btn,
+.add-maintenance-btn {
+    background-color: #1d3e7d;
+}
+
+.add-invoice-btn:hover,
+.add-maintenance-btn:hover {
+    background-color: #173262;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.invoice-table,
+.maintenance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+}
+
+.invoice-table th,
+.maintenance-table th,
+.invoice-table td,
+.maintenance-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e6eb;
+}
+
+.invoice-table th,
+.maintenance-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #1d3e7d;
+    cursor: pointer;
+}
+
+.invoice-table tr:hover,
+.maintenance-table tr:hover {
+    background-color: #f1f3f5;
+}
+
+.print-button {
+    background: none;
+    border: none;
+    color: #1d3e7d;
+    cursor: pointer;
 }
