@@ -1,0 +1,188 @@
+/* General container styling */
+.room-detail-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: 'Rubik', sans-serif;
+}
+
+/* Header and back button */
+.detail-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+    color: #1d3e7d;
+}
+
+.room-number-heading {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1d3e7d;
+}
+
+/* Tab navigation styling */
+.tab-navigation {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+}
+
+.tab-btn {
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #888;
+    transition: color 0.2s, border-bottom 0.2s;
+}
+
+.tab-btn.active {
+    color: #1d3e7d;
+    font-weight: 600;
+    border-bottom: 2px solid #1d3e7d;
+}
+
+/* Card styling for sections */
+.details-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e6eb;
+}
+
+.details-card h2 {
+    font-size: 1.2rem;
+    color: #1d3e7d;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+/* Profile section styling */
+.profile-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #1d3e7d;
+}
+
+.profile-info p {
+    margin: 5px 0;
+}
+
+/* Contract and bill info */
+.contract-info,
+.bill-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item,
+.bill-item {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.info-item p,
+.bill-item p {
+    margin: 5px 0;
+}
+
+/* Status styling */
+.status-rent-paid,
+.status-Paid {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.status-overdue,
+.status-Overdue {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.status-not-yet-paid,
+.status-room-available {
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.maintenance-status-clear {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.maintenance-status-active {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.action-btn {
+    padding: 12px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.edit-btn {
+    background-color: #1d3e7d;
+}
+
+.edit-btn:hover {
+    background-color: #173262;
+}
+
+.maintenance-btn {
+    background-color: #6c757d;
+}
+
+.maintenance-btn:hover {
+    background-color: #5a6268;
+}
+
+.invoice-btn {
+    background-color: #28a745;
+}
+
+.invoice-btn:hover {
+    background-color: #218838;
+}

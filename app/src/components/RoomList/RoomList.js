@@ -1,59 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import Header from '../Header/Header';
+import { placeholderData } from '../../data/placeholderData';
 import './RoomList.css';
-
-const placeholderRooms = [
-  {
-    roomNumber: 101,
-    occupantName: 'John Doe',
-    leaseEndDate: '2024-12-31',
-    roomStatus: 'rent paid',
-    maintenanceStatus: '-',
-  },
-  {
-    roomNumber: 102,
-    occupantName: 'Jane Smith',
-    leaseEndDate: '2024-11-15',
-    roomStatus: 'overdue',
-    maintenanceStatus: '2024-09-01',
-  },
-  {
-    roomNumber: 103,
-    occupantName: 'Alex Johnson',
-    leaseEndDate: '2025-01-20',
-    roomStatus: 'room available',
-    maintenanceStatus: '-',
-  },
-  {
-    roomNumber: 104,
-    occupantName: 'Emily White',
-    leaseEndDate: '2024-10-31',
-    roomStatus: 'rent paid',
-    maintenanceStatus: '-',
-  },
-  {
-    roomNumber: 105,
-    occupantName: 'Michael Brown',
-    leaseEndDate: '2025-03-01',
-    roomStatus: 'rent paid',
-    maintenanceStatus: '-',
-  },
-  {
-    roomNumber: 106,
-    occupantName: 'Lisa Adams',
-    leaseEndDate: '2024-10-25',
-    roomStatus: 'rent paid',
-    maintenanceStatus: '2024-10-15',
-  },
-  {
-    roomNumber: 107,
-    occupantName: 'Robert Green',
-    leaseEndDate: '2025-02-10',
-    roomStatus: 'room available',
-    maintenanceStatus: '-',
-  },
-];
 
 const RoomList = ({ searchTerm, sortBy }) => {
   const navigate = useNavigate();
@@ -62,9 +10,7 @@ const RoomList = ({ searchTerm, sortBy }) => {
 
   // Use a placeholder useEffect to simulate fetching data
   useEffect(() => {
-    // In a real app, you would fetch data from your MySQL database here.
-    // For now, we'll use the placeholder data.
-    setRooms(placeholderRooms);
+    setRooms(placeholderData);
   }, []);
 
   // Apply external sortBy prop if provided
@@ -105,8 +51,8 @@ const RoomList = ({ searchTerm, sortBy }) => {
     }
 
     if (sortConfig.key === 'occupantName') {
-      const nameA = a.occupantName.toLowerCase();
-      const nameB = b.occupantName.toLowerCase();
+      const nameA = a.tenantInfo.name.toLowerCase();
+      const nameB = b.tenantInfo.name.toLowerCase();
       if (sortConfig.direction === 'ascending') {
         return nameA.localeCompare(nameB);
       }
@@ -137,7 +83,7 @@ const RoomList = ({ searchTerm, sortBy }) => {
 
   const filteredRooms = sortedRooms.filter((room) =>
     String(room.roomNumber).includes(searchTerm || '') ||
-    room.occupantName.toLowerCase().includes((searchTerm || '').toLowerCase())
+    room.tenantInfo.name.toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const handleRowClick = (roomNumber) => {
@@ -146,9 +92,7 @@ const RoomList = ({ searchTerm, sortBy }) => {
 
   return (
     <>
-      {/* <Header title="Room List" /> */}
       <div className="room-list-container">
-        {/* Remove the header buttons and search bar since they're now in HomeNavBar */}
         <table className="room-table">
           <thead>
             <tr>
@@ -162,10 +106,10 @@ const RoomList = ({ searchTerm, sortBy }) => {
           <tbody>
             {filteredRooms.map((room) => (
               <tr key={room.roomNumber} onClick={() => handleRowClick(room.roomNumber)}>
-                <td className="room-number-link">
+                <td className="link-text">
                   {room.roomNumber}
                 </td>
-                <td>{room.occupantName}</td>
+                <td>{room.tenantInfo.name}</td>
                 <td>{room.leaseEndDate}</td>
                 <td className={`status-${room.roomStatus.replace(/\s+/g, '-')}`}>
                   {room.roomStatus}
