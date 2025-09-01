@@ -1,59 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import Header from '../Header/Header';
+import { placeholderData } from '../../data/placeholderData';
 import './InvoiceHistory.css';
-
-const placeholderInvoices = [
-  {
-    roomNumber: 101,
-    invoiceId: 9876543,
-    paymentDate: '2024-09-25',
-    paymentAmount: 5000.00,
-    paymentStatus: 'Paid',
-  },
-  {
-    roomNumber: 102,
-    invoiceId: 1234567,
-    paymentDate: '2024-10-01',
-    paymentAmount: 5500.50,
-    paymentStatus: 'Overdue',
-  },
-  {
-    roomNumber: 103,
-    invoiceId: 8765432,
-    paymentDate: '2024-10-10',
-    paymentAmount: 4800.00,
-    paymentStatus: 'Not yet paid',
-  },
-  {
-    roomNumber: 104,
-    invoiceId: 2345678,
-    paymentDate: '2024-09-30',
-    paymentAmount: 5100.00,
-    paymentStatus: 'Paid',
-  },
-  {
-    roomNumber: 105,
-    invoiceId: 3456789,
-    paymentDate: '2024-10-05',
-    paymentAmount: 5000.00,
-    paymentStatus: 'Paid',
-  },
-  {
-    roomNumber: 106,
-    invoiceId: 4567890,
-    paymentDate: '2024-09-28',
-    paymentAmount: 5200.00,
-    paymentStatus: 'Overdue',
-  },
-  {
-    roomNumber: 107,
-    invoiceId: 5678901,
-    paymentDate: '2024-10-12',
-    paymentAmount: 5000.00,
-    paymentStatus: 'Not yet paid',
-  },
-];
 
 const InvoiceHistory = ({ searchTerm, sortBy }) => {
   const navigate = useNavigate();
@@ -61,8 +9,15 @@ const InvoiceHistory = ({ searchTerm, sortBy }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
 
   useEffect(() => {
-    // In a real app, you would fetch data from your database here.
-    setInvoices(placeholderInvoices);
+    // Transform the data to the invoice format
+    const transformedInvoices = placeholderData.map(room => ({
+      roomNumber: room.roomNumber,
+      invoiceId: room.latestInvoice.invoiceId,
+      paymentDate: room.latestInvoice.paymentDate,
+      paymentAmount: room.latestInvoice.paymentAmount,
+      paymentStatus: room.latestInvoice.paymentStatus,
+    }));
+    setInvoices(transformedInvoices);
   }, []);
 
   // Apply external sortBy prop if provided
@@ -76,7 +31,7 @@ const InvoiceHistory = ({ searchTerm, sortBy }) => {
           sortKey = 'roomNumber';
           break;
         case 'ชื่อ':
-          // You might need to adjust this based on your data structure
+          // The data structure now supports name, but the InvoiceHistory table doesn't have it
           sortKey = 'invoiceId';
           break;
         case 'วันที่':
@@ -138,9 +93,7 @@ const InvoiceHistory = ({ searchTerm, sortBy }) => {
 
   return (
     <>
-      {/* <Header title="Invoice History" /> */}
       <div className="invoice-history-container">
-        {/* Remove the search bar and navigation buttons since they're now in HomeNavBar */}
         <table className="invoice-table">
           <thead>
             <tr>
