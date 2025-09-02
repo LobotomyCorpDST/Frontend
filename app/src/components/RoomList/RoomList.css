@@ -1,7 +1,6 @@
 /* General styling */
 body {
   background-color: #f4f7f9;
-  font-family: 'Rubik', sans-serif;
 }
 
 .room-list-container {
@@ -89,9 +88,10 @@ body {
 
 /* Table styling */
 .room-table {
-  width: 100%;
+  width: 96%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin: 22px;
+  margin-top: 5px;
 }
 
 .room-table thead {
