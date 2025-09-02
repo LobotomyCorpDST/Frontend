@@ -1,15 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import App from './App';  // ← Import App instead of LoginPage
 
-// Create theme with Rubik font
+// สร้าง Theme โดยใช้ฟอนต์ Bai Jamjuree
 const theme = createTheme({
     typography: {
         fontFamily: [
-            'Rubik',
+            'Bai Jamjuree', // ← เปลี่ยนตรงนี้
             '-apple-system',
             'BlinkMacSystemFont',
             '"Segoe UI"',
@@ -19,16 +19,16 @@ const theme = createTheme({
             'sans-serif',
         ].join(','),
         h4: {
-            fontWeight: 700, // Make headings bold
+            fontWeight: 700,
         },
         button: {
-            fontWeight: 500, // Medium weight for buttons
-            textTransform: 'none', // Prevent uppercase transformation
+            fontWeight: 500,
+            textTransform: 'none',
         }
     },
     palette: {
         primary: {
-            main: '#1d3e7d', // Your blue color from the login page
+            main: '#1d3e7d', // สีน้ำเงินหลักของคุณ
         },
     },
     components: {
@@ -36,7 +36,7 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     '& .MuiInputBase-input': {
-                        fontFamily: 'Rubik, sans-serif',
+                        fontFamily: 'Bai Jamjuree, sans-serif', // ← และเปลี่ยนตรงนี้ด้วย
                     },
                 },
             },
@@ -48,7 +48,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
-            <App /> 
+            <App />
         </ThemeProvider>
     </React.StrictMode>
 );

@@ -18,8 +18,8 @@ const RoomList = ({ searchTerm, sortBy }) => {
     if (sortBy) {
       let sortKey = null;
       let direction = 'ascending';
-      
-      switch(sortBy) {
+
+      switch (sortBy) {
         case 'เลขห้อง':
           sortKey = 'roomNumber';
           break;
@@ -32,7 +32,7 @@ const RoomList = ({ searchTerm, sortBy }) => {
         default:
           sortKey = 'roomNumber';
       }
-      
+
       setSortConfig({ key: sortKey, direction });
     }
   }, [sortBy]);
@@ -92,34 +92,32 @@ const RoomList = ({ searchTerm, sortBy }) => {
 
   return (
     <>
-      <div className="room-list-container">
-        <table className="room-table">
-          <thead>
-            <tr>
-              <th onClick={() => handleSort('roomNumber')} className="sortable">Room No.</th>
-              <th onClick={() => handleSort('occupantName')} className="sortable">Occupant's Name</th>
-              <th onClick={() => handleSort('leaseEndDate')} className="sortable">Lease End Date</th>
-              <th onClick={() => handleSort('roomStatus')} className="sortable">Room Status</th>
-              <th onClick={() => handleSort('maintenanceStatus')} className="sortable">Maintenance Status</th>
+      <table className="room-table">
+        <thead>
+          <tr>
+            <th onClick={() => handleSort('roomNumber')} className="sortable">Room No.</th>
+            <th onClick={() => handleSort('occupantName')} className="sortable">Occupant's Name</th>
+            <th onClick={() => handleSort('leaseEndDate')} className="sortable">Lease End Date</th>
+            <th onClick={() => handleSort('roomStatus')} className="sortable">Room Status</th>
+            <th onClick={() => handleSort('maintenanceStatus')} className="sortable">Maintenance Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredRooms.map((room) => (
+            <tr key={room.roomNumber} onClick={() => handleRowClick(room.roomNumber)}>
+              <td className="link-text">
+                {room.roomNumber}
+              </td>
+              <td>{room.tenantInfo.name}</td>
+              <td>{room.leaseEndDate}</td>
+              <td className={`status-${room.roomStatus.replace(/\s+/g, '-')}`}>
+                {room.roomStatus}
+              </td>
+              <td>{room.maintenanceStatus}</td>
             </tr>
-          </thead>
-          <tbody>
-            {filteredRooms.map((room) => (
-              <tr key={room.roomNumber} onClick={() => handleRowClick(room.roomNumber)}>
-                <td className="link-text">
-                  {room.roomNumber}
-                </td>
-                <td>{room.tenantInfo.name}</td>
-                <td>{room.leaseEndDate}</td>
-                <td className={`status-${room.roomStatus.replace(/\s+/g, '-')}`}>
-                  {room.roomStatus}
-                </td>
-                <td>{room.maintenanceStatus}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </>
   );
 };
