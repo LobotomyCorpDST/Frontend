@@ -1,6 +1,8 @@
 export const placeholderData = [
   {
-    roomNumber: 101,
+    id: 1, // Added ID for unique key
+    floor: 1, // Added floor number
+    roomNumber: '101', // Changed to string for consistency
     tenantInfo: {
       name: 'นายกิตติชาติ ชินนา',
       phoneNumber: '0007355608',
@@ -20,23 +22,16 @@ export const placeholderData = [
       paymentStatus: 'Paid',
     },
     latestUsage: {
-      electricity: {
-        units: 250,
-        baht: 1000.00,
-      },
-      water: {
-        units: 15,
-        baht: 300.00,
-      },
-      overdue: {
-        baht: 0,
-        days: 0,
-      },
+      electricity: { units: 250, baht: 1000.00 },
+      water: { units: 15, baht: 300.00 },
+      overdue: { baht: 0, days: 0 },
       totalBaht: 5000.00,
     },
   },
   {
-    roomNumber: 102,
+    id: 2,
+    floor: 1,
+    roomNumber: '102',
     tenantInfo: {
       name: 'Jane Smith',
       phoneNumber: '0001234567',
@@ -56,30 +51,23 @@ export const placeholderData = [
       paymentStatus: 'Overdue',
     },
     latestUsage: {
-      electricity: {
-        units: 280,
-        baht: 1120.00,
-      },
-      water: {
-        units: 18,
-        baht: 360.00,
-      },
-      overdue: {
-        baht: 550.50,
-        days: 30,
-      },
+      electricity: { units: 280, baht: 1120.00 },
+      water: { units: 18, baht: 360.00 },
+      overdue: { baht: 550.50, days: 30 },
       totalBaht: 5500.50,
     },
   },
   {
-    roomNumber: 103,
+    id: 3,
+    floor: 1,
+    roomNumber: '103',
     tenantInfo: {
-      name: 'Alex Johnson',
+      name: '-',
       phoneNumber: '-',
       lineId: '-',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'room available',
+    roomStatus: 'Room Available', // Consistent naming
     checkInDate: '-',
     checkOutDate: '-',
     leaseStartDate: '-',
@@ -92,162 +80,68 @@ export const placeholderData = [
       paymentStatus: 'Not yet paid',
     },
     latestUsage: {
-      electricity: {
-        units: 0,
-        baht: 0,
-      },
-      water: {
-        units: 0,
-        baht: 0,
-      },
-      overdue: {
-        baht: 0,
-        days: 0,
-      },
+      electricity: { units: 0, baht: 0 },
+      water: { units: 0, baht: 0 },
+      overdue: { baht: 0, days: 0 },
       totalBaht: 0,
     },
   },
+  // --- Data for Floor 2 ---
   {
-    roomNumber: 104,
+    id: 4,
+    floor: 2,
+    roomNumber: '201',
     tenantInfo: {
-      name: 'Emily White',
-      phoneNumber: '0009876543',
-      lineId: 'emilyw',
+      name: 'Somsak Jaidee',
+      phoneNumber: '0891234567',
+      lineId: 'somsak.j',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
     roomStatus: 'rent paid',
-    checkInDate: '2024-09-30',
+    checkInDate: '2024-07-01',
     checkOutDate: '-',
-    leaseStartDate: '2024-09-30',
-    leaseEndDate: '2025-09-29',
+    leaseStartDate: '2024-07-01',
+    leaseEndDate: '2025-06-30',
     maintenanceStatus: '-',
     latestInvoice: {
-      invoiceId: 2345678,
-      paymentDate: '2024-09-30',
-      paymentAmount: 5100.00,
-      paymentStatus: 'Paid',
-    },
-    latestUsage: {
-      electricity: {
-        units: 260,
-        baht: 1040.00,
-      },
-      water: {
-        units: 16,
-        baht: 320.00,
-      },
-      overdue: {
-        baht: 0,
-        days: 0,
-      },
-      totalBaht: 5100.00,
-    },
-  },
-  {
-    roomNumber: 105,
-    tenantInfo: {
-      name: 'Michael Brown',
-      phoneNumber: '0001122334',
-      lineId: 'michaelb',
-      profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
-    },
-    roomStatus: 'rent paid',
-    checkInDate: '2024-10-05',
-    checkOutDate: '-',
-    leaseStartDate: '2024-10-05',
-    leaseEndDate: '2025-10-04',
-    maintenanceStatus: '-',
-    latestInvoice: {
-      invoiceId: 3456789,
-      paymentDate: '2024-10-05',
-      paymentAmount: 5000.00,
-      paymentStatus: 'Paid',
-    },
-    latestUsage: {
-      electricity: {
-        units: 240,
-        baht: 960.00,
-      },
-      water: {
-        units: 14,
-        baht: 280.00,
-      },
-      overdue: {
-        baht: 0,
-        days: 0,
-      },
-      totalBaht: 5000.00,
-    },
-  },
-  {
-    roomNumber: 106,
-    tenantInfo: {
-      name: 'Lisa Adams',
-      phoneNumber: '0004455667',
-      lineId: 'lisaa',
-      profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
-    },
-    roomStatus: 'overdue',
-    checkInDate: '2024-09-28',
-    checkOutDate: '-',
-    leaseStartDate: '2024-09-28',
-    leaseEndDate: '2025-09-27',
-    maintenanceStatus: '2024-10-15',
-    latestInvoice: {
-      invoiceId: 4567890,
+      invoiceId: 1122334,
       paymentDate: '2024-09-28',
-      paymentAmount: 5200.00,
-      paymentStatus: 'Overdue',
+      paymentAmount: 6000.00,
+      paymentStatus: 'Paid',
     },
     latestUsage: {
-      electricity: {
-        units: 270,
-        baht: 1080.00,
-      },
-      water: {
-        units: 17,
-        baht: 340.00,
-      },
-      overdue: {
-        baht: 520.00,
-        days: 14,
-      },
-      totalBaht: 5200.00,
+      electricity: { units: 300, baht: 1200.00 },
+      water: { units: 20, baht: 400.00 },
+      overdue: { baht: 0, days: 0 },
+      totalBaht: 6000.00,
     },
   },
   {
-    roomNumber: 107,
+    id: 5,
+    floor: 2,
+    roomNumber: '202',
     tenantInfo: {
-      name: 'Robert Green',
+      name: '-',
       phoneNumber: '-',
       lineId: '-',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'room available',
+    roomStatus: 'Room Available',
     checkInDate: '-',
     checkOutDate: '-',
     leaseStartDate: '-',
     leaseEndDate: '-',
     maintenanceStatus: '-',
     latestInvoice: {
-      invoiceId: 5678901,
-      paymentDate: '2024-10-12',
-      paymentAmount: 5000.00,
-      paymentStatus: 'Not yet paid',
+      invoiceId: 0,
+      paymentDate: '-',
+      paymentAmount: 0,
+      paymentStatus: '-',
     },
     latestUsage: {
-      electricity: {
-        units: 0,
-        baht: 0,
-      },
-      water: {
-        units: 0,
-        baht: 0,
-      },
-      overdue: {
-        baht: 0,
-        days: 0,
-      },
+      electricity: { units: 0, baht: 0 },
+      water: { units: 0, baht: 0 },
+      overdue: { baht: 0, days: 0 },
       totalBaht: 0,
     },
   },
