@@ -1,29 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { placeholderData } from '../../data/placeholderData';
 import {
-    Paper,
-    Grid,
-    Typography,
-    Button,
-    Tabs,
-    Tab,
-    Box,
-    Avatar,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TableSortLabel,
-    Chip,
-    CircularProgress,
-    IconButton
+  Paper,
+  Grid,
+  Typography,
+  Button,
+  Tabs,
+  Tab,
+  Box,
+  Avatar,
+  CircularProgress,
+  IconButton,
+  Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
-import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddIcon from '@mui/icons-material/Add';
 
 import RoomInvoiceTable from '../Invoice/RoomInvoiceTable';
@@ -34,76 +26,36 @@ import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
 const actionBtnSx = { borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 2 };
 
 const RoomDetail = () => {
-    const { roomNumber } = useParams();
-    const navigate = useNavigate();
-    const [room, setRoom] = useState(null);
-    const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'descending' });
-    const [activeRightTab, setActiveRightTab] = useState(0);
+  const { roomNumber } = useParams();
+  const navigate = useNavigate();
 
-    const handleRightTabChange = (event, newValue) => {
-        setActiveRightTab(newValue);
-    };
+  const [room, setRoom] = useState(null);
+  const [activeRightTab, setActiveRightTab] = useState(0);
 
-    useEffect(() => {
-        const foundRoom = placeholderData.find(r => r.roomNumber === parseInt(roomNumber));
-        if (foundRoom) {
-            const mockInvoiceHistory = [
-                { id: 1, date: '2025-08-01', totalBaht: foundRoom.latestUsage.totalBaht, status: 'Not yet paid' },
-                { id: 2, date: '2025-07-01', totalBaht: foundRoom.latestUsage.totalBaht + 50, status: 'Paid' },
-                { id: 3, date: '2025-06-01', totalBaht: foundRoom.latestUsage.totalBaht - 20, status: 'Overdue' },
-            ];
-            const mockMaintenanceHistory = [
-                { id: 1, date: '2025-07-15', type: 'ซ่อมแอร์', description: 'น้ำหยดจากเครื่องปรับอากาศ', status: 'Completed', technician: 'ช่างเอก' },
-                { id: 2, date: '2025-06-20', type: 'ทำความสะอาด', description: 'ทำความสะอาดห้องน้ำ', status: 'Completed', technician: 'ช่างบี' },
-                { id: 3, date: '2025-05-10', type: 'ไฟเสีย', description: 'ไฟในห้องนอนไม่ติด', status: 'Pending', technician: 'ช่างซี' },
-            ];
-            setRoom({
-                ...foundRoom,
-                invoiceHistory: mockInvoiceHistory,
-                maintenanceHistory: mockMaintenanceHistory,
-            });
-        } else {
-            console.error('Room not found');
-        }
-    }, [roomNumber]);
+  // modal สำหรับสร้าง "ใบแจ้งหนี้"
+  const [showCreateInv, setShowCreateInv] = useState(false);
 
-    // ADDED THIS MISSING FUNCTION
-    const getStatusChip = (status) => {
-        const colorMap = {
-            paid: 'success',
-            overdue: 'error',
-            'not yet paid': 'warning',
-            completed: 'success',
-            pending: 'info',
-        };
-        return <Chip label={status} color={colorMap[status.toLowerCase()] || 'default'} size="small" />;
-    };
+  // modal สำหรับ "เพิ่มงานบำรุงรักษา" + ตัวกระตุ้นรีโหลดตาราง
+  const [openCreateMaint, setOpenCreateMaint] = useState(false);
+  const [maintTick, setMaintTick] = useState(0);
 
+  // map เลขห้อง -> roomId ของ backend (ตาม seed ปัจจุบัน)
+  const backendRoomId = useMemo(() => {
+    const map = { 101: 1, 102: 2, 201: 3 };
+    const n = Number(roomNumber);
+    return map[n] ?? null;
+  }, [roomNumber]);
 
-    const handleSort = (key) => {
-        const isAsc = sortConfig.key === key && sortConfig.direction === 'ascending';
-        setSortConfig({ key, direction: isAsc ? 'descending' : 'ascending' });
-    };
+  const handleRightTabChange = (_e, v) => setActiveRightTab(v);
 
-    const sortedInvoices = React.useMemo(() => {
-        if (!room?.invoiceHistory) return [];
-        const sorted = [...room.invoiceHistory];
-        sorted.sort((a, b) => {
-            if (a[sortConfig.key] < b[sortConfig.key]) {
-                return sortConfig.direction === 'ascending' ? -1 : 1;
-            }
-            if (a[sortConfig.key] > b[sortConfig.key]) {
-                return sortConfig.direction === 'ascending' ? 1 : -1;
-            }
-            return 0;
-        });
-        return sorted;
-    }, [room?.invoiceHistory, sortConfig]);
-
-    if (!room) {
-        return <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}><CircularProgress /></Box>;
+  useEffect(() => {
+    const foundRoom = placeholderData.find(r => r.roomNumber === parseInt(roomNumber));
+    if (foundRoom) {
+      setRoom(foundRoom);
     }
+  }, [roomNumber]);
 
+  if (!room) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
         <CircularProgress />
