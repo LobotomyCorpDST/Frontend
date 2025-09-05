@@ -3,12 +3,11 @@ import HomeNavBar from '../HomeNavBar/HomeNavBar';
 import './Home.css';
 
 function HomePage() {
-    return (
-        <>
-            <Header />
-            <HomeNavBar />
-        </>
-    );
+  return (
+    <>
+      <Header />
+      <HomeNavBar />
+    </>
+  );
 }
-
 export default HomePage;
