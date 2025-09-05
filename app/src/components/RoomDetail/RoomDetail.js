@@ -21,13 +21,11 @@ import {
     CircularProgress,
     IconButton
 } from '@mui/material';
-// ICON IMPORTS
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddIcon from '@mui/icons-material/Add';
 import PrintIcon from '@mui/icons-material/Print';
-
 
 const RoomDetail = () => {
     const { roomNumber } = useParams();
@@ -167,11 +165,12 @@ const RoomDetail = () => {
                                     <Typography variant="caption" color="text.secondary" display="block" textAlign={'left'}>
                                         ช่องทางติดต่อ
                                     </Typography>
-                                    <Typography variant="body1" textAlign={'left'}>
-                                        <strong>LINE:</strong> {room.tenantInfo.lineId}
+                                    <Typography textAlign={'left'}>
+                                        <strong>LINE:</strong>
+                                        <span style={{ paddingLeft: '28.5px' }}>{room.tenantInfo.lineId}</span>
                                     </Typography>
                                     <Typography variant="body1" textAlign={'left'}>
-                                        <strong>เบอร์:</strong> {room.tenantInfo.phoneNumber}
+                                        <strong>เบอร์โทร:</strong> {room.tenantInfo.phoneNumber}
                                     </Typography>
                                 </Box>
                             </Grid>
@@ -183,19 +182,23 @@ const RoomDetail = () => {
                         <Typography><strong>สถานะ:</strong> {room.roomStatus}</Typography>
                         <Grid container spacing={6} alignItems="flex-start" justifyContent={'center'}>
 
-                            {/* Column 2: Name */}
                             <Grid item xs={12} sm={4} >
                                 <Box>
-                                    <Typography textAlign={'left'}><strong>วันที่เข้า:</strong> {room.checkInDate}</Typography>
+                                    <Typography textAlign={'left'}>
+                                        <strong>วันที่เข้า:</strong>
+                                        <span style={{ paddingLeft: '10.5px' }}>{room.checkInDate}</span>
+                                    </Typography>
                                     <Typography textAlign={'left'}><strong>วันที่ออก:</strong> {room.checkOutDate}</Typography>
                                 </Box>
                             </Grid>
 
-                            {/* Column 3: Contact Info */}
                             <Grid item xs={12} sm={5}>
                                 <Box>
                                     <Typography textAlign={'left'}><strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}</Typography>
-                                    <Typography textAlign={'left'}><strong>สัญญาจบ:</strong> {room.leaseEndDate}</Typography>
+                                    <Typography textAlign={'left'}>
+                                        <strong>สัญญาจบ:</strong>
+                                        <span style={{ paddingLeft: '7.5px' }}>{room.leaseEndDate}</span>
+                                    </Typography>
                                 </Box>
                             </Grid>
 
@@ -205,11 +208,31 @@ const RoomDetail = () => {
                     </Paper>
                     <Paper variant="outlined" sx={{ p: 2 }}>
                         <Typography variant="h6" gutterBottom>ค่าใช้จ่ายล่าสุด</Typography>
-                        <Typography><strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}</Typography>
-                        <Typography><strong>ค่าไฟ (บาท):</strong> {room.latestUsage.electricity.baht}</Typography>
-                        <Typography><strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}</Typography>
-                        <Typography><strong>ค่าน้ำ (บาท):</strong> {room.latestUsage.water.baht}</Typography>
-                        <Typography><strong>รวม:</strong> {room.latestUsage.totalBaht}</Typography>
+                        <Grid container spacing={6} alignItems="flex-start" justifyContent={'center'}>
+
+                            <Grid item xs={12} sm={4} >
+                                <Box>
+                                    <Typography textAlign={'left'}><strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}</Typography>
+                                    <Typography textAlign={'left'}>
+                                        <strong>ค่าไฟ (บาท):</strong>
+                                        <span style={{ paddingLeft: '14px' }}>{room.latestUsage.electricity.baht}</span>
+                                    </Typography>
+                                </Box>
+                            </Grid>
+
+                            <Grid item xs={12} sm={5}>
+                                <Box>
+                                    <Typography textAlign={'left'}><strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}</Typography>
+                                    <Typography textAlign={'left'}>
+                                        <strong>ค่าน้ำ (บาท):</strong>
+                                        <span style={{ paddingLeft: '14px' }}>{room.latestUsage.water.baht}</span>
+                                    </Typography>
+                                </Box>
+                            </Grid>
+
+                        </Grid>
+
+                        <Typography ><strong>รวม:</strong> {room.latestUsage.totalBaht}</Typography>
                     </Paper>
                 </Box>
                 <Box sx={{ pt: 2, mt: 2, borderTop: 1, borderColor: 'divider', display: 'flex', gap: 2 }}>

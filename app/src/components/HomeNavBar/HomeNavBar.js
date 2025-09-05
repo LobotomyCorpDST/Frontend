@@ -12,9 +12,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import RoomList from "../RoomList/RoomList"; // Assuming this component exists
 import InvoiceHistory from "../InvoiceHistory/InvoiceHistory"; // Assuming this component exists
+import Dashboard from "../Dashboard/Dashboard";
 
 const HomePage = () => {
   const navigationItems = [
+    { label: "Dashboard", component: <Dashboard /> },
     { label: "ห้องทั้งหมด", component: <RoomList /> },
     { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
   ];
@@ -47,31 +49,33 @@ const HomePage = () => {
               <Tab key={index} label={item.label} sx={{ textTransform: "none", fontWeight: 600, fontSize: "1rem" }} />
             ))}
           </Tabs>
+          {navigationItems[tabValue].component.type.name !== "Dashboard" && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <TextField
+                size="small"
+                placeholder="ค้นหา"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                sx={{ backgroundColor: "#f0f4fa", borderRadius: "8px", "& .MuiOutlinedInput-notchedOutline": { border: 0 } }}
+                InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
+              />
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {/* คุณสามารถเปิดใช้งาน SortBy dropdown ตรงนี้ได้ถ้าต้องการ */}
-            {/* <FormControl ... /> */}
-            <TextField
-              size="small"
-              placeholder="ค้นหา"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              sx={{ backgroundColor: "#f0f4fa", borderRadius: "8px", "& .MuiOutlinedInput-notchedOutline": { border: 0 } }}
-              InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
-            />
-            <Button variant="contained" startIcon={<AddIcon />} sx={{ textTransform: "none", fontWeight: "bold", borderRadius: "8px", boxShadow: 'none' }}>
-              เพิ่มห้อง
-            </Button>
-          </Box>
+              <Button variant="contained" startIcon={<AddIcon />} sx={{ textTransform: "none", fontWeight: "bold", borderRadius: "8px", boxShadow: 'none' }}>
+                {navigationItems[tabValue].component.type.name === "RoomList" ? "เพิ่มห้อง" : "เพิ่มใบแจ้งหนี้"}
+              </Button>
+            </Box>
+          )}
         </Box>
 
         {/* ส่วนของตาราง (ลูก) ที่จะอยู่ข้างใน Paper */}
-        {React.cloneElement(CurrentComponent, {
-          searchTerm: searchTerm,
-          sortBy: sortBy,
-        })}
-      </Paper>
-    </Box>
+        {
+          React.cloneElement(CurrentComponent, {
+            searchTerm: searchTerm,
+            sortBy: sortBy,
+          })
+        }
+      </Paper >
+    </Box >
   );
 };
 
