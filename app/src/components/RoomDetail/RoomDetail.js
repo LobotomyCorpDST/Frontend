@@ -14,15 +14,12 @@ import {
   IconButton,
   Alert,
 } from '@mui/material';
-
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 
 import RoomInvoiceTable from '../Invoice/RoomInvoiceTable';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
-
-// ใหม่: ส่วนบำรุงรักษาที่เชื่อม backend จริง
 import MaintenanceTable from '../Maintenance/MaintenanceTable';
 import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
 
@@ -67,66 +64,140 @@ const RoomDetail = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', gap: 3, maxWidth: '1600px', mx: 'auto', my: 4, px: 2, alignItems: 'flex-start' }}>
-      {/* LEFT */}
-      <Paper elevation={3} sx={{ flex: '1 1 40%', p: 3, height: '85vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{
+      display: 'flex',
+      gap: 3,
+      maxWidth: '1600px',
+      mx: 'auto',
+      my: 4,
+      px: 2,
+      alignItems: 'flex-start' // Align columns to the top
+    }}>
+      {/* Left Paper */}
+      <Paper
+        elevation={3}
+        sx={{
+          flex: '1 1 40%', // Flex properties for sizing
+          p: 3,
+          height: '85vh',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <IconButton onClick={() => navigate('/home')}><ArrowBackIcon /></IconButton>
-          <Typography variant="h4" component="h1" sx={{ ml: 1 }}>ห้อง {room.roomNumber}</Typography>
+          <IconButton onClick={() => navigate('/home')}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h4" component="h1" sx={{ ml: 1 }}>
+            ห้อง {room.roomNumber}
+          </Typography>
         </Box>
-
         <Typography variant="h6" color="primary" sx={{ borderBottom: 2, borderColor: 'primary.main', pb: 1, mb: 2 }}>
           รายละเอียด
         </Typography>
 
         <Box sx={{ flexGrow: 1, overflow: 'auto', pr: 1 }}>
-          {/* ข้อมูลผู้เช่า */}
           <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>ข้อมูลผู้เช่า</Typography>
-            <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              ข้อมูลผู้เช่า
+            </Typography>
+
+            <Grid container spacing={6} alignItems="flex-start" justifyContent={'center'}>
+
+              {/* Column 1: Avatar */}
               <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-                <Avatar src={room.tenantInfo.profilePic} sx={{ width: 80, height: 80 }} />
+                <Avatar
+                  src={room.tenantInfo.profilePic}
+                  sx={{ width: 80, height: 80 }}
+                />
               </Grid>
+
+              {/* Column 2: Name */}
               <Grid item xs={12} sm={4}>
-                <Typography variant="caption" color="text.secondary" display="block" textAlign="left">ชื่อ</Typography>
-                <Typography variant="body1" textAlign="left">{room.tenantInfo.name}</Typography>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" display="block" textAlign={'left'}>
+                    ชื่อ
+                  </Typography>
+                  <Typography variant="body1" textAlign={'left'}>
+                    {room.tenantInfo.name}
+                  </Typography>
+                </Box>
               </Grid>
+
+              {/* Column 3: Contact Info */}
               <Grid item xs={12} sm={5}>
-                <Typography variant="caption" color="text.secondary" display="block" textAlign="left">ช่องทางติดต่อ</Typography>
-                <Typography variant="body1" textAlign="left"><strong>LINE:</strong> {room.tenantInfo.lineId}</Typography>
-                <Typography variant="body1" textAlign="left"><strong>เบอร์:</strong> {room.tenantInfo.phoneNumber}</Typography>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" display="block" textAlign={'left'}>
+                    ช่องทางติดต่อ
+                  </Typography>
+                  <Typography textAlign={'left'}>
+                    <strong>LINE:</strong>
+                    <span style={{ paddingLeft: '28.5px' }}>{room.tenantInfo.lineId}</span>
+                  </Typography>
+                  <Typography variant="body1" textAlign={'left'}>
+                    <strong>เบอร์โทร:</strong> {room.tenantInfo.phoneNumber}
+                  </Typography>
+                </Box>
               </Grid>
+
             </Grid>
           </Paper>
-
-          {/* สัญญาเช่า */}
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
             <Typography variant="h6" gutterBottom>รายละเอียดสัญญาเช่า</Typography>
             <Typography><strong>สถานะ:</strong> {room.roomStatus}</Typography>
-            <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
-              <Grid item xs={12} sm={4}>
-                <Typography textAlign="left"><strong>วันที่เข้า:</strong> {room.checkInDate}</Typography>
-                <Typography textAlign="left"><strong>วันที่ออก:</strong> {room.checkOutDate}</Typography>
+            <Grid container spacing={6} alignItems="flex-start" justifyContent={'center'}>
+
+              <Grid item xs={12} sm={4} >
+                <Box>
+                  <Typography textAlign={'left'}>
+                    <strong>วันที่เข้า:</strong>
+                    <span style={{ paddingLeft: '10.5px' }}>{room.checkInDate}</span>
+                  </Typography>
+                  <Typography textAlign={'left'}><strong>วันที่ออก:</strong> {room.checkOutDate}</Typography>
+                </Box>
               </Grid>
+
               <Grid item xs={12} sm={5}>
-                <Typography textAlign="left"><strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}</Typography>
-                <Typography textAlign="left"><strong>สัญญาจบ:</strong> {room.leaseEndDate}</Typography>
+                <Box>
+                  <Typography textAlign={'left'}><strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}</Typography>
+                  <Typography textAlign={'left'}>
+                    <strong>สัญญาจบ:</strong>
+                    <span style={{ paddingLeft: '7.5px' }}>{room.leaseEndDate}</span>
+                  </Typography>
+                </Box>
               </Grid>
+
             </Grid>
           </Paper>
-
-          {/* ค่าใช้จ่ายล่าสุด */}
           <Paper variant="outlined" sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>ค่าใช้จ่ายล่าสุด</Typography>
-            <Typography><strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}</Typography>
-            <Typography><strong>ค่าไฟ (บาท):</strong> {room.latestUsage.electricity.baht}</Typography>
-            <Typography><strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}</Typography>
-            <Typography><strong>ค่าน้ำ (บาท):</strong> {room.latestUsage.water.baht}</Typography>
-            <Typography><strong>รวม:</strong> {room.latestUsage.totalBaht}</Typography>
+            <Grid container spacing={6} alignItems="flex-start" justifyContent={'center'}>
+
+              <Grid item xs={12} sm={4} >
+                <Box>
+                  <Typography textAlign={'left'}><strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}</Typography>
+                  <Typography textAlign={'left'}>
+                    <strong>ค่าไฟ (บาท):</strong>
+                    <span style={{ paddingLeft: '14px' }}>{room.latestUsage.electricity.baht}</span>
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} sm={5}>
+                <Box>
+                  <Typography textAlign={'left'}><strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}</Typography>
+                  <Typography textAlign={'left'}>
+                    <strong>ค่าน้ำ (บาท):</strong>
+                    <span style={{ paddingLeft: '14px' }}>{room.latestUsage.water.baht}</span>
+                  </Typography>
+                </Box>
+              </Grid>
+
+            </Grid>
+
+            <Typography ><strong>รวม:</strong> {room.latestUsage.totalBaht}</Typography>
           </Paper>
         </Box>
-
-        {/* ปุ่มแอคชันฝั่งซ้าย – เหลือเฉพาะปุ่มแก้ไขข้อมูลเท่านั้น */}
         <Box sx={{ pt: 2, mt: 2, borderTop: 1, borderColor: 'divider', display: 'flex', gap: 2 }}>
           <Button variant="outlined" startIcon={<EditIcon />} fullWidth sx={actionBtnSx}>
             แก้ไขข้อมูล
