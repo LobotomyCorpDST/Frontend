@@ -8,12 +8,15 @@ import {
     Select,
     MenuItem,
     FormControl,
+    Card,
+    CardContent,
+    Grid
 } from "@mui/material";
 import { placeholderData } from '../../data/placeholderData';
-
-// ไม่จำเป็นต้อง import SelectChangeEvent ถ้าไม่ได้ใช้ type โดยตรง
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [status, setStatus] = useState([]);
     const [floor, setFloor] = useState(1);
 
@@ -34,46 +37,105 @@ const Dashboard = () => {
     const unavailableRooms = status.filter(room =>
         room.roomStatus.toLowerCase() !== 'room available'
     );
-    
-    // กรองห้องตามชั้นที่เลือกไว้ใน state `floor`
+
     const filteredRoomsByFloor = status.filter(room => room.floor === floor);
+
+
+    const handleRoomNumberClick = (roomNumber) => {
+        navigate(`/room-details/${roomNumber}`);
+    };
+
+    const RoomCard = ({ room }) => {
+        const borderColor = room.roomStatus.toLowerCase() === "room available"
+            ? 'success.main'
+            : 'error.main';
+
+        return (
+            <Card
+                variant="outlined"
+                onClick={() => handleRoomNumberClick(room.roomNumber)}
+                sx={{
+                    width: 180,
+                    border: '2px solid',
+                    borderColor: borderColor,
+                    borderRadius: 2,
+                    '&:hover': {
+                        cursor: 'pointer',
+                        '& .room-number': {
+                            textDecoration: 'underline',
+                        }
+                    }
+                }}
+            >
+                <CardContent>
+                    <Typography
+                        variant="h5"
+                        component="div"
+                        className="room-number"
+                        sx={{
+                            color: borderColor,
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        {room.roomNumber}
+                    </Typography>
+
+                    <Grid container justifyContent="center" spacing={3} sx={{ mt: 1 }}>
+                        <Grid item xs={8}>
+                            <Typography variant="body2" textAlign="left">สำหรับ</Typography>
+                            <Typography variant="body2" textAlign="left">ห้องน้ำในตัว</Typography>
+                            <Typography variant="body2" textAlign="left">ครัว</Typography>
+                        </Grid>
+                        <Grid item xs={4}>
+                            <Typography variant="body2">1 คน</Typography>
+                            <Typography variant="body2">{room.privateBathroom ? 'ใช่' : 'ไม่ใช่'}</Typography>
+                            <Typography variant="body2">{room.kitchen ? 'ใช่' : 'ไม่ใช่'}</Typography>
+                        </Grid>
+                    </Grid>
+
+                    <Typography variant="body1" sx={{ mt: 2, fontWeight: 'medium' }}>
+                        {room.price} บาท/เดือน
+                    </Typography>
+                </CardContent>
+            </Card>
+        );
+    };
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mr: 2, alignItems: 'center', flexWrap: 'wrap' }} gap={2}>
-                <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ห้องทั้งหมด</Typography>
-                <Chip label={status.length} color="primary" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
-                <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ว่าง</Typography>
-                <Chip label={availableRooms.length} color="success" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
-                <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ไม่ว่าง</Typography>
-                <Chip label={unavailableRooms.length} color="error" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ maxWidth: 130, ml: 3 }}>
+                    <FormControl fullWidth>
+                        <InputLabel id="floor-select-label">ชั้น</InputLabel>
+                        <Select
+                            labelId="floor-select-label"
+                            id="floor-select"
+                            value={floor}
+                            label="ชั้น"
+                            onChange={handleChange}
+                        >
+                            <MenuItem value={1}>ชั้น 1</MenuItem>
+                            <MenuItem value={2}>ชั้น 2</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mr: 2, alignItems: 'center', flexWrap: 'wrap' }} gap={2}>
+                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ห้องทั้งหมด</Typography>
+                    <Chip label={status.length} color="primary" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ว่าง</Typography>
+                    <Chip label={availableRooms.length} color="success" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ไม่ว่าง</Typography>
+                    <Chip label={unavailableRooms.length} color="error" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+                </Box>
             </Box>
-            
-            <Box sx={{ maxWidth: 120, ml: 3 }}>
-                <FormControl fullWidth>
-                    <InputLabel id="floor-select-label">ชั้น</InputLabel>
-                    <Select
-                        labelId="floor-select-label"
-                        id="floor-select"
-                        value={floor}
-                        label="ชั้น"
-                        onChange={handleChange}
-                    >
-                        <MenuItem value={1}>ชั้น 1</MenuItem>
-                        <MenuItem value={2}>ชั้น 2</MenuItem>
-                    </Select>
-                </FormControl>
-            </Box>
-            
+
+
             {/* ส่วนที่แสดงผล Chip ของแต่ละห้อง */}
             <Box sx={{ p: 3 }}>
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                     {filteredRoomsByFloor.map((room) => (
-                        <Chip
-                            key={room.id} 
-                            label={room.roomNumber}
-                            color={room.roomStatus.toLowerCase() === "room available" ? "success" : "error"}
-                        />
+                        <RoomCard key={room.id} room={room} />
                     ))}
                 </Stack>
             </Box>
