@@ -1,148 +1,113 @@
 export const placeholderData = [
   {
-    id: 1, // Added ID for unique key
-    floor: 1, // Added floor number
-    roomNumber: '101', // Changed to string for consistency
+    id: 1,
+    floor: 1,
+    roomNumber: '101',
+    // --- Data added for RoomCard component ---
+    price: 3000,
+    occupancy: 1,
+    privateBathroom: true,
+    kitchen: true,
+    // --- Existing Data ---
     tenantInfo: {
       name: 'นายกิตติชาติ ชินนา',
       phoneNumber: '0007355608',
       lineId: 'ohiobossrizz',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'rent paid',
+    roomStatus: 'rent paid', // Status could be 'rent paid', 'overdue', etc. (Red border)
     checkInDate: '2024-09-01',
     checkOutDate: '-',
     leaseStartDate: '2024-09-01',
     leaseEndDate: '2025-08-31',
-    maintenanceStatus: '-',
-    latestInvoice: {
-      invoiceId: 9876543,
-      paymentDate: '2024-09-25',
-      paymentAmount: 5000.00,
-      paymentStatus: 'Paid',
-    },
-    latestUsage: {
-      electricity: { units: 250, baht: 1000.00 },
-      water: { units: 15, baht: 300.00 },
-      overdue: { baht: 0, days: 0 },
-      totalBaht: 5000.00,
-    },
   },
   {
     id: 2,
     floor: 1,
     roomNumber: '102',
+    // --- Data added for RoomCard component ---
+    price: 3000,
+    occupancy: 1,
+    privateBathroom: true,
+    kitchen: false, // Example of a room without a kitchen
+    // --- Existing Data ---
     tenantInfo: {
       name: 'Jane Smith',
       phoneNumber: '0001234567',
       lineId: 'janesmith',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'overdue',
+    roomStatus: 'overdue', // (Red border)
     checkInDate: '2024-08-15',
     checkOutDate: '-',
     leaseStartDate: '2024-08-15',
     leaseEndDate: '2025-08-14',
-    maintenanceStatus: '2024-09-01',
-    latestInvoice: {
-      invoiceId: 1234567,
-      paymentDate: '2024-10-01',
-      paymentAmount: 5500.50,
-      paymentStatus: 'Overdue',
-    },
-    latestUsage: {
-      electricity: { units: 280, baht: 1120.00 },
-      water: { units: 18, baht: 360.00 },
-      overdue: { baht: 550.50, days: 30 },
-      totalBaht: 5500.50,
-    },
   },
   {
     id: 3,
     floor: 1,
     roomNumber: '103',
+    // --- Data added for RoomCard component ---
+    price: 3000,
+    occupancy: 1,
+    privateBathroom: true,
+    kitchen: true,
+    // --- Existing Data ---
     tenantInfo: {
       name: '-',
       phoneNumber: '-',
       lineId: '-',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'Room Available', // Consistent naming
+    roomStatus: 'Room Available', // (Green border)
     checkInDate: '-',
     checkOutDate: '-',
     leaseStartDate: '-',
     leaseEndDate: '-',
-    maintenanceStatus: '-',
-    latestInvoice: {
-      invoiceId: 8765432,
-      paymentDate: '2024-10-10',
-      paymentAmount: 4800.00,
-      paymentStatus: 'Not yet paid',
-    },
-    latestUsage: {
-      electricity: { units: 0, baht: 0 },
-      water: { units: 0, baht: 0 },
-      overdue: { baht: 0, days: 0 },
-      totalBaht: 0,
-    },
   },
   // --- Data for Floor 2 ---
   {
     id: 4,
     floor: 2,
     roomNumber: '201',
+    // --- Data added for RoomCard component ---
+    price: 3200, // Example of different price
+    occupancy: 1,
+    privateBathroom: true,
+    kitchen: true,
+    // --- Existing Data ---
     tenantInfo: {
       name: 'Somsak Jaidee',
       phoneNumber: '0891234567',
       lineId: 'somsak.j',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'rent paid',
+    roomStatus: 'rent paid', // (Red border)
     checkInDate: '2024-07-01',
     checkOutDate: '-',
     leaseStartDate: '2024-07-01',
     leaseEndDate: '2025-06-30',
-    maintenanceStatus: '-',
-    latestInvoice: {
-      invoiceId: 1122334,
-      paymentDate: '2024-09-28',
-      paymentAmount: 6000.00,
-      paymentStatus: 'Paid',
-    },
-    latestUsage: {
-      electricity: { units: 300, baht: 1200.00 },
-      water: { units: 20, baht: 400.00 },
-      overdue: { baht: 0, days: 0 },
-      totalBaht: 6000.00,
-    },
   },
   {
     id: 5,
     floor: 2,
     roomNumber: '202',
+    // --- Data added for RoomCard component ---
+    price: 3200,
+    occupancy: 1,
+    privateBathroom: true,
+    kitchen: false,
+    // --- Existing Data ---
     tenantInfo: {
       name: '-',
       phoneNumber: '-',
       lineId: '-',
       profilePic: 'https://placehold.co/150x150/e0eaf2/1d3e7d?text=Profile',
     },
-    roomStatus: 'Room Available',
+    roomStatus: 'Room Available', // (Green border)
     checkInDate: '-',
     checkOutDate: '-',
     leaseStartDate: '-',
     leaseEndDate: '-',
-    maintenanceStatus: '-',
-    latestInvoice: {
-      invoiceId: 0,
-      paymentDate: '-',
-      paymentAmount: 0,
-      paymentStatus: '-',
-    },
-    latestUsage: {
-      electricity: { units: 0, baht: 0 },
-      water: { units: 0, baht: 0 },
-      overdue: { baht: 0, days: 0 },
-      totalBaht: 0,
-    },
   },
 ];
