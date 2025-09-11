@@ -1,6 +1,10 @@
 import http from './http';
 
 // ---------------- Query ----------------
+export async function listMaintenance() {
+  return http.get(`/api/maintenance`);
+}
+
 export async function listMaintenanceByRoom(roomId) {
   return http.get(`/api/maintenance/by-room/${roomId}`);
 }

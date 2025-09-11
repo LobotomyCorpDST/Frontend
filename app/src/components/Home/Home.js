@@ -14,12 +14,14 @@ import Dashboard from '../Dashboard/Dashboard';
 import RoomList from '../RoomList/RoomList';
 import InvoiceHistory from '../InvoiceHistory/InvoiceHistory';
 import LeaseHistory from '../LeaseHistory/LeaseHistory'; // ✅ เพิ่ม import
+import MaintenanceHistory from '../Maintenance/MaintenanceHistory';
 
 // ✅ เพิ่มเมนู "ประวัติสัญญาเช่า"
 const navigationItems = [
   { label: "Dashboard", component: <Dashboard /> },
   { label: "ห้องทั้งหมด", component: <RoomList /> },
   { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
+  { label: "บำรุงรักษา", component: <MaintenanceHistory /> },
   { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> }, // ✅ เมนูใหม่
 ];
 
