@@ -19,16 +19,29 @@ import {
 } from '@mui/material';
 import { createInvoice, openInvoice } from '../../api/invoice';
 
+const API_BASE =
+  (process.env.REACT_APP_API && process.env.REACT_APP_API.replace(/\/+$/, '')) ||
+  'http://localhost:8080/api';
+
 function numOrUndef(v) {
   if (v === '' || v === null || v === undefined) return undefined;
   const n = Number(v);
   return Number.isFinite(n) ? n : undefined;
 }
 
-export default function GenerateInvoiceModal({ roomId, onClose, onSuccess }) {
+/**
+ * Props:
+ * - open: boolean                 -> คุมเปิด/ปิด Dialog
+ * - onClose: () => void
+ * - onCreated?: (inv) => void     -> เรียกตอนสร้างสำเร็จ
+ * - roomId?: number               -> ถ้าส่งมา จะซ่อนช่องกรอกเลขห้อง
+ */
+export default function GenerateInvoiceModal({ open, onClose, onCreated, roomId }) {
   const today = useMemo(() => new Date(), []);
   const y = today.getFullYear();
   const m = today.getMonth() + 1;
+
+  const [roomNumber, setRoomNumber] = useState('');
 
   const [billingYear, setBillingYear] = useState(y);
   const [billingMonth, setBillingMonth] = useState(m);
@@ -50,12 +63,27 @@ export default function GenerateInvoiceModal({ roomId, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  async function resolveRoomId() {
+    if (roomId) return roomId;
+    const n = Number(roomNumber);
+    if (!Number.isFinite(n) || n <= 0) {
+      throw new Error('กรุณากรอกเลขห้องให้ถูกต้อง');
+    }
+    const res = await fetch(`${API_BASE}/rooms/by-number/${encodeURIComponent(n)}`);
+    if (!res.ok) throw new Error('ไม่พบห้องตามเลขที่ระบุ');
+    const room = await res.json();
+    if (!room?.id) throw new Error('ข้อมูลห้องไม่ถูกต้อง');
+    return room.id;
+  }
+
   async function handleCreate() {
     setLoading(true);
     setError('');
     try {
+      const resolvedRoomId = await resolveRoomId();
+
       const payload = {
-        roomId,
+        roomId: resolvedRoomId,
         billingYear: numOrUndef(billingYear),
         billingMonth: numOrUndef(billingMonth),
         issueDate,
@@ -67,7 +95,6 @@ export default function GenerateInvoiceModal({ roomId, onClose, onSuccess }) {
         otherBaht: numOrUndef(otherBaht),
       };
 
-      // ลบ key ที่เป็น undefined ออก เพื่อให้ body สะอาด
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
       const inv = await createInvoice(payload, {
@@ -75,27 +102,53 @@ export default function GenerateInvoiceModal({ roomId, onClose, onSuccess }) {
         includeGarbageFee,
       });
 
-      // เปิดหน้าหลังสร้างสำเร็จ
       openInvoice(inv.id, openAfter);
-      onSuccess && onSuccess(inv);
+      onCreated && onCreated(inv);
       onClose && onClose();
     } catch (e) {
-      setError(e.message || 'Create invoice failed');
+      setError(e?.message || 'Create invoice failed');
     } finally {
       setLoading(false);
     }
   }
 
+  function handleClose() {
+    if (loading) return;
+    setError('');
+    onClose && onClose();
+  }
+
   return (
-    <Dialog open onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth>
+    <Dialog open={!!open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ pb: 1 }}>
-        สร้างใบแจ้งหนี้ — <Typography component="span" color="primary">ห้อง {roomId}</Typography>
+        สร้างใบแจ้งหนี้{' '}
+        {!roomId && (
+          <Typography component="span" sx={{ ml: 1 }} color="text.secondary">
+            (เลือกเลขห้องก่อนสร้าง)
+          </Typography>
+        )}
       </DialogTitle>
+
       <DialogContent dividers>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
+        )}
+
+        {/* Room number selector (ถ้าไม่ได้ส่ง roomId มา) */}
+        {!roomId && (
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12}>
+              <TextField
+                label="เลขห้อง"
+                fullWidth
+                value={roomNumber}
+                onChange={(e) => setRoomNumber(e.target.value.replace(/\D/g, ''))}
+                placeholder="เช่น 101"
+              />
+            </Grid>
+          </Grid>
         )}
 
         {/* Billing period */}
@@ -260,7 +313,7 @@ export default function GenerateInvoiceModal({ roomId, onClose, onSuccess }) {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} disabled={loading}>
+        <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
         <Button

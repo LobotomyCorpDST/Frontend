@@ -4,6 +4,7 @@ import LoginPage from "./components/LoginPage/LoginPage";
 import HomePage from "./components/Home/Home";
 import RoomDetail from './components/RoomDetail/RoomDetail';
 import InvoiceListPage from './components/Invoice/InvoiceListPage';
+import LeaseHistory from './components/LeaseHistory/LeaseHistory';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/room-details/:roomNumber" element={<RoomDetail />} />
                     <Route path="/invoices" element={<InvoiceListPage />} />
+                    <Route path="/lease-history" element={<LeaseHistory />} />
                 </Routes>
             </div>
         </Router>
