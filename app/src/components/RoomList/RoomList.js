@@ -1,11 +1,29 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './RoomList.css';
+import {
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel,
+  Box, Link, Typography,
+} from '@mui/material';
+import { visuallyHidden } from '@mui/utils';
 import CreateRoomModal from './CreateRoomModal';
 
 const API_BASE =
   (process.env.REACT_APP_API && process.env.REACT_APP_API.replace(/\/+$/, '')) ||
   'http://localhost:8080/api';
+
+const headerCellStyle = {
+  backgroundColor: '#1d3e7d', fontWeight: 600, color: '#f8f9fa', padding: '12px',
+  textAlign: 'left', borderBottom: '1px solid #e0e6eb', cursor: 'pointer',
+  '&:hover': { backgroundColor: '#173262' }
+};
+
+const headCells = [
+  { id: 'roomNumber', label: 'Room No.' },
+  { id: 'occupantName', label: 'Occupant\'s Name' },
+  { id: 'leaseEndDate', label: 'Lease End Date' },
+  { id: 'roomStatus', label: 'Room Status' },
+  { id: 'maintenanceStatus', label: 'Maintenance Status' },
+];
 
 const RoomList = ({ searchTerm, addRoomSignal }) => {
   const navigate = useNavigate();
@@ -122,6 +140,11 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     });
   }, [rooms, sortConfig]);
 
+  const handleRequestSort = (property) => {
+    const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
+    setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+  };
+
   const filteredRooms = useMemo(() => {
     const term = (searchTerm || '').toLowerCase();
     if (!term) return sortedRooms;
@@ -141,28 +164,78 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
 
   return (
     <>
-      <table className="room-table">
-        <thead>
-          <tr>
-            <th onClick={() => handleSort('roomNumber')} className="sortable">Room No.</th>
-            <th onClick={() => handleSort('occupantName')} className="sortable">Occupant&apos;s Name</th>
-            <th onClick={() => handleSort('leaseEndDate')} className="sortable">Lease End Date</th>
-            <th onClick={() => handleSort('roomStatus')} className="sortable">Room Status</th>
-            <th onClick={() => handleSort('maintenanceStatus')} className="sortable">Maintenance Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredRooms.map((room) => (
-            <tr key={room.roomId} onClick={() => handleRowClick(room.roomNumber)}>
-              <td className="link-text">{room.roomNumber}</td>
-              <td>{room.tenantInfo.name}</td>
-              <td>{room.leaseEndDate}</td>
-              <td className={`status-${room.roomStatus.replace(/\s+/g, '-')}`}>{room.roomStatus}</td>
-              <td>{room.maintenanceStatus}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          marginTop: '20px', borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', overflowX: 'auto',
+        }}
+      >
+        <Table sx={{ minWidth: 650, maxWidth: '96%', mx: 'auto', mb: 2 }} aria-label="room list table">
+          <TableHead>
+            <TableRow>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  sx={headerCellStyle}
+                  sortDirection={sortConfig.key === headCell.id ? sortConfig.direction : false}
+                  onClick={() => handleRequestSort(headCell.id)}
+                >
+                  <TableSortLabel
+                    active={sortConfig.key === headCell.id}
+                    direction={sortConfig.key === headCell.id ? sortConfig.direction : 'asc'}
+                    sx={{
+                      color: '#f8f9fa', '&:hover': { color: '#f0f4fa' }, '&.Mui-active': {
+                        color: '#f8f9fa',
+                        '& .MuiTableSortLabel-icon': {
+                          transform: sortConfig.direction === 'ascending' ? 'rotate(180deg)' : 'rotate(0deg)',
+                        }
+                      },
+                      '& .MuiTableSortLabel-icon': { color: 'inherit !important' },
+                    }}
+                  >
+                    {headCell.label}
+                    {sortConfig.key === headCell.id ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {sortConfig.direction === 'descending' ? 'sorted descending' : 'sorted ascending'}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredRooms.length > 0 ? (
+              filteredRooms.map((room) => (
+                <TableRow
+                  key={room.roomId}
+                  onClick={() => handleRowClick(room.roomNumber)}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: '#f1f3f5' },
+                    '&:last-child td, &:last-child th': { border: 0 },
+                  }}
+                >
+                  <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
+                    <Link component="button" variant="body2" sx={{ fontWeight: 'bold' }}>{room.roomNumber}</Link>
+                  </TableCell>
+                  <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{room.tenantInfo.name}</TableCell>
+                  <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{room.leaseEndDate}</TableCell>
+                  <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{room.roomStatus}</TableCell>
+                  <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{room.maintenanceStatus}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={headCells.length} sx={{ textAlign: 'center', py: 3 }}>
+                  No rooms found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {openCreate && (
         <CreateRoomModal
