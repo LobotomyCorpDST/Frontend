@@ -41,7 +41,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
       <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
         <Box
           sx={{
-            p: 3,
+            mt: 2,
+            p: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "end",

@@ -111,13 +111,6 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     };
   }, []);
 
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === 'ascending' ? 'descending' : 'ascending',
-    }));
-  };
-
   const sortedRooms = useMemo(() => {
     const list = [...rooms];
     if (!sortConfig.key) return list;

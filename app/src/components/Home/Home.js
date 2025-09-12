@@ -1,5 +1,5 @@
-// HomePage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../Header/Header';
 import HomeNavBar from '../HomeNavBar/HomeNavBar';
 import './Home.css';
@@ -16,7 +16,6 @@ import InvoiceHistory from '../InvoiceHistory/InvoiceHistory';
 import LeaseHistory from '../LeaseHistory/LeaseHistory'; // ✅ เพิ่ม import
 import MaintenanceHistory from '../Maintenance/MaintenanceHistory';
 
-// ✅ เพิ่มเมนู "ประวัติสัญญาเช่า"
 const navigationItems = [
   { label: "Dashboard", component: <Dashboard /> },
   { label: "ห้องทั้งหมด", component: <RoomList /> },
@@ -27,12 +26,30 @@ const navigationItems = [
 
 function HomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const currentTab = searchParams.get('tab');
+    const initialIndex = navigationItems.findIndex(item => item.label === currentTab);
+    // ถ้าไม่เจอ tab ใน URL หรือไม่มีค่า param ให้ใช้ index 0 (Dashboard)
+    return initialIndex !== -1 ? initialIndex : 0;
+  });
+
+  useEffect(() => {
+    // ถ้าใน URL ไม่มี 'tab' parameter ให้ตั้งค่าเริ่มต้นให้
+    if (!searchParams.get('tab')) {
+      setSearchParams({ tab: navigationItems[activeIndex].label }, { replace: true });
+    }
+  }, [activeIndex, navigationItems, searchParams, setSearchParams]);
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
 
   const handleNavigationChange = (index) => {
     setActiveIndex(index);
+    const newTabLabel = navigationItems[index].label;
+
+    setSearchParams({ tab: newTabLabel });
+
   };
 
   const drawerContent = (

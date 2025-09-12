@@ -83,14 +83,6 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
     loadInvoices();
   }, []);
 
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      direction:
-        prev.key === key && prev.direction === 'ascending' ? 'descending' : 'ascending',
-    }));
-  };
-
   const handleRequestSort = (property) => {
     const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
@@ -185,26 +177,30 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
                   sortDirection={sortConfig.key === headCell.id ? sortConfig.direction : false}
                   onClick={() => !headCell.disableSorting && handleRequestSort(headCell.id)}
                 >
-                  <TableSortLabel
-                    active={sortConfig.key === headCell.id}
-                    direction={sortConfig.key === headCell.id ? sortConfig.direction : 'asc'}
-                    sx={{
-                      color: '#f8f9fa', '&:hover': { color: '#f0f4fa' }, '&.Mui-active': {
-                        color: '#f8f9fa',
-                        '& .MuiTableSortLabel-icon': {
-                          transform: sortConfig.direction === 'ascending' ? 'rotate(180deg)' : 'rotate(0deg)',
-                        }
-                      },
-                      '& .MuiTableSortLabel-icon': { color: 'inherit !important' },
-                    }}
-                  >
-                    {headCell.label}
-                    {sortConfig.key === headCell.id ? (
-                      <Box component="span" sx={visuallyHidden}>
-                        {sortConfig.direction === 'descending' ? 'sorted descending' : 'sorted ascending'}
-                      </Box>
-                    ) : null}
-                  </TableSortLabel>
+                  {headCell.disableSorting ? (
+                    headCell.label
+                  ) : (
+                    <TableSortLabel
+                      active={sortConfig.key === headCell.id}
+                      direction={sortConfig.key === headCell.id ? sortConfig.direction : 'asc'}
+                      sx={{
+                        color: '#f8f9fa', '&:hover': { color: '#f0f4fa' }, '&.Mui-active': {
+                          color: '#f8f9fa',
+                          '& .MuiTableSortLabel-icon': {
+                            transform: sortConfig.direction === 'ascending' ? 'rotate(180deg)' : 'rotate(0deg)',
+                          }
+                        },
+                        '& .MuiTableSortLabel-icon': { color: 'inherit !important' },
+                      }}
+                    >
+                      {headCell.label}
+                      {sortConfig.key === headCell.id ? (
+                        <Box component="span" sx={visuallyHidden}>
+                          {sortConfig.direction === 'descending' ? 'sorted descending' : 'sorted ascending'}
+                        </Box>
+                      ) : null}
+                    </TableSortLabel>
+                  )}
                 </TableCell>
               ))}
             </TableRow>
