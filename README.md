@@ -1,9 +1,3 @@
-> วิธีการ run website
-- ### `cd app`
-- ### `npm install`
-then
-- ### `npm start`
-
 > Setting .env
 - REACT_APP_API_BASE=BACKEND_URL
 
@@ -60,3 +54,8 @@ services:
 volumes:
   mysql-data:
 ```
+
+- ### then
+run
+`docker-compose up --build`
+*make sure your docker desktop is opened
