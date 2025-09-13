@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { listMaintenance } from '../../api/maintenance';
+import { listMaintenance, getMaintenanceByID } from '../../api/maintenance';
 
 import {
     Table,
@@ -14,7 +14,19 @@ import {
     Chip,
     Box,
     TableSortLabel,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
 } from '@mui/material';
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineDot from '@mui/lab/TimelineDot';
 import { visuallyHidden } from '@mui/utils';
 
 const formatDate = (dateString) => {
@@ -63,6 +75,9 @@ export default function MaintenanceHistory({ searchTerm }) {
     const [allMaintenance, setAllMaintenance] = useState([]);
     const [filteredMaintenance, setFilteredMaintenance] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
+    const [openDialog, setOpenDialog] = useState(false);
+    const [scroll, setScroll] = React.useState('paper');
+    const [selectedMaintenance, setSelectedMaintenance] = useState([]);
 
     useEffect(() => {
         const getMaintenanceList = async () => {
@@ -103,9 +118,35 @@ export default function MaintenanceHistory({ searchTerm }) {
         setFilteredMaintenance(filteredData);
     }, [searchTerm, allMaintenance]);
 
+    const descriptionElementRef = React.useRef(null);
+    React.useEffect(() => {
+        if (openDialog) {
+            const { current: descriptionElement } = descriptionElementRef;
+            if (descriptionElement !== null) {
+                descriptionElement.focus();
+            }
+        }
+    }, [openDialog]);
+
     const handleRequestSort = (property) => {
         const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
         setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+    };
+
+    const handleOpenDialog = (id) => {
+        setOpenDialog(true);
+        setScroll('body');
+        getMaintenance(id);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSelectedMaintenance([]);
+    };
+
+    const getMaintenance = async (id) => {
+        const maintenance = await getMaintenanceByID(id);
+        setSelectedMaintenance(maintenance);
     };
 
     const sortedItems = useMemo(() => {
@@ -138,92 +179,192 @@ export default function MaintenanceHistory({ searchTerm }) {
     }
 
     return (
-        <TableContainer
-            component={Paper}
-            sx={{
-                marginTop: '20px',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-                overflowX: 'auto',
-            }}
-        >
-            <Table sx={{ minWidth: 650, maxWidth: '96%', mx: 'auto', mb: 2 }} aria-label="maintenance history table">
-                <TableHead>
-                    <TableRow>
-                        {headCells.map((headCell) => (
-                            <TableCell
-                                key={headCell.id}
-                                sx={headerCellStyle}
-                                sortDirection={sortConfig.key === headCell.id ? sortConfig.direction : false}
-                                onClick={() => !headCell.disableSorting && handleRequestSort(headCell.id)}
-                            >
-                                <TableSortLabel
-                                    active={sortConfig.key === headCell.id}
-                                    direction={sortConfig.key === headCell.id ? sortConfig.direction : 'asc'}
-                                    sx={{
-                                        color: '#f8f9fa',
-                                        '&:hover': { color: '#f0f4fa' },
-                                        '&.Mui-active': {
+        <>
+            <TableContainer
+                component={Paper}
+                sx={{
+                    marginTop: '20px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+                    overflowX: 'auto',
+                }}
+            >
+                <Table sx={{ minWidth: 650, maxWidth: '96%', mx: 'auto', mb: 2 }} aria-label="maintenance history table">
+                    <TableHead>
+                        <TableRow>
+                            {headCells.map((headCell) => (
+                                <TableCell
+                                    key={headCell.id}
+                                    sx={headerCellStyle}
+                                    sortDirection={sortConfig.key === headCell.id ? sortConfig.direction : false}
+                                    onClick={() => !headCell.disableSorting && handleRequestSort(headCell.id)}
+                                >
+                                    <TableSortLabel
+                                        active={sortConfig.key === headCell.id}
+                                        direction={sortConfig.key === headCell.id ? sortConfig.direction : 'asc'}
+                                        sx={{
                                             color: '#f8f9fa',
-                                            '& .MuiTableSortLabel-icon': {
-                                                transform: sortConfig.direction === 'ascending'
-                                                    ? 'rotate(180deg)' // Point up for ascending
-                                                    : 'rotate(0deg)',   // Point down for descending
+                                            '&:hover': { color: '#f0f4fa' },
+                                            '&.Mui-active': {
+                                                color: '#f8f9fa',
+                                                '& .MuiTableSortLabel-icon': {
+                                                    transform: sortConfig.direction === 'ascending'
+                                                        ? 'rotate(180deg)' // Point up for ascending
+                                                        : 'rotate(0deg)',   // Point down for descending
+                                                },
                                             },
-                                        },
-                                        '& .MuiTableSortLabel-icon': {
-                                            color: 'inherit !important',
-                                        },
+                                            '& .MuiTableSortLabel-icon': {
+                                                color: 'inherit !important',
+                                            },
+                                        }}
+                                    >
+                                        {headCell.label}
+                                        {sortConfig.key === headCell.id ? (
+                                            <Box component="span" sx={visuallyHidden}>
+                                                {sortConfig.direction === 'descending' ? 'sorted descending' : 'sorted ascending'}
+                                            </Box>
+                                        ) : null}
+                                    </TableSortLabel>
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {sortedItems.length > 0 ? (
+                            sortedItems.map((item) => (
+                                <TableRow
+                                    key={item.id}
+                                    sx={{
+                                        '&:hover': { backgroundColor: '#f1f3f5' },
+                                        '&:last-child td, &:last-child th': { border: 0 },
                                     }}
                                 >
-                                    {headCell.label}
-                                    {sortConfig.key === headCell.id ? (
-                                        <Box component="span" sx={visuallyHidden}>
-                                            {sortConfig.direction === 'descending' ? 'sorted descending' : 'sorted ascending'}
+                                    {/* Table cells remain the same */}
+                                    <TableCell component="th" scope="row" sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
+                                        <Button onClick={() => handleOpenDialog(item.id)}>
+                                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                {`C${item.roomNumber}0${item.id}`}
+                                            </Typography>
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
+                                        <Box>
+                                            <Typography variant="body2">นาย ช่าง หัวมัน</Typography>
+                                            <Typography variant="caption" color="text.secondary">0000000008</Typography>
                                         </Box>
-                                    ) : null}
-                                </TableSortLabel>
-                            </TableCell>
-                        ))}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {sortedItems.length > 0 ? (
-                        sortedItems.map((item) => (
-                            <TableRow
-                                key={item.id}
+                                    </TableCell>
+                                    <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>ประปา</TableCell>
+                                    <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{formatDate(item.completedDate)}</TableCell>
+                                    <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{renderStatus(item.status)}</TableCell>
+                                    <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{item.description}</TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} sx={{ textAlign: 'center', py: 3, color: 'text.secondary' }}>
+                                    ไม่พบข้อมูล
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                fullWidth
+                maxWidth="md" // Optional: gives the dialog a bit more space
+                scroll={scroll}
+            >
+                {/* The DialogTitle is good for accessibility and clarity */}
+                <DialogTitle sx={{ fontWeight: 'bold' }}>
+                    รายละเอียดการแจ้งซ่อม
+                </DialogTitle>
+
+                {/*
+      Place content directly in DialogContent.
+      Move the props from DialogContentText here.
+    */}
+                <DialogContent
+                    dividers={scroll === 'paper'}
+                    id="scroll-dialog-description"
+                    ref={descriptionElementRef}
+                    tabIndex={-1}
+                >
+                    {/* Check if data has been loaded before rendering */}
+                    {selectedMaintenance && Object.keys(selectedMaintenance).length > 0 ? (
+                        <>
+                            {/* 1. Your Header Section */}
+                            <Box
                                 sx={{
-                                    '&:hover': { backgroundColor: '#f1f3f5' },
-                                    '&:last-child td, &:last-child th': { border: 0 },
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    mb: 2 // Add some margin-bottom
                                 }}
                             >
-                                {/* Table cells remain the same */}
-                                <TableCell component="th" scope="row" sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
-                                    <Link href="#" underline="hover" sx={{ fontWeight: 'bold' }}>
-                                        {`C${item.roomNumber}0${item.id}`}
-                                    </Link>
-                                </TableCell>
-                                <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
-                                    <Box>
-                                        <Typography variant="body2">นาย ช่าง หัวมัน</Typography>
-                                        <Typography variant="caption" color="text.secondary">0000000008</Typography>
-                                    </Box>
-                                </TableCell>
-                                <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>ประปา</TableCell>
-                                <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{formatDate(item.completedDate)}</TableCell>
-                                <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{renderStatus(item.status)}</TableCell>
-                                <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{item.description}</TableCell>
-                            </TableRow>
-                        ))
+                                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                                    {selectedMaintenance.description}
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Typography variant="body1">
+                                        สถานะ: {renderStatus(selectedMaintenance.status)}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        เลขห้อง: {selectedMaintenance.roomNumber}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {/* 2. Your Timeline Section (Now it will render correctly) */}
+                            <Timeline position="alternate">
+                                <TimelineItem>
+                                    <TimelineSeparator>
+                                        <TimelineDot color="primary" />
+                                        <TimelineConnector />
+                                    </TimelineSeparator>
+                                    <TimelineContent>
+                                        <Typography sx={{ fontWeight: 'bold' }}>รับแจ้ง</Typography>
+                                        <Typography variant="caption">{formatDate(selectedMaintenance.createdDate)}</Typography>
+                                    </TimelineContent>
+                                </TimelineItem>
+
+                                <TimelineItem>
+                                    <TimelineSeparator>
+                                        <TimelineDot color="secondary" />
+                                        <TimelineConnector />
+                                    </TimelineSeparator>
+                                    <TimelineContent>
+                                        <Typography sx={{ fontWeight: 'bold' }}>มอบหมายงาน</Typography>
+                                        {/* You would add a date for this event here */}
+                                    </TimelineContent>
+                                </TimelineItem>
+
+                                {/* Example of a completed event */}
+                                {selectedMaintenance.status === 'COMPLETED' && (
+                                    <TimelineItem>
+                                        <TimelineSeparator>
+                                            <TimelineDot color="success" />
+                                        </TimelineSeparator>
+                                        <TimelineContent>
+                                            <Typography sx={{ fontWeight: 'bold' }}>เสร็จสิ้น</Typography>
+                                            <Typography variant="caption">{formatDate(selectedMaintenance.completedDate)}</Typography>
+                                        </TimelineContent>
+                                    </TimelineItem>
+                                )}
+                            </Timeline>
+                        </>
                     ) : (
-                        <TableRow>
-                            <TableCell colSpan={6} sx={{ textAlign: 'center', py: 3, color: 'text.secondary' }}>
-                                ไม่พบข้อมูล
-                            </TableCell>
-                        </TableRow>
+                        // Optional: Show a loading indicator while fetching details
+                        <Typography>Loading details...</Typography>
                     )}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog}>ปิด</Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 }
