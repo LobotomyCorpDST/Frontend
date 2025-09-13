@@ -14,5 +14,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: cd Folder
+      run: cd app
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      run: docker build . --file Dockerfile -t kanyanatuet/backend-test:latest .
+    - name: login
+      run: docker login -u kanyanatuet -p dckr_pat_X_ubcwpGPWIfXhjzeBOcDuy48iY
+    - name: push docker
+      run: docker push kanyanatuet/backend-test:latest
