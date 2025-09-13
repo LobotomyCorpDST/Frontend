@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import CreateRoomModal from './CreateRoomModal';
+import { listRooms } from '../../api/room';
 
 const API_BASE =
   (process.env.REACT_APP_API && process.env.REACT_APP_API.replace(/\/+$/, '')) ||
@@ -45,7 +46,7 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/rooms`);
+      const res = await listRooms();
       if (!res.ok) throw new Error(`Fetch rooms failed: ${res.status}`);
       const roomsJson = await res.json();
 

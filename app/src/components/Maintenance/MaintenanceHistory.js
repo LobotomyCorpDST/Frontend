@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { listMaintenance, getMaintenanceByID } from '../../api/maintenance';
-
+import { getRoomByNumber } from '../../api/room';
 import {
     Table,
     TableBody,
@@ -78,6 +78,7 @@ export default function MaintenanceHistory({ searchTerm }) {
     const [openDialog, setOpenDialog] = useState(false);
     const [scroll, setScroll] = React.useState('paper');
     const [selectedMaintenance, setSelectedMaintenance] = useState([]);
+    const [roomInfo, setRoomInfo] = useState([]);
 
     useEffect(() => {
         const getMaintenanceList = async () => {
@@ -145,8 +146,20 @@ export default function MaintenanceHistory({ searchTerm }) {
     };
 
     const getMaintenance = async (id) => {
-        const maintenance = await getMaintenanceByID(id);
-        setSelectedMaintenance(maintenance);
+        try {
+            console.log("Fetching details for maintenance ID:", id);
+
+            const maintenance = await getMaintenanceByID(id);
+            setSelectedMaintenance(maintenance);
+
+            const roomID = '10' + maintenance.roomId;
+            console.log("Fetching room info for roomId:", roomID);
+            const room = await getRoomByNumber(roomID);
+            setRoomInfo(room);
+
+        } catch (error) {
+            console.error("Failed to fetch maintenance details:", error);
+        }
     };
 
     const sortedItems = useMemo(() => {
@@ -276,15 +289,7 @@ export default function MaintenanceHistory({ searchTerm }) {
                 maxWidth="md" // Optional: gives the dialog a bit more space
                 scroll={scroll}
             >
-                {/* The DialogTitle is good for accessibility and clarity */}
-                <DialogTitle sx={{ fontWeight: 'bold' }}>
-                    รายละเอียดการแจ้งซ่อม
-                </DialogTitle>
 
-                {/*
-      Place content directly in DialogContent.
-      Move the props from DialogContentText here.
-    */}
                 <DialogContent
                     dividers={scroll === 'paper'}
                     id="scroll-dialog-description"
@@ -309,7 +314,7 @@ export default function MaintenanceHistory({ searchTerm }) {
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Typography variant="body1">
+                                    <Typography variant="body1" component="span">
                                         สถานะ: {renderStatus(selectedMaintenance.status)}
                                     </Typography>
                                     <Typography variant="body1">
@@ -318,8 +323,7 @@ export default function MaintenanceHistory({ searchTerm }) {
                                 </Box>
                             </Box>
 
-                            {/* 2. Your Timeline Section (Now it will render correctly) */}
-                            <Timeline position="alternate">
+                            <Timeline>
                                 <TimelineItem>
                                     <TimelineSeparator>
                                         <TimelineDot color="primary" />
@@ -328,21 +332,29 @@ export default function MaintenanceHistory({ searchTerm }) {
                                     <TimelineContent>
                                         <Typography sx={{ fontWeight: 'bold' }}>รับแจ้ง</Typography>
                                         <Typography variant="caption">{formatDate(selectedMaintenance.createdDate)}</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                            <Typography>
+                                                ห้อง: {roomInfo.number}
+                                            </Typography>
+                                            <Typography>
+                                                ผู้แจ้ง:{roomInfo.tenant.name}
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body1">{selectedMaintenance.description}</Typography>
                                     </TimelineContent>
                                 </TimelineItem>
 
                                 <TimelineItem>
                                     <TimelineSeparator>
-                                        <TimelineDot color="secondary" />
+                                        <TimelineDot color="warning" />
                                         <TimelineConnector />
                                     </TimelineSeparator>
                                     <TimelineContent>
                                         <Typography sx={{ fontWeight: 'bold' }}>มอบหมายงาน</Typography>
-                                        {/* You would add a date for this event here */}
+                                        <Typography variant="caption">{formatDate(selectedMaintenance.scheduledDate)}</Typography>
                                     </TimelineContent>
                                 </TimelineItem>
 
-                                {/* Example of a completed event */}
                                 {selectedMaintenance.status === 'COMPLETED' && (
                                     <TimelineItem>
                                         <TimelineSeparator>
