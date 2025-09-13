@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: cd Folder
+    - name: go Folder
       run: cd app
     - name: Build the Docker image
       run: docker build . --file Dockerfile -t kanyanatuet/backend-test:latest .
