@@ -1,3 +1,6 @@
+>broken piece of shit
+follow e2e lab
+
 > Setting .env
 - REACT_APP_API_BASE=BACKEND_URL
 
