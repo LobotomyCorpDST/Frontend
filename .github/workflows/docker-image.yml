@@ -15,8 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4 
     - name: Build the Docker image
-      run: docker build --file app/Dockerfile -t kanyanatuet/backend-test:latest app
+      run: docker build --file app/Dockerfile -t kanyanatuet/lobotomycorpdst-frontend:latest app
     - name: login
       run: docker login -u kanyanatuet -p dckr_pat_X_ubcwpGPWIfXhjzeBOcDuy48iY
     - name: push docker
-      run: docker push kanyanatuet/backend-test:latest
+      run: docker push kanyanatuet/lobotomycorpdst-frontend:latest
