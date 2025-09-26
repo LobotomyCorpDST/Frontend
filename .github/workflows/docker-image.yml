@@ -17,6 +17,6 @@ jobs:
     - name: Build the Docker image
       run: docker build --file app/Dockerfile -t kanyanatuet/lobotomycorpdst-frontend:latest app
     - name: login
-      run: docker login -u kanyanatuet -p dckr_pat_X_ubcwpGPWIfXhjzeBOcDuy48iY
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
     - name: push docker
       run: docker push kanyanatuet/lobotomycorpdst-frontend:latest
