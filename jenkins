@@ -10,7 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 dir('app') {
-                    sh 'docker build . -t kanyanatuet/lobotomycorpdst-frontend:v.0.0'
+                    sh 'docker build . -t lobotomy_but_front:v.0.0'
                 }
             }
         }
@@ -21,12 +21,12 @@ pipeline {
         }
         stage('login docker hub') {
             steps {
-                sh 'docker login -u kanyanatuet -p dckr_pat_X_ubcwpGPWIfXhjzeBOcDuy48iY'
+                sh 'docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}'
             }
         }
         stage('Push image') {
             steps {
-                sh 'docker push kanyanatuet/lobotomycorpdst-frontend:v.0.0'
+                sh 'docker push lobotomy_but_front:v.0.0'
             }
         }
     }
