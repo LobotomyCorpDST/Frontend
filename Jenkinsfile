@@ -10,7 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 dir('app') {
-                    sh 'docker build . -t lobotomy_but_front:v.0.0'
+                    sh 'docker build . -t mmmmnl/lobotomy_but_front:v.0.0'
                 }
             }
         }
@@ -32,7 +32,7 @@ pipeline {
         }
         stage('Push image') {
             steps {
-                sh 'docker push lobotomy_but_front:v.0.0'
+                sh 'docker push mmmmnl/lobotomy_but_front:v.0.0'
             }
         }
     }
