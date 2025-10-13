@@ -1,5 +1,4 @@
-// HomePage.js
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Header from '../Header/Header';
 import HomeNavBar from '../HomeNavBar/HomeNavBar';
 import './Home.css';
@@ -9,31 +8,56 @@ import {
   ListItemText, Divider, Toolbar, Typography
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useNavigate } from 'react-router-dom';
 
 import Dashboard from '../Dashboard/Dashboard';
 import RoomList from '../RoomList/RoomList';
 import InvoiceHistory from '../InvoiceHistory/InvoiceHistory';
-import LeaseHistory from '../LeaseHistory/LeaseHistory'; // ✅ เพิ่ม import
+import LeaseHistory from '../LeaseHistory/LeaseHistory';
 import MaintenanceHistory from '../Maintenance/MaintenanceHistory';
 
-// ✅ เพิ่มเมนู "ประวัติสัญญาเช่า"
+import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
+
 const navigationItems = [
   { label: "Dashboard", component: <Dashboard /> },
   { label: "ห้องทั้งหมด", component: <RoomList /> },
   { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
   { label: "บำรุงรักษา", component: <MaintenanceHistory /> },
-  { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> }, // ✅ เมนูใหม่
+  { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
 ];
 
 function HomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
 
   const handleNavigationChange = (index) => {
     setActiveIndex(index);
   };
+
+  // ---- NEW: logout handler ----
+  const handleLogout = useCallback(async () => {
+    // best-effort: ถ้ามี endpoint logout ก็เรียก, แต่ไม่ต้องรอ result
+    try {
+      await http.post('/api/auth/logout', {}); // ถ้า backend ไม่มี endpoint นี้ จะ throw แต่เราจะ ignore
+    } catch (_) {
+      // ignore errors
+    }
+
+    // throw away token
+    try {
+      ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+    } catch (_) {}
+
+    // เผื่อมี state อะไรผูกกับหน้าเก่า
+    setActiveIndex(0);
+    setDrawerOpen(false);
+
+    // กลับไปหน้า login
+    navigate('/login', { replace: true });
+  }, [navigate]);
 
   const drawerContent = (
     <Box
@@ -70,11 +94,14 @@ function HomePage() {
       <Box sx={{ flexGrow: 1 }} />
 
       <Divider />
-      <Box sx={{ p: '16px' }}>
-        <Typography variant="body1">
-          ออกจากระบบ
-        </Typography>
-      </Box>
+      {/* ---- NEW: ปุ่มออกจากระบบ ---- */}
+      <List>
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemText primary="ออกจากระบบ" />
+          </ListItemButton>
+        </ListItem>
+      </List>
     </Box>
   );
 
