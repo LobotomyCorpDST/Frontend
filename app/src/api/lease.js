@@ -24,3 +24,5 @@ export const settleLease = (leaseId, date) =>
 
 export const openLease = (id, view = 'print') =>
   window.open(`${API_BASE}/leases/${id}/${view}`, '_blank', 'noopener,noreferrer');
+
+export const getActiveLeaseByTenantId = (tenantId) => http.get(`/api/leases/by-tenant/${tenantId}`);
