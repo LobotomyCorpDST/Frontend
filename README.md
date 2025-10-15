@@ -33,58 +33,54 @@
 ```version: '3.8'
 
 services:
+  # --- MySQL Database Service ---
   db:
-    image: mysql:8.0.39
+    image: mysql:latest
     container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: admin123
       MYSQL_DATABASE: apartment_db
-      TZ: Asia/Bangkok
-    command: ["--default-authentication-plugin=mysql_native_password"]
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-padmin123"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
+  # --- Spring Boot Backend Service ---
   backend:
-    build:
-      context: ./Backend
+    build: ./backend
     container_name: my-backend-app
+    ports:
+      - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: "mysql"
       SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/apartment_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "admin123"
-      TZ: Asia/Bangkok
-    ports:
-      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
-    # (แนะนำ) ใส่ restart policy
-    restart: unless-stopped
 
+  # --- React Frontend Service ---
   frontend:
     build:
-      context: ./Frontend/app
+      context: ./frontend/app
     container_name: my-frontend-app
     ports:
       - "3000:3000"
     environment:
-      # ใช้ชื่อ service backend + ใส่ /api ให้จบ
-      - REACT_APP_API=http://localhost:8080
-      # ถ้าจะใช้ token dev override (optional)
-      # - REACT_APP_DEV_BEARER=eyJhbGciOi...
-      - TZ=Asia/Bangkok
+      - REACT_APP_API_BASE=http://localhost:8080
+    volumes:
+      # Mounts local source code into the container's /app directory
+      - ./frontend/app:/app
+      - /app/node_modules
     depends_on:
       - backend
-    restart: unless-stopped
 
+# Defines the named volume for persisting MySQL data.
 volumes:
   mysql-data:
 ```
