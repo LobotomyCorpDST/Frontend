@@ -23,7 +23,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
 
   const showAdd =
     currentPageLabel === "ห้องทั้งหมด" ||
-    currentPageLabel === "ใบแจ้งหนี้";
+    currentPageLabel === "ใบแจ้งหนี้" ||
+    currentPageLabel === "บำรุงรักษา";
 
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
@@ -40,7 +41,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
       <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
         <Box
           sx={{
-            p: 3,
+            mt: 2,
+            p: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "end",
@@ -81,7 +83,13 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                     boxShadow: "none",
                   }}
                 >
-                  {currentPageLabel === "ห้องทั้งหมด" ? "เพิ่มห้อง" : "เพิ่มใบแจ้งหนี้"}
+                  {
+                    currentPageLabel === "ห้องทั้งหมด"
+                      ? "เพิ่มห้อง"
+                      : currentPageLabel === "บำรุงรักษา"
+                        ? "เพิ่มรายการแจ้งซ่อม"
+                        : "เพิ่มใบแจ้งหนี้"
+                  }
                 </Button>
               )}
             </Box>
