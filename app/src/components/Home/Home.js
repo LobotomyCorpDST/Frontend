@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
 import Header from '../Header/Header';
 import HomeNavBar from '../HomeNavBar/HomeNavBar';
 import './Home.css';
@@ -9,48 +8,56 @@ import {
   ListItemText, Divider, Toolbar, Typography
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useNavigate } from 'react-router-dom';
 
 import Dashboard from '../Dashboard/Dashboard';
 import RoomList from '../RoomList/RoomList';
 import InvoiceHistory from '../InvoiceHistory/InvoiceHistory';
-import LeaseHistory from '../LeaseHistory/LeaseHistory'; // ✅ เพิ่ม import
+import LeaseHistory from '../LeaseHistory/LeaseHistory';
 import MaintenanceHistory from '../Maintenance/MaintenanceHistory';
+
+import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
 
 const navigationItems = [
   { label: "Dashboard", component: <Dashboard /> },
   { label: "ห้องทั้งหมด", component: <RoomList /> },
   { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
   { label: "บำรุงรักษา", component: <MaintenanceHistory /> },
-  { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> }, // ✅ เมนูใหม่
+  { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
 ];
 
 function HomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const [activeIndex, setActiveIndex] = useState(() => {
-    const currentTab = searchParams.get('tab');
-    const initialIndex = navigationItems.findIndex(item => item.label === currentTab);
-    // ถ้าไม่เจอ tab ใน URL หรือไม่มีค่า param ให้ใช้ index 0 (Dashboard)
-    return initialIndex !== -1 ? initialIndex : 0;
-  });
-
-  useEffect(() => {
-    // ถ้าใน URL ไม่มี 'tab' parameter ให้ตั้งค่าเริ่มต้นให้
-    if (!searchParams.get('tab')) {
-      setSearchParams({ tab: navigationItems[activeIndex].label }, { replace: true });
-    }
-  }, [activeIndex, navigationItems, searchParams, setSearchParams]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
 
   const handleNavigationChange = (index) => {
     setActiveIndex(index);
-    const newTabLabel = navigationItems[index].label;
-
-    setSearchParams({ tab: newTabLabel });
-
   };
+
+  // ---- NEW: logout handler ----
+  const handleLogout = useCallback(async () => {
+    // best-effort: ถ้ามี endpoint logout ก็เรียก, แต่ไม่ต้องรอ result
+    try {
+      await http.post('/api/auth/logout', {}); // ถ้า backend ไม่มี endpoint นี้ จะ throw แต่เราจะ ignore
+    } catch (_) {
+      // ignore errors
+    }
+
+    // throw away token
+    try {
+      ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+    } catch (_) {}
+
+    // เผื่อมี state อะไรผูกกับหน้าเก่า
+    setActiveIndex(0);
+    setDrawerOpen(false);
+
+    // กลับไปหน้า login
+    navigate('/login', { replace: true });
+  }, [navigate]);
 
   const drawerContent = (
     <Box
@@ -87,11 +94,14 @@ function HomePage() {
       <Box sx={{ flexGrow: 1 }} />
 
       <Divider />
-      <Box sx={{ p: '16px' }}>
-        <Typography variant="body1">
-          ออกจากระบบ
-        </Typography>
-      </Box>
+      {/* ---- NEW: ปุ่มออกจากระบบ ---- */}
+      <List>
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemText primary="ออกจากระบบ" />
+          </ListItemButton>
+        </ListItem>
+      </List>
     </Box>
   );
 
