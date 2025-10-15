@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './RoomList.css';
 import CreateRoomModal from './CreateRoomModal';
 
-const API_BASE =
-  (process.env.REACT_APP_API && process.env.REACT_APP_API.replace(/\/+$/, '')) ||
-  'http://localhost:8080/api';
+import http from '../../api/http';
 
 const RoomList = ({ searchTerm, addRoomSignal }) => {
   const navigate = useNavigate();
@@ -27,9 +25,7 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/rooms`);
-      if (!res.ok) throw new Error(`Fetch rooms failed: ${res.status}`);
-      const roomsJson = await res.json();
+      const roomsJson = await http.get('/api/rooms');
 
       const withLease = await Promise.all(
         roomsJson.map(async (r) => {
@@ -38,30 +34,22 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
           let roomStatus = r.status === 'OCCUPIED' ? 'rent paid' : 'room available';
 
           try {
-            const activeLeaseRes = await fetch(
-              `${API_BASE}/leases/active?roomNumber=${encodeURIComponent(r.number)}`
-            );
+            const lease = await http.get('/api/leases/active', {
+              params: { roomNumber: r.number }
+            });
 
-            if (activeLeaseRes.ok) {
-              const text = await activeLeaseRes.text();
-              const lease = text ? JSON.parse(text) : null;
+            if (lease && typeof lease === 'object') {
+              occupantName =
+                (lease.customName && lease.customName.trim()) ||
+                (lease.tenant?.name && lease.tenant.name.trim()) ||
+                r.tenant?.name ||
+                '-';
 
-              if (lease && typeof lease === 'object') {
-                occupantName =
-                  (lease.customName && lease.customName.trim()) ||
-                  (lease.tenant?.name && lease.tenant.name.trim()) ||
-                  r.tenant?.name ||
-                  '-';
-
-                leaseEndDate = lease.endDate || '-';
-                roomStatus = 'rent paid';
-              } else {
-                occupantName = r.tenant?.name || '-';
-                leaseEndDate = '-';
-                roomStatus = 'room available';
-              }
+              leaseEndDate = lease.endDate || '-';
+              roomStatus = 'rent paid';
             }
           } catch {
+
           }
 
           return {
@@ -88,9 +76,7 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     (async () => {
       if (!cancelled) await loadRooms();
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const handleSort = (key) => {
