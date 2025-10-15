@@ -15,6 +15,7 @@ import RoomList from '../RoomList/RoomList';
 import InvoiceHistory from '../InvoiceHistory/InvoiceHistory';
 import LeaseHistory from '../LeaseHistory/LeaseHistory';
 import MaintenanceHistory from '../Maintenance/MaintenanceHistory';
+import TenantList from '../TenantList/TenantList';
 
 import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
 
@@ -24,6 +25,7 @@ const navigationItems = [
   { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
   { label: "บำรุงรักษา", component: <MaintenanceHistory /> },
   { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
+  { label: "ผู้เช่าทั้งหมด", component: <TenantList /> },
 ];
 
 function HomePage() {

@@ -10,92 +10,111 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 
 const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [addRoomSignal, setAddRoomSignal] = useState(0);
-  const [addInvoiceSignal, setAddInvoiceSignal] = useState(0);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [addRoomSignal, setAddRoomSignal] = useState(0);
+    const [addInvoiceSignal, setAddInvoiceSignal] = useState(0);
+    const [addTenantSignal, setAddTenantSignal] = useState(0);
 
-  const CurrentComponent = navigationItems[activeIndex].component;
-  const currentPageLabel = navigationItems[activeIndex].label;
+    const CurrentComponent = navigationItems[activeIndex].component;
+    const currentPageLabel = navigationItems[activeIndex].label;
 
-  const showSearch =
-    currentPageLabel !== "Dashboard" &&
-    currentPageLabel !== "ประวัติสัญญาเช่า";
+    const showSearch =
+        currentPageLabel !== "Dashboard" &&
+        currentPageLabel !== "ประวัติสัญญาเช่า";
 
-  const showAdd =
-    currentPageLabel === "ห้องทั้งหมด" ||
-    currentPageLabel === "ใบแจ้งหนี้";
+    const showAdd =
+        currentPageLabel === "ห้องทั้งหมด" ||
+        currentPageLabel === "ใบแจ้งหนี้" ||
+        currentPageLabel === "ผู้เช่าทั้งหมด";
 
-  const handleSearchChange = (event) => setSearchTerm(event.target.value);
+    const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
-  const handleAddClick = () => {
-    if (currentPageLabel === "ห้องทั้งหมด") {
-      setAddRoomSignal((s) => s + 1);
-    } else if (currentPageLabel === "ใบแจ้งหนี้") {
-      setAddInvoiceSignal((s) => s + 1);
-    }
-  };
+    const handleAddClick = () => {
+        if (currentPageLabel === "ห้องทั้งหมด") {
+            setAddRoomSignal((s) => s + 1);
+        } else if (currentPageLabel === "ใบแจ้งหนี้") {
+            setAddInvoiceSignal((s) => s + 1);
+        } else if (currentPageLabel === "ผู้เช่าทั้งหมด") {
+            setAddTenantSignal((s) => s + 1);
+        }
+    };
 
-  return (
-    <Box sx={{ maxWidth: "1200px", margin: "40px auto", px: 3 }}>
-      <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
-        <Box
-          sx={{
-            p: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "end",
-          }}
-        >
-          {(showSearch || showAdd) && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              {showSearch && (
-                <TextField
-                  size="small"
-                  placeholder="ค้นหา"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  sx={{
-                    backgroundColor: "#f0f4fa",
-                    borderRadius: "8px",
-                    "& .MuiOutlinedInput-notchedOutline": { border: 0 },
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              )}
+    const getButtonLabel = () => {
+        switch (currentPageLabel) {
+            case "ห้องทั้งหมด":
+                return "เพิ่มห้อง";
+            case "ใบแจ้งหนี้":
+                return "เพิ่มใบแจ้งหนี้";
+            case "ผู้เช่าทั้งหมด":
+                return "เพิ่มผู้เช่า"; // 4. Add the new label
+            default:
+                return "Add";
+        }
+    };
 
-              {showAdd && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddClick}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    borderRadius: "8px",
-                    boxShadow: "none",
-                  }}
+    return (
+        <Box sx={{ maxWidth: "1200px", margin: "40px auto", px: 3 }}>
+            <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
+                <Box
+                    sx={{
+                        p: 3,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "end",
+                    }}
                 >
-                  {currentPageLabel === "ห้องทั้งหมด" ? "เพิ่มห้อง" : "เพิ่มใบแจ้งหนี้"}
-                </Button>
-              )}
-            </Box>
-          )}
-        </Box>
+                    {(showSearch || showAdd) && (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            {showSearch && (
+                                <TextField
+                                    size="small"
+                                    placeholder="ค้นหา"
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    sx={{
+                                        backgroundColor: "#f0f4fa",
+                                        borderRadius: "8px",
+                                        "& .MuiOutlinedInput-notchedOutline": { border: 0 },
+                                    }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            )}
 
-        {React.cloneElement(CurrentComponent, {
-          searchTerm,
-          addRoomSignal,
-          addInvoiceSignal,
-        })}
-      </Paper>
-    </Box>
-  );
+                            {showAdd && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={handleAddClick}
+                                    sx={{
+                                        textTransform: "none",
+                                        fontWeight: "bold",
+                                        borderRadius: "8px",
+                                        boxShadow: "none",
+                                    }}
+                                >
+                                    {getButtonLabel()}
+                                </Button>
+                            )}
+                        </Box>
+                    )}
+                </Box>
+
+                {/* 5. Pass the new signal down to the active component */}
+                {React.cloneElement(CurrentComponent, {
+                    searchTerm,
+                    addRoomSignal,
+                    addInvoiceSignal,
+                    addTenantSignal,
+                })}
+            </Paper>
+        </Box>
+    );
 };
 
 export default HomeNavBar;
