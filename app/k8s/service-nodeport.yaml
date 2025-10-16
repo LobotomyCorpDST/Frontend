@@ -10,6 +10,6 @@ spec:
     app: frontend
   ports:
     - name: http
-      port: 3000
-      targetPort: 3000
-      nodePort: 32420
+      port: 3000        # พอร์ตภายในคลัสเตอร์
+      targetPort: 3000  # พอร์ตในคอนเทนเนอร์
+      nodePort: 32080
