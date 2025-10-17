@@ -6,25 +6,29 @@ import {
 import { createMaintenance } from '../../api/maintenance';
 
 export default function CreateMaintenanceModal({
-  roomNumber,            // ✅ ใช้ roomNumber เป็นหลัก
-  roomId,                // (fallback ชั่วคราว ถ้า parent ยังส่งมา)
+  roomNumber,    // ใช้เมื่อมาจาก RoomDetail
+  roomId,        // fallback เผื่อกรณีเก่า
   open,
   onClose,
   onSuccess
 }) {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // --- State ---
+  const [inputRoomNumber, setInputRoomNumber] = useState(roomNumber ?? roomId ?? '');
   const [scheduledDate, setScheduledDate] = useState(today);
   const [description, setDescription] = useState('');
   const [costBaht, setCostBaht] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
-  // รองรับช่วงเปลี่ยนผ่าน: ถ้าไม่มี roomNumber ให้ลองใช้ roomId ที่ส่งมาแทน (แต่จะส่งเป็น roomNumber ไปให้ BE)
-  const effectiveRoomNumber = roomNumber ?? roomId ?? null;
+  // กำหนดหมายเลขห้องที่ใช้จริง (อาจมาจาก props หรือผู้ใช้กรอกเอง)
+  const effectiveRoomNumber = inputRoomNumber ? Number(inputRoomNumber) : null;
 
+  // --- Handle Submit ---
   async function submit() {
     if (!effectiveRoomNumber) {
-      setErr('ไม่พบหมายเลขห้อง (roomNumber)'); 
+      setErr('กรุณาระบุหมายเลขห้อง');
       return;
     }
     if (!description.trim()) {
@@ -36,20 +40,25 @@ export default function CreateMaintenanceModal({
       return;
     }
 
-    setBusy(true); setErr('');
+    setBusy(true);
+    setErr('');
+
     try {
       const payload = {
-        roomNumber: Number(effectiveRoomNumber),
+        roomNumber: effectiveRoomNumber,
         description: description.trim(),
         scheduledDate, // YYYY-MM-DD
         costBaht: costBaht === '' ? null : Number(costBaht)
       };
+
       await createMaintenance(payload);
       onSuccess?.();
       onClose?.();
     } catch (e) {
-      // http.js จะโยน err.body.message ถ้ามี
-      const msg = (e?.body && (e.body.error || e.body.message)) || e?.message || 'Create failed';
+      const msg =
+        (e?.body && (e.body.error || e.body.message)) ||
+        e?.message ||
+        'Create failed';
       setErr(msg);
     } finally {
       setBusy(false);
@@ -58,9 +67,24 @@ export default function CreateMaintenanceModal({
 
   return (
     <Dialog open={open} onClose={busy ? undefined : onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>เพิ่มงานบำรุงรักษา – ห้อง {effectiveRoomNumber ?? '-'}</DialogTitle>
+      <DialogTitle>
+        เพิ่มงานบำรุงรักษา
+        {roomNumber && ` – ห้อง ${roomNumber}`}
+      </DialogTitle>
+
       <DialogContent dividers>
         <Stack spacing={2} sx={{ mt: 1 }}>
+          {/* ถ้าไม่มี roomNumber จาก props ให้พิมพ์เอง */}
+          {!roomNumber && (
+            <TextField
+              label="หมายเลขห้อง"
+              type="number"
+              value={inputRoomNumber}
+              onChange={(e) => setInputRoomNumber(e.target.value)}
+              fullWidth
+            />
+          )}
+
           <TextField
             type="date"
             label="วันที่นัด"
@@ -69,6 +93,7 @@ export default function CreateMaintenanceModal({
             onChange={(e) => setScheduledDate(e.target.value)}
             fullWidth
           />
+
           <TextField
             label="รายละเอียด"
             value={description}
@@ -78,6 +103,7 @@ export default function CreateMaintenanceModal({
             minRows={2}
             fullWidth
           />
+
           <TextField
             type="number"
             label="ค่าใช้จ่าย (บาท)"
@@ -86,12 +112,22 @@ export default function CreateMaintenanceModal({
             inputProps={{ step: '0.01', min: '0' }}
             fullWidth
           />
+
           {err && <div style={{ color: 'crimson' }}>{err}</div>}
         </Stack>
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose} disabled={busy}>ยกเลิก</Button>
-        <Button variant="contained" onClick={submit} disabled={busy || !effectiveRoomNumber || !description.trim()}>
+        <Button
+          variant="contained"
+          onClick={submit}
+          disabled={
+            busy ||
+            !effectiveRoomNumber ||
+            !description.trim()
+          }
+        >
           บันทึก
         </Button>
       </DialogActions>

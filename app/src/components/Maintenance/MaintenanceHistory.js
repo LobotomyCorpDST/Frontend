@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Typography, Chip, Box, TableSortLabel, Button, Dialog,
-  DialogActions, DialogContent, CircularProgress, Stack
+  Paper, Typography, Chip, Box, TableSortLabel, Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import { visuallyHidden } from '@mui/utils';
 import { useNavigate } from 'react-router-dom';
-import { listMaintenance, getMaintenanceByID } from '../../api/maintenance';
+import { listMaintenance } from '../../api/maintenance';
 import { getRoomByNumber } from '../../api/room';
 import EditMaintenanceModal from '../Maintenance/EditMaintenanceModal';
+import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -46,40 +47,46 @@ const headCells = [
   { id: 'responsiblePerson', label: 'ผู้รับผิดชอบ', disableSorting: true },
   { id: 'costBaht', label: 'ราคา (บาท)', disableSorting: true },
   { id: 'scheduledDate', label: 'กำหนดการ' },
-  { id: 'status', label: 'สถานะ' },
+  { id: 'status', label: 'สถานะบำรุง' },
   { id: 'description', label: 'รายละเอียด' },
   { id: 'actions', label: 'Actions', disableSorting: true },
 ];
 
-export default function MaintenanceHistory({ searchTerm }) {
+export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal }) {
   const [loading, setLoading] = useState(true);
   const [allMaintenance, setAllMaintenance] = useState([]);
   const [filteredMaintenance, setFilteredMaintenance] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [openCreate, setOpenCreate] = useState(false);
   const navigate = useNavigate();
 
-  // Load maintenance list
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const data = await listMaintenance();
-        const maintenanceData = data || [];
-        setAllMaintenance(maintenanceData);
-        setFilteredMaintenance(maintenanceData);
-      } catch (error) {
-        console.error('Failed to fetch maintenance list:', error);
-        setAllMaintenance([]);
-      } finally {
-        setLoading(false);
-      }
+  // --- Load maintenance list ---
+  async function loadData() {
+    setLoading(true);
+    try {
+      const data = await listMaintenance();
+      setAllMaintenance(data || []);
+      setFilteredMaintenance(data || []);
+    } catch (error) {
+      console.error('Failed to fetch maintenance list:', error);
+      setAllMaintenance([]);
+    } finally {
+      setLoading(false);
     }
-    loadData();
-  }, []);
+  }
 
-  // Filter
+  useEffect(() => { loadData(); }, []);
+
+  // ✅ Auto-open CreateModal when HomeNavBar triggers
+  useEffect(() => {
+    if (addMaintenanceSignal > 0) {
+      setOpenCreate(true);
+    }
+  }, [addMaintenanceSignal]);
+
+  // --- Filter logic ---
   useEffect(() => {
     if (!searchTerm) {
       setFilteredMaintenance(allMaintenance);
@@ -99,6 +106,7 @@ export default function MaintenanceHistory({ searchTerm }) {
     setFilteredMaintenance(filtered);
   }, [searchTerm, allMaintenance]);
 
+  // --- Sorting ---
   const handleRequestSort = (property) => {
     const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
@@ -122,6 +130,7 @@ export default function MaintenanceHistory({ searchTerm }) {
     return sortableItems;
   }, [filteredMaintenance, sortConfig]);
 
+  // --- Handlers ---
   const handleEdit = (id) => {
     setSelectedId(id);
     setOpenEdit(true);
@@ -143,7 +152,6 @@ export default function MaintenanceHistory({ searchTerm }) {
       <TableContainer
         component={Paper}
         sx={{
-          mt: 2,
           borderRadius: '8px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
           overflowX: 'auto',
@@ -184,6 +192,7 @@ export default function MaintenanceHistory({ searchTerm }) {
               ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
             {sortedItems.length > 0 ? (
               sortedItems.map((item) => (
@@ -200,12 +209,8 @@ export default function MaintenanceHistory({ searchTerm }) {
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <Box>
-                      <Typography variant="body2">นาย ช่าง หัวมัน</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        0000000008
-                      </Typography>
-                    </Box>
+                    <Typography variant="body2">นาย ช่าง หัวมัน</Typography>
+                    <Typography variant="caption" color="text.secondary">0000000008</Typography>
                   </TableCell>
                   <TableCell>{item.costBaht ? item.costBaht.toLocaleString() : '-'}</TableCell>
                   <TableCell>{formatDate(item.scheduledDate)}</TableCell>
@@ -234,6 +239,7 @@ export default function MaintenanceHistory({ searchTerm }) {
         </Table>
       </TableContainer>
 
+      {/* Edit Modal */}
       {openEdit && (
         <EditMaintenanceModal
           open={openEdit}
@@ -241,16 +247,19 @@ export default function MaintenanceHistory({ searchTerm }) {
           onClose={() => setOpenEdit(false)}
           onSaved={() => {
             setOpenEdit(false);
-            // Refresh after save
-            (async () => {
-              try {
-                const data = await listMaintenance();
-                setAllMaintenance(data || []);
-                setFilteredMaintenance(data || []);
-              } catch (e) {
-                console.error(e);
-              }
-            })();
+            loadData();
+          }}
+        />
+      )}
+
+      {/* Create Modal */}
+      {openCreate && (
+        <CreateMaintenanceModal
+          open={openCreate}
+          onClose={() => setOpenCreate(false)}
+          onSuccess={() => {
+            setOpenCreate(false);
+            loadData();
           }}
         />
       )}
