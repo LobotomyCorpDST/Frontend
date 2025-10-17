@@ -10,6 +10,8 @@ import {
 import { visuallyHidden } from '@mui/utils';
 import PrintIcon from '@mui/icons-material/Print';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import EditIcon from '@mui/icons-material/Edit';
+import EditInvoiceModal from '../Invoice/EditInvoiceModal';
 
 import { listInvoices, openInvoice, computeDisplayStatus } from '../../api/invoice';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
@@ -23,12 +25,12 @@ const headerCellStyle = {
 
 // Headers defined for MUI Table
 const headCells = [
-  { id: 'roomNumber', label: 'Room No.' },
-  { id: 'id', label: 'Invoice ID' },
-  { id: 'issueDate', label: 'Issue Date' },
-  { id: 'dueDate', label: 'Due Date' },
-  { id: 'totalBaht', label: 'Amount' },
-  { id: 'status', label: 'Status' },
+  { id: 'roomNumber', label: 'ห้อง' },
+  { id: 'id', label: 'ID ใบแจ้งหนี้' },
+  { id: 'issueDate', label: 'วันมอบหมาย' },
+  { id: 'dueDate', label: 'วันกำหนดชำระ' },
+  { id: 'totalBaht', label: 'จำนวน (บาท)' },
+  { id: 'status', label: 'สถานะ' },
   { id: 'actions', label: 'Actions', disableSorting: true },
 ];
 
@@ -58,6 +60,14 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
   const [invoiceToPrint, setInvoiceToPrint] = useState(null);
   const [openCreate, setOpenCreate] = useState(false);
   const prevSignal = useRef(addInvoiceSignal);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  const handleEdit = (invoice) => {
+    setSelectedInvoice(invoice);
+    setOpenEdit(true);
+  };
+
 
   useEffect(() => {
     if (prevSignal.current !== addInvoiceSignal) {
@@ -231,11 +241,16 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{renderStatusChip(invoice)}</TableCell>
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                      <Tooltip title="Edit Invoice">
+                        <IconButton onClick={() => handleEdit(invoice)} size="small">
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Print Preview">
                         <IconButton onClick={() => setInvoiceToPrint(invoice)} size="small"><PrintIcon /></IconButton>
                       </Tooltip>
                       <Tooltip title="Download PDF">
-                        <IconButton onClick={() => openInvoice(invoice.id, 'pdf')} size="small"><PictureAsPdfIcon /></IconButton>
+                         <IconButton onClick={() => openInvoice(invoice.id, 'pdf')} size="small"><PictureAsPdfIcon /></IconButton>
                       </Tooltip>
                     </Box>
                   </TableCell>
@@ -290,6 +305,16 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
           loadInvoices();
         }}
       />
+      <EditInvoiceModal
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        invoiceId={selectedInvoice?.id}
+        onSaved={() => {
+        setOpenEdit(false);
+        loadInvoices();
+        }}
+      />
+
     </>
   );
 };

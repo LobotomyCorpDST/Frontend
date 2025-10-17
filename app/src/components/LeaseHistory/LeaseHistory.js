@@ -130,10 +130,9 @@ const LeaseHistory = () => {
               <TableRow>
                 <TableCell>ห้อง</TableCell>
                 <TableCell>ผู้เช่าอาศัย</TableCell>
-                <TableCell>Custom Name</TableCell>
                 <TableCell>เริ่ม</TableCell>
                 <TableCell>สิ้นสุด</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell>สถานะ</TableCell>
                 <TableCell>Settled</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -148,7 +147,6 @@ const LeaseHistory = () => {
                 >
                   <TableCell>{l.room?.number ?? '-'}</TableCell>
                   <TableCell>{l.tenant?.name || '-'}</TableCell>
-                  <TableCell>{l.customName || '-'}</TableCell>
                   <TableCell>{fmt(l.startDate)}</TableCell>
                   <TableCell>{fmt(l.endDate)}</TableCell>
                   <TableCell>{l.status || '-'}</TableCell>
@@ -160,7 +158,7 @@ const LeaseHistory = () => {
                       onClick={(e) => onPrint(l.id, e)}
                       disabled={printingId === l.id}
                     >
-                      {printingId === l.id ? 'Opening…' : 'Print'}
+                      {printingId === l.id ? 'กำลังเปิด' : 'ปริ้น'}
                     </Button>
 
                     {/* ✅ New Edit button */}
@@ -173,7 +171,7 @@ const LeaseHistory = () => {
                         openForEdit(l.id);
                      }}
                    >
-                     Edit
+                     แก้ไข
                     </Button>
 
                     <Button
@@ -182,7 +180,7 @@ const LeaseHistory = () => {
                       onClick={(e) => onMarkSettled(l.id, e)}
                       disabled={!!l.settled || markingId === l.id}
                     >
-                      {markingId === l.id ? 'Saving...' : 'Mark Settled'}
+                      {markingId === l.id ? 'กำลังบันทึก' : 'ตั้งค่าครบกำหนด'}
                    </Button>
                   </Stack>
                   </TableCell>
