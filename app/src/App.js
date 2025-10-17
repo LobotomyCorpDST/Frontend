@@ -6,17 +6,17 @@ import HomePageForGuest from "./components/HomeForGuest/HomeForGuest";
 import RoomDetail from './components/RoomDetail/RoomDetail';
 import InvoiceListPage from './components/Invoice/InvoiceListPage';
 import LeaseHistory from './components/LeaseHistory/LeaseHistory';
+import TenantDetail from "./components/TenantDetail/TenantDetail";
 import PrivateRoute from './components/RouteGuard/PrivateRoute';
 import RedirectIfAuthed from './components/RouteGuard/RedirectIfAuthed';
 import './App.css';
-import TenantDetail from "./components/TenantDetail/TenantDetail";
 
 function App() {
   return (
     <Router>
       <div className="App">
         <Routes>
-          {/* หน้า login: ถ้ามี token อยู่แล้วให้พาไป /home */}
+          {/* ===== LOGIN & ROOT ===== */}
           <Route
             path="/login"
             element={
@@ -25,8 +25,6 @@ function App() {
               </RedirectIfAuthed>
             }
           />
-
-          {/* root (/) ชี้ไป login */}
           <Route
             path="/"
             element={
@@ -36,59 +34,65 @@ function App() {
             }
           />
 
-          {/* หน้าหลังล็อกอินเท่านั้น */}
+          {/* ===== DASHBOARDS ===== */}
+          {/* Admin/Staff only */}
           <Route
             path="/home"
             element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
                 <HomePage />
               </PrivateRoute>
             }
           />
 
+          {/* Guest only */}
           <Route
             path="/home-guest"
             element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['GUEST']}>
                 <HomePageForGuest />
               </PrivateRoute>
             }
           />
 
+          {/* ===== OTHER PROTECTED ROUTES (Admin/Staff only) ===== */}
           <Route
             path="/room-details/:roomNumber"
             element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
                 <RoomDetail />
               </PrivateRoute>
             }
           />
+
           <Route
-              path="/tenant-details/:tenantId"
-              element={
-                  <PrivateRoute>
-                      <TenantDetail />
-                  </PrivateRoute>
-              }
+            path="/tenant-details/:tenantId"
+            element={
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
+                <TenantDetail />
+              </PrivateRoute>
+            }
           />
+
           <Route
             path="/invoices"
             element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
                 <InvoiceListPage />
               </PrivateRoute>
             }
           />
+
           <Route
             path="/lease-history"
             element={
-              <PrivateRoute>
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
                 <LeaseHistory />
               </PrivateRoute>
             }
           />
 
-          {/* เส้นทางอื่นที่ไม่ตรง -> ส่งกลับไปหน้า login */}
+          {/* ===== CATCH-ALL ===== */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
