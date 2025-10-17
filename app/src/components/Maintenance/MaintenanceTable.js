@@ -5,17 +5,11 @@ import {
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { listMaintenanceByRoom, completeMaintenance } from '../../api/maintenance';
+import { listMaintenanceByRoomNumber, completeMaintenance } from '../../api/maintenance';
 
 function statusChip(status) {
   const s = (status || '').toUpperCase();
-  const map = {
-    PLANNED: 'info',
-    IN_PROGRESS: 'warning',
-    COMPLETED: 'success',
-    DONE: 'success',        // กันกรณี enum เป็น DONE
-    CANCELED: 'default',
-  };
+  const map = { PLANNED: 'info', IN_PROGRESS: 'warning', COMPLETED: 'success', DONE: 'success', CANCELED: 'default' };
   return <Chip label={status} color={map[s] || 'default'} size="small" />;
 }
 
@@ -24,7 +18,7 @@ function money(n) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export default function MaintenanceTable({ roomId, reloadSignal = 0 }) {
+export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,17 +31,17 @@ export default function MaintenanceTable({ roomId, reloadSignal = 0 }) {
   );
 
   async function load() {
-    if (!roomId) return;
+    if (!roomNumber) return;
     setLoading(true);
     try {
-      const data = await listMaintenanceByRoom(roomId);
-      setRows(data);
+      const data = await listMaintenanceByRoomNumber(roomNumber);
+      setRows(Array.isArray(data) ? data : []);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [roomId, reloadSignal]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [roomNumber, reloadSignal]);
 
   async function doComplete(id) {
     const today = new Date().toISOString().slice(0, 10);
@@ -77,7 +71,6 @@ export default function MaintenanceTable({ roomId, reloadSignal = 0 }) {
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={6} align="center"><CircularProgress size={22} /></TableCell></TableRow>

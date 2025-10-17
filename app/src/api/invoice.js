@@ -1,4 +1,4 @@
-import http, { API_BASE } from './http';
+import http from './http';
 
 // ---------- Create / View ----------
 export async function createInvoice(
@@ -12,8 +12,29 @@ export async function createInvoice(
   return http.post(`/api/invoices`, payload, { params });
 }
 
-export function openInvoice(id, view = 'print') {
-  window.open(`${API_BASE}/invoices/${id}/${view}`, '_blank', 'noopener,noreferrer');
+/**
+ * เปิดเอกสารของใบแจ้งหนี้
+ * - 'print' หรือ 'pdf' => ดึง PDF เป็น blob แล้วเปิดด้วย ObjectURL (เลี่ยงโดน SPA กลืน)
+ * - อื่น ๆ             => ต่อ path view ได้ตามต้องการ (ถ้าอนาคตมี)
+ */
+export async function openInvoice(id, view = 'pdf') {
+  if (view === 'print' || view === 'pdf') {
+    // ดึงไฟล์แบบ blob (แนบ Authorization ตาม http.js ให้แล้ว)
+    const blob = await http.getBlob(`/api/invoices/${id}/pdf`);
+    const url = URL.createObjectURL(blob);
+    // เปิดในแท็บใหม่
+    window.open(url, '_blank', 'noopener,noreferrer');
+    // เก็บกวาด object URL หลังจากสักพัก
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+
+  // กรณีอนาคตมี view แบบอื่น
+  const path = `/api/invoices/${id}/${view}`;
+  const blob = await http.getBlob(path);
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank', 'noopener,noreferrer');
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 // ---------- Query ----------
