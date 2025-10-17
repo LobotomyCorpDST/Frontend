@@ -185,7 +185,7 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
                 <TextField
-                  label="เลขห้อง"
+                  label="เลขห้อง *"
                   value={form.roomNumber}
                   onChange={(e) => setForm(f => ({ ...f, roomNumber: e.target.value.replace(/\D/g, '') }))}
                   fullWidth size="small"
@@ -194,11 +194,9 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
                 />
               </Grid>
 
-
-
               <Grid item xs={12} sm={4}>
                 <TextField
-                  label="Tenant ID *"
+                  label="ID ผู้เช่า *"
                   value={form.tenantId}
                   onChange={(e) => setForm(f => ({ ...f, tenantId: e.target.value.replace(/\D/g, '') }))}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); fetchTenant(); } }}
@@ -266,9 +264,9 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
 
               <Grid item xs={12}>
                 <TextField
-                  label="Custom Rules"
-                  value={form.customRules}
-                  onChange={setField('customRules')}
+                  label="ที่อยู่อาศัยผู้เช่า"
+                  value={form.customAddress}
+                  onChange={setField('customAddress')}
                   fullWidth size="small"
                   multiline
                   rows={3}
@@ -278,9 +276,9 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
 
               <Grid item xs={12}>
                 <TextField
-                  label="Address"
-                  value={form.customAddress}
-                  onChange={setField('customAddress')}
+                  label="กฏอื่นๆ"
+                  value={form.customRules}
+                  onChange={setField('customRules')}
                   fullWidth size="small"
                   multiline
                   rows={3}
