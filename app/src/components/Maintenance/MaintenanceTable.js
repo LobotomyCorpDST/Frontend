@@ -1,26 +1,51 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Box, Button, Chip, CircularProgress, IconButton, Stack, Tooltip
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  IconButton,
+  Stack,
+  Tooltip,
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import EditIcon from '@mui/icons-material/Edit';
 import { listMaintenanceByRoomNumber, completeMaintenance } from '../../api/maintenance';
+import EditMaintenanceModal from './EditMaintenanceModal';
 
 function statusChip(status) {
   const s = (status || '').toUpperCase();
-  const map = { PLANNED: 'info', IN_PROGRESS: 'warning', COMPLETED: 'success', DONE: 'success', CANCELED: 'default' };
-  return <Chip label={status} color={map[s] || 'default'} size="small" />;
+  const map = {
+    PLANNED: 'info',
+    IN_PROGRESS: 'warning',
+    COMPLETED: 'success',
+    DONE: 'success',
+    CANCELED: 'default',
+  };
+  return <Chip label={status || '-'} color={map[s] || 'default'} size="small" />;
 }
 
 function money(n) {
   if (n == null) return '-';
-  return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Number(n).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
 
   const canComplete = useMemo(
     () => (st) => {
@@ -36,25 +61,42 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
     try {
       const data = await listMaintenanceByRoomNumber(roomNumber);
       setRows(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch maintenance list:', err);
+      setRows([]);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [roomNumber, reloadSignal]);
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomNumber, reloadSignal]);
 
   async function doComplete(id) {
     const today = new Date().toISOString().slice(0, 10);
-    await completeMaintenance(id, today);
-    await load();
+    try {
+      await completeMaintenance(id, today);
+      await load();
+    } catch (err) {
+      console.error('Failed to complete maintenance:', err);
+    }
   }
+
+  const handleEdit = (id) => {
+    setSelectedId(id);
+    setOpenEdit(true);
+  };
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <Tooltip title="รีเฟรช">
-            <IconButton onClick={load} size="small"><RefreshIcon /></IconButton>
+            <IconButton onClick={load} size="small">
+              <RefreshIcon />
+            </IconButton>
           </Tooltip>
         </Stack>
       </Box>
@@ -73,28 +115,65 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
           </TableHead>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={6} align="center"><CircularProgress size={22} /></TableCell></TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={6} align="center">ยังไม่มีงานบำรุงรักษา</TableCell></TableRow>
-            ) : rows.map(r => (
-              <TableRow key={r.id}>
-                <TableCell>{r.scheduledDate || '-'}</TableCell>
-                <TableCell>{r.description || '-'}</TableCell>
-                <TableCell>{statusChip(r.status)}</TableCell>
-                <TableCell align="right">{money(r.costBaht)}</TableCell>
-                <TableCell align="right">{r.completedDate || '-'}</TableCell>
-                <TableCell align="right">
-                  {canComplete(r.status) && (
-                    <Button size="small" variant="outlined" startIcon={<CheckCircleOutlineIcon />} onClick={() => doComplete(r.id)}>
-                      ทำเสร็จ
-                    </Button>
-                  )}
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <CircularProgress size={22} />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  ยังไม่มีงานบำรุงรักษา
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell>{r.scheduledDate || '-'}</TableCell>
+                  <TableCell>{r.description || '-'}</TableCell>
+                  <TableCell>{statusChip(r.status)}</TableCell>
+                  <TableCell align="right">{money(r.costBaht)}</TableCell>
+                  <TableCell align="right">{r.completedDate || '-'}</TableCell>
+                  <TableCell align="right">
+                    <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                      {canComplete(r.status) && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<CheckCircleOutlineIcon />}
+                          onClick={() => doComplete(r.id)}
+                        >
+                          ทำเสร็จ
+                        </Button>
+                      )}
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleEdit(r.id)}
+                      >
+                        แก้ไข
+                      </Button>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {openEdit && (
+        <EditMaintenanceModal
+          open={openEdit}
+          maintenanceId={selectedId}
+          onClose={() => setOpenEdit(false)}
+          onSaved={() => {
+            setOpenEdit(false);
+            load();
+          }}
+        />
+      )}
     </Box>
   );
 }
