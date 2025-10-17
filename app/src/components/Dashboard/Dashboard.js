@@ -46,14 +46,14 @@ const Dashboard = () => {
           };
         });
 
-        setRooms(transformed);
-      } catch (e) {
-        setError(e.message || 'Could not load dashboard data.');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+                setRooms(transformed);
+            } catch (e) {
+                setError(e.message || 'Could not load dashboard data.');
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, []);
 
   const handleChange = (event) => setFloor(event.target.value);
 
@@ -82,63 +82,58 @@ const Dashboard = () => {
     }, {});
   }, [visibleRooms]);
 
-  const handleRoomNumberClick = (roomNumber) => {
-    navigate(`/room-details/${roomNumber}`);
-  };
 
-  const RoomCard = ({ room }) => {
-    const isAvailable = room.roomStatus.toLowerCase() === 'room available';
-    return (
-      <Card
-        sx={{
-          width: 150,
-          height: 150,
-          cursor: 'pointer',
-          border: '1px solid',
-          borderColor: isAvailable ? 'success.main' : 'error.main',
-          backgroundColor: isAvailable ? 'success.light' : '#ffebee'
-        }}
-        onClick={() => handleRoomNumberClick(room.roomNumber)}
-      >
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-          <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
-            {room.roomNumber}
-          </Typography>
-          <Box>
-            <Typography sx={{ mb: 1.5 }} color="text.secondary">
-              {isAvailable ? 'Available' : 'Occupied'}
-            </Typography>
-            <Typography variant="body2">
-              {isAvailable ? '-' : room.tenantInfo.name}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    );
-  };
+    const RoomCard = ({ room }) => {
+        const isAvailable = room.roomStatus.toLowerCase() === 'room available';
+        return (
+            <Card
+                sx={{
+                    width: 150,
+                    height: 150,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor: isAvailable ? 'success.main' : 'error.main',
+                    backgroundColor: isAvailable ? 'success.light' : '#ffebee'
+                }}
+                onClick={() => handleRoomNumberClick(room.roomNumber)}
+            >
+                <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                    <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                        {room.roomNumber}
+                    </Typography>
+                    <Box>
+                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                            {isAvailable ? 'ว่าง' : 'ไม่ว่าง'}
+                        </Typography>
+                        <Typography variant="body2">
+                            {isAvailable ? '-' : room.tenantInfo.name}
+                        </Typography>
+                    </Box>
+                </CardContent>
+            </Card>
+        );
+    };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading Dashboard...</Typography>
-      </Box>
-    );
-  }
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                <CircularProgress />
+                <Typography sx={{ ml: 2 }}>กำลังโหลด Dashboard...</Typography>
+            </Box>
+        );
+    }
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">Error: {error}</Typography>
-      </Box>
-    );
-  }
+    if (error) {
+        return (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+                <Typography color="error">Error: {error}</Typography>
+            </Box>
+        );
+    }
 
-  return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-        Dashboard
-      </Typography>
+    // --- Calculate statistics ---
+    const availableRooms = rooms.filter(r => r.roomStatus.toLowerCase() === 'room available');
+    const unavailableRooms = rooms.filter(r => r.roomStatus.toLowerCase() !== 'room available');
 
       {/* Header: เลือกชั้น + สรุปตัวเลข (อิง visibleRooms) */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>

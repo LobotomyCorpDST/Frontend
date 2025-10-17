@@ -8,6 +8,7 @@ import LeaseHistory from './components/LeaseHistory/LeaseHistory';
 import PrivateRoute from './components/RouteGuard/PrivateRoute';
 import RedirectIfAuthed from './components/RouteGuard/RedirectIfAuthed';
 import './App.css';
+import TenantDetail from "./components/TenantDetail/TenantDetail";
 
 function App() {
   return (
@@ -50,6 +51,14 @@ function App() {
                 <RoomDetail />
               </PrivateRoute>
             }
+          />
+          <Route
+              path="/tenant-details/:tenantId"
+              element={
+                  <PrivateRoute>
+                      <TenantDetail />
+                  </PrivateRoute>
+              }
           />
           <Route
             path="/invoices"

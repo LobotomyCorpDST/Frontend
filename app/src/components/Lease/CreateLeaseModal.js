@@ -75,6 +75,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess }) => {
       room:   { number: Number(form.roomNumber) },
       tenant: { id: Number(form.tenantId) },
       startDate: form.startDate, // YYYY-MM-DD
+      endDate: form.endDate || undefined,
       monthlyRent: form.monthlyRent ? Number(form.monthlyRent) : undefined,
       depositBaht: form.depositBaht ? Number(form.depositBaht) : undefined,
       // ไม่ส่ง custom fields อื่น ๆ ตามที่ตกลง
@@ -163,6 +164,17 @@ const CreateLeaseModal = ({ open, onClose, onSuccess }) => {
             />
           </Grid>
 
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="วันที่สิ้นสุดสัญญา"
+              type="date"
+              value={form.endDate}
+              onChange={set('endDate')}
+              fullWidth size="small"
+              InputLabelProps={{ shrink: true }}
+              disabled={saving}
+            />
+          </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               label="ค่าเช่าต่อเดือน (บาท)"

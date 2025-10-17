@@ -135,7 +135,7 @@ const RoomDetail = () => {
         sx={{ flex: '1 1 40%', p: 3, height: '85vh', display: 'flex', flexDirection: 'column' }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <IconButton onClick={() => navigate('/home')}>
+          <IconButton onClick={() => navigate('/home?tab=ห้องทั้งหมด')}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h4" component="h1" sx={{ ml: 1 }}>

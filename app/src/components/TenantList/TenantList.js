@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './TenantList.css';
 import CreateTenantModal from './CreateTenantModal';
 import { listTenants } from '../../api/tenant';
 
 const TenantList = ({ searchTerm, addTenantSignal }) => {
+    const navigate = useNavigate();
     const [tenants, setTenants] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
     const [loading, setLoading] = useState(true);
@@ -58,12 +60,16 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
         if (!term) return sortedTenants;
         return sortedTenants.filter(
             (tenant) =>
-                String(tenant.id).toLowerCase().includes(term) || // Added search by ID
+                String(tenant.id).toLowerCase().includes(term) ||
                 tenant.name.toLowerCase().includes(term) ||
                 tenant.phone.includes(term) ||
                 (tenant.room?.number && String(tenant.room.number).includes(term))
         );
     }, [sortedTenants, searchTerm]);
+
+    const handleRowClick = (tenantId) => {
+        navigate(`/tenant-details/${tenantId}`);
+    };
 
     if (loading) return <div className="tenant-list-container">Loading tenants...</div>;
     if (error) return <div className="tenant-list-container">Error: {error}</div>;
@@ -83,7 +89,7 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
                     </thead>
                     <tbody>
                     {filteredTenants.map((tenant) => (
-                        <tr key={tenant.id}>
+                        <tr key={tenant.id} onClick={() => handleRowClick(tenant.id)} style={{ cursor: 'pointer' }}>
                             <td>{tenant.id}</td>
                             <td>{tenant.name}</td>
                             <td>{tenant.phone}</td>
@@ -107,4 +113,3 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
 };
 
 export default TenantList;
-
