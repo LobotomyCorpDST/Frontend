@@ -194,16 +194,7 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  label="Room ID (ถ้ามี)"
-                  value={form.roomId ?? ''}
-                  onChange={(e) => setForm(f => ({ ...f, roomId: e.target.value ? Number(e.target.value) : null }))}
-                  fullWidth size="small"
-                  placeholder="Optional: room id"
-                  disabled={saving || deleting}
-                />
-              </Grid>
+
 
               <Grid item xs={12} sm={4}>
                 <TextField
@@ -273,24 +264,26 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <TextField
-                  label="Custom Name"
-                  value={form.customName}
-                  onChange={setField('customName')}
+                  label="Custom Rules"
+                  value={form.customRules}
+                  onChange={setField('customRules')}
                   fullWidth size="small"
+                  multiline
+                  rows={3}
                   disabled={saving || deleting}
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <TextField
-                  label="Custom Address / Rules"
+                  label="Address"
                   value={form.customAddress}
                   onChange={setField('customAddress')}
                   fullWidth size="small"
                   multiline
-                  rows={2}
+                  rows={3}
                   disabled={saving || deleting}
                 />
               </Grid>
