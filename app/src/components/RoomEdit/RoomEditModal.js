@@ -77,22 +77,37 @@ export default function RoomEditModal({
   }
 
   // ✅ Handle Delete
-  async function handleDelete() {
-    if (!roomId) return;
-    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องนี้?')) return;
+async function handleDelete() {
+  if (!roomId) return;
+  if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องนี้?')) return;
 
-    setDeleting(true);
-    setError('');
-    try {
-      await deleteRoom(roomId);
-      onSaved?.(); // reload list after delete
-      onClose?.();
-    } catch (e) {
-      setError(e?.message || 'ลบห้องไม่สำเร็จ');
+  setDeleting(true);
+  setError('');
+  try {
+    await deleteRoom(roomId);
+    onSaved?.(); // reload list after delete
+    onClose?.();
+  } catch (e) {
+    console.error(e);
+    let msg = e?.message || '';
+
+    // ✅ Detect common FK constraint messages from backend
+    if (
+      msg.includes('foreign key constraint fails') ||
+      msg.includes('Cannot delete or update a parent row') ||
+      msg.includes('constraint [null]')
+    ) {
+      msg = 'ไม่สามารถลบห้องนี้ได้ เนื่องจากยังมีใบแจ้งหนี้หรือรายการซ่อมบำรุงที่เกี่ยวข้องอยู่';
+    } else if (!msg || msg.toLowerCase().includes('could not execute statement')) {
+      msg = 'ลบห้องไม่สำเร็จ (ไม่ทราบสาเหตุ)';
+    }
+
+      setError(msg);
     } finally {
       setDeleting(false);
     }
   }
+
 
   return (
     <Dialog open={!!open} onClose={saving || deleting ? undefined : onClose} maxWidth="xs" fullWidth>
