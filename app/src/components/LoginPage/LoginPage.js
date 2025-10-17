@@ -5,7 +5,8 @@ import {
   Typography,
   TextField,
   Button,
-  useMediaQuery
+  useMediaQuery,
+  Stack
 } from "@mui/material";
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -19,8 +20,8 @@ export default function LoginPage() {
 
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [loading, setLoading]   = React.useState(false);
-  const [error, setError]       = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const getBuildingHeight = (baseHeight) => {
     if (isVerySmallScreen) return baseHeight * 0.5;
@@ -28,27 +29,28 @@ export default function LoginPage() {
     return baseHeight;
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e, role = 'admin') => {
     e?.preventDefault?.();
+
     const u = username.trim();
     const p = password;
-
     if (!u || !p) return;
 
     setError('');
     setLoading(true);
     try {
-
-      const data = await http.post('/api/auth/login', { username: u, password: p });
+      // ถ้า http เป็น axios instance ปกติควรดึง data ออกมาก่อน
+      const res = await http.post('/api/auth/login', { username: u, password: p });
+      const data = res?.data ?? res; // เผื่อคุณหุ้ม http ให้รีเทิร์น data อยู่แล้ว
 
       if (data?.token) {
         localStorage.setItem('token', data.token);
-        navigate('/home');
+        localStorage.setItem('role', role);
+        navigate(role === 'guest' ? '/home-guest' : '/home');
       } else {
         throw new Error('Login response has no token');
       }
     } catch (err) {
-      // http.js จะโยนข้อความจาก backend ให้แล้ว (error / message)
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
@@ -175,20 +177,40 @@ export default function LoginPage() {
             </Typography>
           )}
 
-          <Button
-            type="submit"
-            disabled={loading || !username.trim() || !password}
-            variant="contained"
-            sx={{
-              background: '#1d3e7d',
-              color: '#fff',
-              padding: '10px 20px',
-              borderRadius: '20px',
-              '&:hover': { backgroundColor: '#15305e' }
-            }}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </Button>
+          <Stack direction="row" spacing={2} justifyContent="center">
+            {/* GUEST: เปลี่ยนเป็น type="button" และเรียก role = 'guest' */}
+            <Button
+              type="button"
+              onClick={(e) => handleLogin(e, 'guest')}
+              disabled={loading || !username.trim() || !password}
+              variant="contained"
+              sx={{
+                background: '#2AB7A9',
+                color: '#fff',
+                padding: '10px 20px',
+                borderRadius: '20px',
+                '&:hover': { backgroundColor: '#24a195ff' },
+              }}
+            >
+              {loading ? 'Logging in...' : 'Guest Login'}
+            </Button>
+
+            {/* ADMIN: submit ตามเดิม */}
+            <Button
+              type="submit"
+              disabled={loading || !username.trim() || !password}
+              variant="contained"
+              sx={{
+                background: '#1d3e7d',
+                color: '#fff',
+                padding: '10px 20px',
+                borderRadius: '20px',
+                '&:hover': { backgroundColor: '#15305e' },
+              }}
+            >
+              {loading ? 'Logging in...' : 'Admin Login'}
+            </Button>
+          </Stack>
 
           {/* dev helper: base URL ที่กำลังใช้ (ช่วยเวลา dev) */}
           <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#1d3e7da8' }}>

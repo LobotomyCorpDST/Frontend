@@ -20,7 +20,7 @@ import TenantList from '../TenantList/TenantList';
 import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
 
 const navigationItems = [
-  { label: "Dashboard", component: <Dashboard /> },
+  { label: "Dashboard", component: <Dashboard isGuest={false} /> },
   { label: "ห้องทั้งหมด", component: <RoomList /> },
   { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
   { label: "บำรุงรักษา", component: <MaintenanceHistory /> },
@@ -34,6 +34,7 @@ function HomePage() {
   const navigate = useNavigate();
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
+
 
   const handleNavigationChange = (index) => {
     setActiveIndex(index);

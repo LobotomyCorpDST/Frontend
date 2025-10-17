@@ -12,7 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import http from '../../api/http'; // << ใช้ตัวห่อที่ใส่ Authorization ให้
 
-const Dashboard = () => {
+const Dashboard = ({ isGuest = false }) => {
     const navigate = useNavigate();
     const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -45,6 +45,7 @@ const Dashboard = () => {
     }, []);
 
     const handleRoomNumberClick = (roomNumber) => {
+        if (isGuest) return;
         navigate(`/room-details/${roomNumber}`);
     };
 
@@ -73,7 +74,7 @@ const Dashboard = () => {
                     borderColor: isAvailable ? 'success.main' : 'error.main',
                     backgroundColor: isAvailable ? 'success.light' : '#ffebee'
                 }}
-                onClick={() => handleRoomNumberClick(room.roomNumber)}
+                onClick={() => !isGuest && handleRoomNumberClick(room.roomNumber)}
             >
                 <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
                     <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from "./components/LoginPage/LoginPage";
 import HomePage from "./components/Home/Home";
+import HomePageForGuest from "./components/HomeForGuest/HomeForGuest";
 import RoomDetail from './components/RoomDetail/RoomDetail';
 import InvoiceListPage from './components/Invoice/InvoiceListPage';
 import LeaseHistory from './components/LeaseHistory/LeaseHistory';
@@ -44,6 +45,16 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          <Route
+            path="/home-guest"
+            element={
+              <PrivateRoute>
+                <HomePageForGuest />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/room-details/:roomNumber"
             element={

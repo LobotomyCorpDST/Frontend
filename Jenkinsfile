@@ -1,5 +1,14 @@
 pipeline {
     agent { label 'node' }
+
+    environment {
+        K8S_NAMESPACE = 'doomed-apt'
+        DEPLOY_NAME   = 'frontend-deployment'  
+        CONTAINER_NAME= 'frontend'              
+        IMAGE_REPO    = 'mmmmnl/lobotomy_but_front' 
+    }
+
+
     
     stages {
         stage('Checkout code') {
@@ -35,5 +44,24 @@ pipeline {
                 sh 'docker push mmmmnl/lobotomy_but_front:v.0.0'
             }
         }
+
+        stage('Deploy to K8s') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-prod', variable: 'KUBECONFIG_FILE')]) {
+                sh '''
+                    set -e
+                    export KUBECONFIG="${KUBECONFIG_FILE}"
+
+                    kubectl apply -n ${K8S_NAMESPACE} -f app/k8s/
+
+                    TAG=$(git rev-parse --short HEAD || echo "${BUILD_NUMBER}")
+                    kubectl -n ${K8S_NAMESPACE} rollout restart deploy/${DEPLOY_NAME}
+
+                    kubectl -n ${K8S_NAMESPACE} rollout status deploy/${DEPLOY_NAME} --timeout=180s
+                '''
+                }
+            }
+        }
+
     }
 }
