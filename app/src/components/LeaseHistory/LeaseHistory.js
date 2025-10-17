@@ -26,6 +26,7 @@ const LeaseHistory = () => {
     roomNumber: '',
     tenantId: '',
     startDate: fmt(new Date()),
+    endDate: '',
     monthlyRent: '',
     depositBaht: '',
     customName: '',
@@ -93,6 +94,7 @@ const LeaseHistory = () => {
         room: { number: Number(form.roomNumber) },
         tenant: { id: Number(form.tenantId) },
         startDate: form.startDate,
+        endDate: form.endDate || null,
         monthlyRent: form.monthlyRent ? Number(form.monthlyRent) : null,
         depositBaht: form.depositBaht ? Number(form.depositBaht) : null,
         customName: form.customName || null,
@@ -212,6 +214,8 @@ const LeaseHistory = () => {
               onChange={setF('tenantId')} placeholder="เช่น 1" />
             <TextField label="วันที่เริ่มสัญญา *" type="date" value={form.startDate}
               onChange={setF('startDate')} InputLabelProps={{ shrink: true }} />
+            <TextField label="วันที่สิ้นสุดสัญญา" type="date" value={form.endDate}
+              onChange={setF('endDate')} InputLabelProps={{ shrink: true }} />
             <TextField label="ค่าเช่าต่อเดือน (บาท)" value={form.monthlyRent}
               onChange={setF('monthlyRent')} placeholder="เช่น 7000" />
             <TextField label="เงินมัดจำ (บาท)" value={form.depositBaht}
