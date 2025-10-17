@@ -14,6 +14,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     const [addRoomSignal, setAddRoomSignal] = useState(0);
     const [addInvoiceSignal, setAddInvoiceSignal] = useState(0);
     const [addTenantSignal, setAddTenantSignal] = useState(0);
+    const [addMaintenanceSignal, setAddMaintenanceSignal] = useState(0);
 
     const CurrentComponent = navigationItems[activeIndex].component;
     const currentPageLabel = navigationItems[activeIndex].label;
@@ -25,7 +26,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     const showAdd =
         currentPageLabel === "ห้องทั้งหมด" ||
         currentPageLabel === "ใบแจ้งหนี้" ||
-        currentPageLabel === "ผู้เช่าทั้งหมด";
+        currentPageLabel === "ผู้เช่าทั้งหมด" ||
+        currentPageLabel === "บำรุงรักษา";
 
     const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
@@ -36,6 +38,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
             setAddInvoiceSignal((s) => s + 1);
         } else if (currentPageLabel === "ผู้เช่าทั้งหมด") {
             setAddTenantSignal((s) => s + 1);
+        } else if (currentPageLabel === "บำรุงรักษา") {
+            setAddMaintenanceSignal((s) => s + 1);
         }
     };
 
@@ -46,7 +50,9 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
             case "ใบแจ้งหนี้":
                 return "เพิ่มใบแจ้งหนี้";
             case "ผู้เช่าทั้งหมด":
-                return "เพิ่มผู้เช่า"; // 4. Add the new label
+                return "เพิ่มผู้เช่า";
+            case "บำรุงรักษา":
+                return "เพิ่มรายการแจ้งซ่อม";
             default:
                 return "Add";
         }
@@ -105,12 +111,12 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                     )}
                 </Box>
 
-                {/* 5. Pass the new signal down to the active component */}
                 {React.cloneElement(CurrentComponent, {
                     searchTerm,
                     addRoomSignal,
                     addInvoiceSignal,
                     addTenantSignal,
+                    addMaintenanceSignal,
                 })}
             </Paper>
         </Box>
