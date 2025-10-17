@@ -6,7 +6,8 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import { getTenantById } from '../../api/tenant';
-import { getActiveLease } from '../../api/lease';
+// import { getActiveLease } from '../../api/lease';
+import { getActiveLeaseByTenantId } from '../../api/lease';
 import MaintenanceTable from '../../components/Maintenance/MaintenanceTable'; // Assuming path
 import EditTenantModal from './EditTenantModal';
 import './TenantDetail.css';
@@ -64,8 +65,10 @@ const TenantDetail = () => {
             setTenant(tenantData);
 
             // Fetch the active lease for this tenant
-            const activeLease = await getActiveLease(tenantId);
-            setLease(activeLease); // Can be null if no active lease
+            // ... inside the loadData function
+            const activeLeaseData = await getActiveLeaseByTenantId(tenantId);
+            // If the array is empty or null, set lease to null.
+            setLease(activeLeaseData && activeLeaseData.length > 0 ? activeLeaseData[0] : null);
 
         } catch (e) {
             setError(e?.message || `Failed to load details for tenant ID ${tenantId}`);
@@ -90,7 +93,7 @@ const TenantDetail = () => {
         <Box className="detail-page-container">
             {/* Left Panel: Tenant & Lease Info */}
             <Paper elevation={3} className="left-panel">
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2}}>
                     <IconButton onClick={() => navigate(-1)}>
                         <ArrowBackIcon />
                     </IconButton>

@@ -15,6 +15,21 @@ export const getActiveLease = (roomNumber) =>
 export const getLeaseHistory = (roomNumber) =>
   http.get(apiPath(`/leases/history/${roomNumber}`));
 
+export const getActiveLeaseByTenantId = (tenantId) =>
+    http.get(apiPath(`/leases/by-tenant/${tenantId}`), { params: { tenantId } });
+
+// // หา lease by tenant id
+// export const getActiveLeaseByTenantId = async (tenantId) => {
+//     if (!tenantId) throw new Error("Tenant ID is required.");
+//     try {
+//         const response = await http.get(`/leases/by-tenant/${tenantId}`); // ADJUST ENDPOINT IF NEEDED
+//         return response.data; // Assuming your backend has this endpoint
+//     } catch (error) {
+//         console.error(`Error fetching active lease for tenant ${tenantId}:`, error);
+//         throw error;
+//     }
+// };
+
 // ---------- Create ----------
 /**
  * payload รองรับหลายแบบตาม BE:
