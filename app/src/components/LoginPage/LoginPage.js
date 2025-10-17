@@ -29,29 +29,54 @@ export default function LoginPage() {
     return baseHeight;
   };
 
-  const handleLogin = async (e, role = 'admin') => {
+  // --- ADMIN LOGIN ---
+  const handleLogin = async (e) => {
     e?.preventDefault?.();
+    setError('');
 
     const u = username.trim();
     const p = password;
     if (!u || !p) return;
 
-    setError('');
     setLoading(true);
     try {
-      // ถ้า http เป็น axios instance ปกติควรดึง data ออกมาก่อน
       const res = await http.post('/api/auth/login', { username: u, password: p });
-      const data = res?.data ?? res; // เผื่อคุณหุ้ม http ให้รีเทิร์น data อยู่แล้ว
-
+      const data = res?.data ?? res;
       if (data?.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', role);
-        navigate(role === 'guest' ? '/home-guest' : '/home');
+        localStorage.setItem('role', 'admin');
+        navigate('/home');
       } else {
         throw new Error('Login response has no token');
       }
     } catch (err) {
       setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- GUEST LOGIN ---
+  const handleGuestLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      // ✅ Calls backend with predefined guest credentials
+      const res = await http.post('/api/auth/login', {
+        username: 'guest',
+        password: 'guest123',
+      });
+
+      const data = res?.data ?? res;
+      if (data?.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', 'guest');
+        navigate('/home-guest');
+      } else {
+        throw new Error('Guest login failed: no token returned');
+      }
+    } catch (err) {
+      setError(err.message || 'Guest login failed');
     } finally {
       setLoading(false);
     }
@@ -64,25 +89,9 @@ export default function LoginPage() {
     { height: 230, width: '7%', minWidth: '45px' },
     { height: 180, width: '2%', minWidth: '10px', transparent: true },
     { height: 140, width: '5%', minWidth: '35px' },
-    { height: 180, width: '2%', minWidth: '10px', transparent: true },
     { height: 160, width: '6%', minWidth: '40px' },
     { height: 120, width: '5%', minWidth: '35px' },
-    { height: 180, width: '2%', minWidth: '10px', transparent: true },
     { height: 230, width: '7%', minWidth: '45px' },
-    { height: 160, width: '6%', minWidth: '40px' },
-    { height: 250, width: '8%', minWidth: '50px' },
-    { height: 250, width: '8%', minWidth: '50px' },
-    { height: 180, width: '2%', minWidth: '10px', transparent: true },
-    { height: 140, width: '5%', minWidth: '35px' },
-    { height: 230, width: '7%', minWidth: '45px' },
-    { height: 180, width: '2%', minWidth: '10px', transparent: true },
-    { height: 140, width: '5%', minWidth: '35px' },
-    { height: 180, width: '2%', minWidth: '10px', transparent: true },
-    { height: 160, width: '6%', minWidth: '40px' },
-    { height: 120, width: '5%', minWidth: '35px' },
-    { height: 180, width: '2%', minWidth: '10px', transparent: true },
-    { height: 230, width: '7%', minWidth: '45px' },
-    { height: 160, width: '6%', minWidth: '40px' },
     { height: 250, width: '8%', minWidth: '50px' },
   ];
 
@@ -97,7 +106,7 @@ export default function LoginPage() {
         fontFamily: theme.typography.fontFamily,
       }}
     >
-      {/* Main content */}
+      {/* Main Form */}
       <Box
         component="form"
         noValidate
@@ -112,7 +121,6 @@ export default function LoginPage() {
           position: 'relative',
         }}
       >
-        {/* Login box in the center */}
         <Paper
           elevation={3}
           sx={{
@@ -138,6 +146,7 @@ export default function LoginPage() {
             Doomed Apt.
           </Typography>
 
+          {/* Inputs */}
           <TextField
             fullWidth
             label="Username"
@@ -153,7 +162,6 @@ export default function LoginPage() {
               },
             }}
           />
-
           <TextField
             fullWidth
             type="password"
@@ -171,31 +179,16 @@ export default function LoginPage() {
             }}
           />
 
+          {/* Error Message */}
           {error && (
             <Typography variant="body2" color="error" sx={{ mb: 1 }}>
               {error}
             </Typography>
           )}
 
-          <Stack direction="row" spacing={2} justifyContent="center">
-            {/* GUEST: เปลี่ยนเป็น type="button" และเรียก role = 'guest' */}
-            <Button
-              type="button"
-              onClick={(e) => handleLogin(e, 'guest')}
-              disabled={loading || !username.trim() || !password}
-              variant="contained"
-              sx={{
-                background: '#2AB7A9',
-                color: '#fff',
-                padding: '10px 20px',
-                borderRadius: '20px',
-                '&:hover': { backgroundColor: '#24a195ff' },
-              }}
-            >
-              {loading ? 'Logging in...' : 'Guest Login'}
-            </Button>
-
-            {/* ADMIN: submit ตามเดิม */}
+          {/* Buttons Section */}
+          <Stack spacing={2} alignItems="center">
+            {/* Admin Login */}
             <Button
               type="submit"
               disabled={loading || !username.trim() || !password}
@@ -205,21 +198,40 @@ export default function LoginPage() {
                 color: '#fff',
                 padding: '10px 20px',
                 borderRadius: '20px',
+                width: '80%',
                 '&:hover': { backgroundColor: '#15305e' },
               }}
             >
               {loading ? 'Logging in...' : 'Admin Login'}
             </Button>
+
+            {/* Guest Login */}
+            <Button
+              type="button"
+              onClick={handleGuestLogin}
+              disabled={loading}
+              variant="contained"
+              sx={{
+                background: '#2AB7A9',
+                color: '#fff',
+                padding: '10px 20px',
+                borderRadius: '20px',
+                width: '80%',
+                '&:hover': { backgroundColor: '#24a195ff' },
+              }}
+            >
+              {loading ? 'Logging in...' : 'Guest Login'}
+            </Button>
           </Stack>
 
-          {/* dev helper: base URL ที่กำลังใช้ (ช่วยเวลา dev) */}
-          <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#1d3e7da8' }}>
+          {/* API Info */}
+          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#1d3e7da8' }}>
             API: {API_BASE}
           </Typography>
         </Paper>
       </Box>
 
-      {/* Footer buildings - responsive */}
+      {/* Footer Buildings */}
       <Box
         component="footer"
         sx={{
@@ -235,17 +247,17 @@ export default function LoginPage() {
           zIndex: 1,
         }}
       >
-        {buildingConfig.map((building, index) => (
+        {buildingConfig.map((b, i) => (
           <Paper
-            key={index}
+            key={i}
             elevation={0}
             sx={{
-              height: getBuildingHeight(building.height),
-              width: building.width,
+              height: getBuildingHeight(b.height),
+              width: b.width,
               minWidth: isVerySmallScreen
-                ? building.minWidth.replace(/\d+/g, m => Math.floor(parseInt(m) * 0.5))
-                : building.minWidth,
-              backgroundColor: building.transparent ? 'transparent' : '#9AB4DD',
+                ? b.minWidth.replace(/\d+/g, m => Math.floor(parseInt(m) * 0.5))
+                : b.minWidth,
+              backgroundColor: b.transparent ? 'transparent' : '#9AB4DD',
               borderRadius: 0,
             }}
           />
