@@ -68,7 +68,7 @@ const RoomDetail = () => {
 
         // 3) จัดข้อมูลฝั่งซ้าย
         const tenant = active?.tenant || null;
-        const nameToShow = active?.customName || tenant?.name || 'N/A';
+        const nameToShow = tenant?.name || 'N/A';
         const formattedRoom = {
           roomNumber: roomNumber,
           roomStatus: active ? 'rent paid' : 'room available',

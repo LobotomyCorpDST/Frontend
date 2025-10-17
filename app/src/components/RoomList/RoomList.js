@@ -61,7 +61,6 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
 
             if (lease && typeof lease === 'object') {
               occupantName =
-                (lease.customName && lease.customName.trim()) ||
                 (lease.tenant?.name && lease.tenant.name.trim()) ||
                 r.tenant?.name ||
                 '-';
