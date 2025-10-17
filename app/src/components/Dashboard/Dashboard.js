@@ -9,40 +9,43 @@ import {
     CardContent,
     CircularProgress
 } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import http from '../../api/http'; // << ใช้ตัวห่อที่ใส่ Authorization ให้
+
+
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        (async () => {
-            setLoading(true);
-            setError('');
-            try {
-                // Call via http.js to include the Authorization header
-                const roomsData = await http.get('/api/rooms');
+    (async () => {
+        setLoading(true);
+        setError('');
+        try {
+            // Call via http.js to include the Authorization header
+            const roomsData = await http.get('/api/rooms');
 
-                const transformed = (Array.isArray(roomsData) ? roomsData : []).map((room) => ({
-                    id: room.id,
-                    roomNumber: room.number,
-                    // Calculate floor number from room number (e.g., 101 -> 1, 205 -> 2)
-                    floor: Math.floor(Number(room.number) / 100) || 0,
-                    roomStatus: room.status === 'OCCUPIED' ? 'Not Available' : 'room available',
-                    tenantInfo: { name: room.tenant?.name || '' },
-                }));
+            const transformed = (Array.isArray(roomsData) ? roomsData : []).map((room) => ({
+                id: room.id,
+                roomNumber: room.number,
+                floor: Math.floor(Number(room.number) / 100) || 0,
+                roomStatus: room.status === 'OCCUPIED' ? 'Not Available' : 'room available',
+                tenantInfo: { name: room.tenant?.name || '' },
+            }));
 
-                setRooms(transformed);
-            } catch (e) {
-                setError(e.message || 'Could not load dashboard data.');
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+            setRooms(transformed);
+        } catch (e) {
+            setError(e.message || 'Could not load dashboard data.');
+        } finally {
+            setLoading(false);
+        }
+    })();
+    }, [location.pathname]);
 
     const handleRoomNumberClick = (roomNumber) => {
         navigate(`/room-details/${roomNumber}`);
