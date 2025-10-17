@@ -9,6 +9,21 @@ import CreateRoomModal from './CreateRoomModal';
 
 import http from '../../api/http';
 
+const headCells = [
+  { id: 'roomNumber',        label: 'Room No.' },
+  { id: 'occupantName',      label: 'Occupant' },
+  { id: 'leaseEndDate',      label: 'Lease End Date' },
+  { id: 'roomStatus',        label: 'Room Status' },
+  { id: 'maintenanceStatus', label: 'Maintenance' },
+];
+
+const headerCellStyle = {
+  backgroundColor: '#343a40', // สีพื้นหลังส่วนหัวของตาราง
+  color: '#f8f9fa',           // สีตัวอักษร
+  fontWeight: 'bold',        // ทำให้ตัวอักษรหนา
+  padding: '12px',
+};
+
 const RoomList = ({ searchTerm, addRoomSignal }) => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
