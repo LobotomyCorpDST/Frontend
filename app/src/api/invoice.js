@@ -62,7 +62,14 @@ export async function markUnpaid(id) {
 
 // ---------- Helpers ----------
 export function computeDisplayStatus(inv) {
-  if (inv.status === 'PAID') return 'Paid';
+  if (inv.status === 'PAID') return 'ชำระแล้ว';
   const today = new Date().toISOString().slice(0, 10);
-  return inv.dueDate && inv.dueDate < today ? 'Overdue' : 'Not yet paid';
+  return inv.dueDate && inv.dueDate < today ? 'ค้างชำระ' : 'ยังไม่ชำระ';
 }
+
+// ---------- Edit / Delete ----------
+export const getInvoiceById = (id) => http.get(`/api/invoices/${id}`);
+
+export const updateInvoice = (id, payload) => http.patch(`/api/invoices/${id}`, payload);
+
+export const deleteInvoice = (id) => http.delete(`/api/invoices/${id}`);
