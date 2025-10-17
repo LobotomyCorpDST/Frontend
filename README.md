@@ -57,6 +57,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/apartment_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
       SPRING_DATASOURCE_USERNAME: "root"
       SPRING_DATASOURCE_PASSWORD: "admin123"
@@ -73,6 +74,7 @@ services:
       - "3000:3000"
     environment:
       - REACT_APP_API_BASE=http://localhost:8080
+      - CHOKIDAR_USEPOLLING=true
     volumes:
       # Mounts local source code into the container's /app directory
       - ./frontend/app:/app
