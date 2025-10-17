@@ -23,7 +23,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 
 import {
   listInvoicesByRoom,
-  openInvoice,
+  // openInvoice,   // ไม่ใช้แล้วสำหรับปุ่ม print/pd f — เปิด URL ตรง ๆ ชัวร์กว่า
   markPaid,
   markUnpaid,
   computeDisplayStatus,
@@ -37,10 +37,16 @@ function fmt(n) {
   });
 }
 
+// เปิดไฟล์ PDF ของใบแจ้งหนี้โดยตรง
+function openInvoicePdf(id) {
+  // ถ้า dev server มี proxy ไป :8080 อยู่แล้ว ใช้ path ตรงได้เลย
+  window.open(`/api/invoices/${id}/pdf`, '_blank', 'noopener');
+}
+
 export default function RoomInvoiceTable({
   roomId,
   onCreateClick,
-  showCreateButton = true, // <- ใช้ควบคุมการแสดงปุ่มสร้างใบแจ้งหนี้เดิม
+  showCreateButton = true,
 }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +79,7 @@ export default function RoomInvoiceTable({
   }
 
   function renderStatusChip(inv) {
-    const label = computeDisplayStatus(inv); // e.g. 'Paid' | 'Overdue' | 'Not yet paid'
+    const label = computeDisplayStatus(inv); // 'Paid' | 'Overdue' | 'Not yet paid'
     const colorMap = {
       paid: 'success',
       overdue: 'error',
@@ -87,7 +93,6 @@ export default function RoomInvoiceTable({
 
   return (
     <Box>
-      {/* ปุ่มสร้างใบแจ้งหนี้ส่วนหัว (ซ่อน/แสดงได้ด้วยพร็อพ) */}
       {showCreateButton && (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <Button
@@ -135,17 +140,13 @@ export default function RoomInvoiceTable({
                   <TableCell>{fmt(inv.totalBaht)}</TableCell>
                   <TableCell>{renderStatusChip(inv)}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title="เปิดหน้าพิมพ์">
-                      <IconButton size="small" onClick={() => openInvoice(inv.id, 'print')}>
+                    <Tooltip title="เปิดหน้าพิมพ์ (PDF)">
+                      <IconButton size="small" onClick={() => openInvoicePdf(inv.id)}>
                         <PrintIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="เปิดไฟล์ PDF">
-                      <IconButton
-                        size="small"
-                        sx={{ ml: 0.5 }}
-                        onClick={() => openInvoice(inv.id, 'pdf')}
-                      >
+                      <IconButton size="small" sx={{ ml: 0.5 }} onClick={() => openInvoicePdf(inv.id)}>
                         <PictureAsPdfIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>

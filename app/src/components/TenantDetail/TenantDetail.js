@@ -6,7 +6,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import { getTenantById } from '../../api/tenant';
-import { getActiveLeaseByTenantId } from '../../api/lease';
+import { getActiveLease } from '../../api/lease';
 import MaintenanceTable from '../../components/Maintenance/MaintenanceTable'; // Assuming path
 import EditTenantModal from './EditTenantModal';
 import './TenantDetail.css';
@@ -64,7 +64,7 @@ const TenantDetail = () => {
             setTenant(tenantData);
 
             // Fetch the active lease for this tenant
-            const activeLease = await getActiveLeaseByTenantId(tenantId);
+            const activeLease = await getActiveLease(tenantId);
             setLease(activeLease); // Can be null if no active lease
 
         } catch (e) {
@@ -141,11 +141,11 @@ const TenantDetail = () => {
                         <Typography variant="h6" gutterBottom>ค่าใช้จ่ายล่าสุด</Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6}>
-                                <Typography><strong>ค่าไฟ (หน่วย):</strong> N/A</Typography>
+                                <Typography><strong>ค่าไฟ (หน่วยวย):</strong> N/A</Typography>
                                 <Typography><strong>ค่าไฟ (บาท):</strong> N/A</Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
-                                <Typography><strong>ค่าน้ำ (หน่วย):</strong> N/A</Typography>
+                                <Typography><strong>ค่าน้ำ (หน่วยวย):</strong> N/A</Typography>
                                 <Typography><strong>ค่าน้ำ (บาท):</strong> N/A</Typography>
                             </Grid>
                         </Grid>

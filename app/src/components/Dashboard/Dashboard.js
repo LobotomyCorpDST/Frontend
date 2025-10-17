@@ -32,7 +32,7 @@ const Dashboard = () => {
                     // Calculate floor number from room number (e.g., 101 -> 1, 205 -> 2)
                     floor: Math.floor(Number(room.number) / 100) || 0,
                     roomStatus: room.status === 'OCCUPIED' ? 'Not Available' : 'room available',
-                    tenantInfo: { name: room.tenant?.name || '-' },
+                    tenantInfo: { name: room.tenant?.name || '' },
                 }));
 
                 setRooms(transformed);
@@ -84,7 +84,7 @@ const Dashboard = () => {
                             {isAvailable ? 'ว่าง' : 'ไม่ว่าง'}
                         </Typography>
                         <Typography variant="body2">
-                            {isAvailable ? '-' : room.tenantInfo.name}
+                            {isAvailable ? '' : room.tenantInfo.name}
                         </Typography>
                     </Box>
                 </CardContent>
