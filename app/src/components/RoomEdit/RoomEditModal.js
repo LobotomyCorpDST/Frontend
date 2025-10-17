@@ -1,10 +1,10 @@
-// src/components/RoomEdit/RoomEditModal.js
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, Stack, MenuItem, Alert, CircularProgress
 } from '@mui/material';
-import { getRoomById, updateRoom, deleteRoom } from '../../api/room'; // ✅ added deleteRoom
+import { useNavigate } from 'react-router-dom';
+import { getRoomById, updateRoom, deleteRoom } from '../../api/room';
 
 const STATUS_OPTIONS = [
   { value: 'FREE', label: 'FREE (ว่าง)' },
@@ -17,14 +17,16 @@ export default function RoomEditModal({
   roomId,
   initialNumber,
   initialStatus = 'FREE',
-  onSaved,            // callback ให้หน้า RoomDetail reload ข้อมูล
+  onSaved, // callback ให้หน้า RoomDetail reload ข้อมูล
 }) {
   const [number, setNumber] = useState(initialNumber ?? '');
   const [status, setStatus] = useState(initialStatus ?? 'FREE');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false); // ✅ new state
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+
+  const navigate = useNavigate(); // ✅ for redirect after save
 
   // โหลดข้อมูลห้องเมื่อ modal เปิด
   useEffect(() => {
@@ -58,56 +60,66 @@ export default function RoomEditModal({
     return true;
   }, [number, status]);
 
+  // ✅ Save handler (with delayed redirect)
   async function handleSave() {
     if (!canSave || !roomId) return;
     setSaving(true);
     setError('');
     try {
-      await updateRoom(roomId, {
+      const updated = await updateRoom(roomId, {
         number: Number(number),
         status: String(status).toUpperCase(),
       });
+
       onSaved?.();
       onClose?.();
+
+      const newNum = updated?.number ?? Number(number);
+
+      // ✅ Add small delay before redirect (for smoother reload)
+      if (newNum && newNum !== initialNumber) {
+        setTimeout(() => {
+          navigate(`/room-details/${newNum}`);
+        }, 400); //  delay — adjust if needed
+      }
     } catch (e) {
+      console.error(e);
       setError(e?.message || 'บันทึกไม่สำเร็จ');
     } finally {
       setSaving(false);
     }
   }
 
-  // ✅ Handle Delete
-async function handleDelete() {
-  if (!roomId) return;
-  if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องนี้?')) return;
+  // ✅ Delete handler (unchanged)
+  async function handleDelete() {
+    if (!roomId) return;
+    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบห้องนี้?')) return;
 
-  setDeleting(true);
-  setError('');
-  try {
-    await deleteRoom(roomId);
-    onSaved?.(); // reload list after delete
-    onClose?.();
-  } catch (e) {
-    console.error(e);
-    let msg = e?.message || '';
+    setDeleting(true);
+    setError('');
+    try {
+      await deleteRoom(roomId);
+      onSaved?.();
+      onClose?.();
+    } catch (e) {
+      console.error(e);
+      let msg = e?.message || '';
 
-    // ✅ Detect common FK constraint messages from backend
-    if (
-      msg.includes('foreign key constraint fails') ||
-      msg.includes('Cannot delete or update a parent row') ||
-      msg.includes('constraint [null]')
-    ) {
-      msg = 'ไม่สามารถลบห้องนี้ได้ เนื่องจากยังมีใบแจ้งหนี้หรือรายการซ่อมบำรุงที่เกี่ยวข้องอยู่';
-    } else if (!msg || msg.toLowerCase().includes('could not execute statement')) {
-      msg = 'ลบห้องไม่สำเร็จ (ไม่ทราบสาเหตุ)';
-    }
+      if (
+        msg.includes('foreign key constraint fails') ||
+        msg.includes('Cannot delete or update a parent row') ||
+        msg.includes('constraint [null]')
+      ) {
+        msg = 'ไม่สามารถลบห้องนี้ได้ เนื่องจากยังมีใบแจ้งหนี้หรือรายการซ่อมบำรุงที่เกี่ยวข้องอยู่';
+      } else if (!msg || msg.toLowerCase().includes('could not execute statement')) {
+        msg = 'ลบห้องไม่สำเร็จ (ไม่ทราบสาเหตุ)';
+      }
 
       setError(msg);
     } finally {
       setDeleting(false);
     }
   }
-
 
   return (
     <Dialog open={!!open} onClose={saving || deleting ? undefined : onClose} maxWidth="xs" fullWidth>
@@ -149,7 +161,6 @@ async function handleDelete() {
         </Stack>
       </DialogContent>
       <DialogActions>
-        {/* ✅ New Delete button on the left */}
         <Button
           color="error"
           onClick={handleDelete}
