@@ -20,7 +20,7 @@ import http from '../../api/http';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
-  const [floor, setFloor] = useState('ALL'); // << default เป็น All floors
+  const [floor, setFloor] = useState('ALL'); // default เป็น All floors
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -46,14 +46,14 @@ const Dashboard = () => {
           };
         });
 
-                setRooms(transformed);
-            } catch (e) {
-                setError(e.message || 'Could not load dashboard data.');
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+        setRooms(transformed);
+      } catch (e) {
+        setError(e.message || 'Could not load dashboard data.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const handleChange = (event) => setFloor(event.target.value);
 
@@ -63,17 +63,18 @@ const Dashboard = () => {
     return ['ALL', ...unique];
   }, [rooms]);
 
-  // ห้องที่กำลังแสดง (สำหรับการ์ดและตัวเลขสรุป)
+  // ห้องที่ถูกกรอง (สำหรับการแสดงผล)
   const visibleRooms = useMemo(() => {
     if (floor === 'ALL') return rooms;
     return rooms.filter(r => String(r.floor) === String(floor));
   }, [rooms, floor]);
 
+  // คำนวณสถิติ
   const totalRooms = visibleRooms.length;
-  const availableRooms = visibleRooms.filter(r => r.roomStatus.toLowerCase() === 'room available');
-  const unavailableRooms = visibleRooms.filter(r => r.roomStatus.toLowerCase() !== 'room available');
+  const availableCount = visibleRooms.filter(r => r.roomStatus.toLowerCase() === 'room available').length;
+  const unavailableCount = visibleRooms.filter(r => r.roomStatus.toLowerCase() !== 'room available').length;
 
-  // group by floor (ใช้ตอนโหมด ALL)
+  // group by floor (ใช้ visibleRooms)
   const groupedByFloor = useMemo(() => {
     return visibleRooms.reduce((acc, r) => {
       const key = r.floor ?? 'N/A';
@@ -82,59 +83,56 @@ const Dashboard = () => {
     }, {});
   }, [visibleRooms]);
 
+  const RoomCard = ({ room }) => {
+    const isAvailable = room.roomStatus.toLowerCase() === 'room available';
+    return (
+      <Card
+        sx={{
+          width: 150,
+          height: 150,
+          cursor: 'pointer',
+          border: '1px solid',
+          borderColor: isAvailable ? 'success.main' : 'error.main',
+          backgroundColor: isAvailable ? 'success.light' : '#ffebee'
+        }}
+        onClick={() => navigate(`/room-details/${room.roomNumber}`)}
+      >
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+            {room.roomNumber}
+          </Typography>
+          <Box>
+            <Typography sx={{ mb: 1.5 }} color="text.secondary">
+              {isAvailable ? 'ว่าง' : 'ไม่ว่าง'}
+            </Typography>
+            <Typography variant="body2">
+              {isAvailable ? '-' : room.tenantInfo.name}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
 
-    const RoomCard = ({ room }) => {
-        const isAvailable = room.roomStatus.toLowerCase() === 'room available';
-        return (
-            <Card
-                sx={{
-                    width: 150,
-                    height: 150,
-                    cursor: 'pointer',
-                    border: '1px solid',
-                    borderColor: isAvailable ? 'success.main' : 'error.main',
-                    backgroundColor: isAvailable ? 'success.light' : '#ffebee'
-                }}
-                onClick={() => handleRoomNumberClick(room.roomNumber)}
-            >
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                    <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
-                        {room.roomNumber}
-                    </Typography>
-                    <Box>
-                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                            {isAvailable ? 'ว่าง' : 'ไม่ว่าง'}
-                        </Typography>
-                        <Typography variant="body2">
-                            {isAvailable ? '-' : room.tenantInfo.name}
-                        </Typography>
-                    </Box>
-                </CardContent>
-            </Card>
-        );
-    };
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>กำลังโหลด Dashboard...</Typography>
+      </Box>
+    );
+  }
 
-    if (loading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <CircularProgress />
-                <Typography sx={{ ml: 2 }}>กำลังโหลด Dashboard...</Typography>
-            </Box>
-        );
-    }
+  if (error) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="error">Error: {error}</Typography>
+      </Box>
+    );
+  }
 
-    if (error) {
-        return (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography color="error">Error: {error}</Typography>
-            </Box>
-        );
-    }
-
-    // --- Calculate statistics ---
-    const availableRooms = rooms.filter(r => r.roomStatus.toLowerCase() === 'room available');
-    const unavailableRooms = rooms.filter(r => r.roomStatus.toLowerCase() !== 'room available');
-
+  return (
+    <Box sx={{ p: 2 }}>
       {/* Header: เลือกชั้น + สรุปตัวเลข (อิง visibleRooms) */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
@@ -154,9 +152,9 @@ const Dashboard = () => {
           <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Total Rooms</Typography>
           <Chip label={totalRooms} color="primary" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
           <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Available</Typography>
-          <Chip label={availableRooms.length} color="success" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+          <Chip label={availableCount} color="success" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
           <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Occupied</Typography>
-          <Chip label={unavailableRooms.length} color="error" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+          <Chip label={unavailableCount} color="error" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
         </Box>
       </Box>
 
