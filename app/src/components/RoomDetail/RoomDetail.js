@@ -11,6 +11,13 @@ import {
   CircularProgress,
   IconButton,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Stack,
+  MenuItem
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
@@ -20,6 +27,7 @@ import RoomInvoiceTable from '../Invoice/RoomInvoiceTable';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
 import MaintenanceTable from '../Maintenance/MaintenanceTable';
 import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
+import EditRoomInfoModel from './EditRoomInfoModel';
 
 import { getRoomByNumber } from '../../api/room';
 import { getActiveLease, getLeaseHistory } from '../../api/lease';
@@ -37,6 +45,7 @@ const RoomDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeRightTab, setActiveRightTab] = useState(0);
+  const [showEditInfo, setShowEditInfo] = useState(false);
   const [showCreateInv, setShowCreateInv] = useState(false);
   const [openCreateMaint, setOpenCreateMaint] = useState(false);
   const [maintTick, setMaintTick] = useState(0);
@@ -224,7 +233,7 @@ const RoomDetail = () => {
         </Box>
 
         <Box sx={{ pt: 2, mt: 'auto', borderTop: 1, borderColor: 'divider' }}>
-          <Button variant="outlined" startIcon={<EditIcon />} fullWidth sx={actionBtnSx}>
+          <Button variant="outlined" startIcon={<EditIcon />} fullWidth sx={actionBtnSx} onClick={() => setShowEditInfo(true)}>
             แก้ไขข้อมูล
           </Button>
         </Box>
@@ -238,6 +247,39 @@ const RoomDetail = () => {
         </Tabs>
 
         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+          {showEditInfo && (
+            <EditRoomInfoModel
+              open={showEditInfo}
+              onClose={() => setShowEditInfo(false)}
+              room={room}
+              roomIdLabel={room.roomNumber} // หรือใส่ backendRoomId ก็ได้
+              onSave={async (payload) => {
+                // ตรงนี้เป็นตัวอย่างบันทึก: อัปเดต state ให้เห็นผลทันที
+                // หากคุณมี API จริง ให้เรียกแทนและเอาผลลัพธ์มา setRoom
+
+                // --- ตัวอย่างรวมค่ากลับเข้า state room ---
+                setRoom((r) => ({
+                  ...r,
+                  tenantInfo: {
+                    ...r.tenantInfo,
+                    name: payload.tenant.name,
+                    lineId: payload.tenant.lineId,
+                    phoneNumber: payload.tenant.phoneNumber,
+                  },
+                  roomStatus: payload.roomStatus,
+                  checkInDate: payload.checkInDate || '-',
+                  checkOutDate: payload.checkOutDate || '-',
+                  leaseStartDate: payload.leaseStartDate || '-',
+                  leaseEndDate: payload.leaseEndDate || '-',
+                }));
+
+                // // ถ้ามี API:
+                // await updateTenant({ ... });
+                // await updateLease({ ... });
+                // await updateRoomStatus({ ... });
+              }}
+            />
+          )}
           {activeRightTab === 0 && (
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -257,7 +299,7 @@ const RoomDetail = () => {
                 <GenerateInvoiceModal
                   roomId={backendRoomId}
                   onClose={() => setShowCreateInv(false)}
-                  onSuccess={() => {}}
+                  onSuccess={() => { }}
                 />
               )}
             </Box>
