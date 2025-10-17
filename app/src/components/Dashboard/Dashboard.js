@@ -1,5 +1,5 @@
 // src/components/Dashboard/Dashboard.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Typography,
   Chip,
@@ -11,33 +11,40 @@ import {
   FormControl,
   Card,
   CardContent,
-  CircularProgress
+  CircularProgress,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
-import http from '../../api/http'; // << ใช้ตัวห่อที่ใส่ Authorization ให้
+import http from '../../api/http';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
-  const [floor, setFloor] = useState(1);
+  const [floor, setFloor] = useState('ALL'); // << default เป็น All floors
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // โหลดห้องทั้งหมด
   useEffect(() => {
     (async () => {
       setLoading(true);
       setError('');
       try {
-        // เรียกผ่าน http.js เสมอ เพื่อให้มี Authorization header
         const roomsData = await http.get('/api/rooms');
 
-        const transformed = (Array.isArray(roomsData) ? roomsData : []).map((room) => ({
-          id: room.id,
-          roomNumber: room.number,
-          floor: Math.floor(Number(room.number) / 100) || 0,
-          roomStatus: room.status === 'OCCUPIED' ? 'Not Available' : 'room available',
-          tenantInfo: { name: room.tenant?.name || '-' },
-        }));
+        const transformed = (Array.isArray(roomsData) ? roomsData : []).map((room) => {
+          const number = Number(room.number);
+          const fl = Math.floor(number / 100) || 0;
+          const occupied = String(room.status || '').toUpperCase() === 'OCCUPIED';
+          return {
+            id: room.id,
+            roomNumber: room.number,
+            floor: fl,
+            roomStatus: occupied ? 'Not Available' : 'room available',
+            tenantInfo: { name: room.tenant?.name || '-' },
+            rawStatus: room.status || 'FREE',
+          };
+        });
 
         setRooms(transformed);
       } catch (e) {
@@ -48,11 +55,32 @@ const Dashboard = () => {
     })();
   }, []);
 
-  const handleChange = (event) => setFloor(Number(event.target.value));
+  const handleChange = (event) => setFloor(event.target.value);
 
-  const availableRooms = rooms.filter(r => r.roomStatus.toLowerCase() === 'room available');
-  const unavailableRooms = rooms.filter(r => r.roomStatus.toLowerCase() !== 'room available');
-  const filteredRoomsByFloor = rooms.filter(r => r.floor === floor);
+  // ตัวเลือกชั้นแบบไดนามิก + ALL
+  const floorOptions = useMemo(() => {
+    const unique = Array.from(new Set(rooms.map(r => r.floor))).sort((a, b) => a - b);
+    return ['ALL', ...unique];
+  }, [rooms]);
+
+  // ห้องที่กำลังแสดง (สำหรับการ์ดและตัวเลขสรุป)
+  const visibleRooms = useMemo(() => {
+    if (floor === 'ALL') return rooms;
+    return rooms.filter(r => String(r.floor) === String(floor));
+  }, [rooms, floor]);
+
+  const totalRooms = visibleRooms.length;
+  const availableRooms = visibleRooms.filter(r => r.roomStatus.toLowerCase() === 'room available');
+  const unavailableRooms = visibleRooms.filter(r => r.roomStatus.toLowerCase() !== 'room available');
+
+  // group by floor (ใช้ตอนโหมด ALL)
+  const groupedByFloor = useMemo(() => {
+    return visibleRooms.reduce((acc, r) => {
+      const key = r.floor ?? 'N/A';
+      (acc[key] ||= []).push(r);
+      return acc;
+    }, {});
+  }, [visibleRooms]);
 
   const handleRoomNumberClick = (roomNumber) => {
     navigate(`/room-details/${roomNumber}`);
@@ -112,20 +140,24 @@ const Dashboard = () => {
         Dashboard
       </Typography>
 
+      {/* Header: เลือกชั้น + สรุปตัวเลข (อิง visibleRooms) */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <FormControl sx={{ minWidth: 120 }}>
+          <FormControl sx={{ minWidth: 160 }}>
             <InputLabel>Floor</InputLabel>
             <Select value={floor} label="Floor" onChange={handleChange}>
-              <MenuItem value={1}>Floor 1</MenuItem>
-              <MenuItem value={2}>Floor 2</MenuItem>
+              {floorOptions.map(opt => (
+                <MenuItem key={opt} value={opt}>
+                  {opt === 'ALL' ? 'All floors' : `Floor ${opt}`}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }} gap={2}>
           <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Total Rooms</Typography>
-          <Chip label={rooms.length} color="primary" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
+          <Chip label={totalRooms} color="primary" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
           <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Available</Typography>
           <Chip label={availableRooms.length} color="success" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
           <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Occupied</Typography>
@@ -133,13 +165,36 @@ const Dashboard = () => {
         </Box>
       </Box>
 
-      <Box sx={{ p: 3, backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-        <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
-          {filteredRoomsByFloor.map((room) => (
-            <RoomCard key={room.id} room={room} />
-          ))}
-        </Stack>
-      </Box>
+      {/* Content */}
+      {floor === 'ALL' ? (
+        // โหมด All floors: แสดงเป็นกลุ่มชั้น
+        Object.entries(groupedByFloor)
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .map(([fl, items], idx) => (
+            <Box key={fl} sx={{ mb: 4 }}>
+              {idx !== 0 && <Divider sx={{ mb: 2 }} />}
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                Floor {fl}
+              </Typography>
+              <Box sx={{ p: 3, backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+                  {items.map((room) => (
+                    <RoomCard key={room.id} room={room} />
+                  ))}
+                </Stack>
+              </Box>
+            </Box>
+          ))
+      ) : (
+        // โหมดชั้นเดียว
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+          <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            {visibleRooms.map((room) => (
+              <RoomCard key={room.id} room={room} />
+            ))}
+          </Stack>
+        </Box>
+      )}
     </Box>
   );
 };
