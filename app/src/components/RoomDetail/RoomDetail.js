@@ -1,3 +1,4 @@
+// src/components/RoomDetail/RoomDetail.js
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -27,7 +28,8 @@ import RoomInvoiceTable from '../Invoice/RoomInvoiceTable';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
 import MaintenanceTable from '../Maintenance/MaintenanceTable';
 import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
-import EditRoomInfoModel from './EditRoomInfoModel';
+
+import RoomEditModal from '../RoomEdit/RoomEditModal';
 
 import { getRoomByNumber } from '../../api/room';
 import { getActiveLease, getLeaseHistory } from '../../api/lease';
@@ -50,6 +52,10 @@ const RoomDetail = () => {
   const [openCreateMaint, setOpenCreateMaint] = useState(false);
   const [maintTick, setMaintTick] = useState(0);
 
+  // NEW: modal แก้ไขห้อง + trigger reload
+  const [showEdit, setShowEdit] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
+
   const handleRightTabChange = (_e, v) => setActiveRightTab(v);
 
   useEffect(() => {
@@ -59,16 +65,16 @@ const RoomDetail = () => {
       setLoading(true);
       setError('');
       try {
-        // 1) เอา roomId จาก backend ด้วย "เลขห้อง"
+        // 1) หา roomId จากเลขห้อง
         const roomRes = await getRoomByNumber(Number(roomNumber));
         setBackendRoomId(roomRes?.id ?? null);
 
-        // 2) โหลดสัญญา ACTIVE ของห้องนี้ + ประวัติ
-        const active = await getActiveLease(Number(roomNumber)); // can be null
+        // 2) โหลด lease ปัจจุบัน + ประวัติ (เก็บไว้เผื่อใช้)
+        const active = await getActiveLease(Number(roomNumber)); // อาจเป็น null
         const history = await getLeaseHistory(Number(roomNumber));
         setLeaseHistory(Array.isArray(history) ? history : []);
 
-        // 3) จัดรูปข้อมูลสำหรับแสดงผลฝั่งซ้าย
+        // 3) จัดข้อมูลฝั่งซ้าย
         const tenant = active?.tenant || null;
         const nameToShow = active?.customName || tenant?.name || 'N/A';
         const formattedRoom = {
@@ -97,8 +103,9 @@ const RoomDetail = () => {
       }
     };
 
+    // NOTE: ผูก reloadTick เพื่อรีเฟรชข้อมูลหลังบันทึกจาก modal
     load();
-  }, [roomNumber]);
+  }, [roomNumber, reloadTick]);
 
   if (loading)
     return (
@@ -113,6 +120,10 @@ const RoomDetail = () => {
       </Box>
     );
   if (!room) return null;
+
+  // map สถานะฝั่ง UI -> สถานะ backend สำหรับ initial ของ modal
+  const initialStatusForModal =
+    room?.roomStatus === 'room available' ? 'FREE' : 'OCCUPIED';
 
   return (
     <Box
@@ -233,15 +244,29 @@ const RoomDetail = () => {
         </Box>
 
         <Box sx={{ pt: 2, mt: 'auto', borderTop: 1, borderColor: 'divider' }}>
-          <Button variant="outlined" startIcon={<EditIcon />} fullWidth sx={actionBtnSx} onClick={() => setShowEditInfo(true)}>
+          <Button
+            variant="outlined"
+            startIcon={<EditIcon />}
+            fullWidth
+            sx={actionBtnSx}
+            onClick={() => setShowEdit(true)}
+            disabled={!backendRoomId}
+          >
             แก้ไขข้อมูล
           </Button>
         </Box>
       </Paper>
 
       {/* Right Paper */}
-      <Paper elevation={3} sx={{ flex: '1 1 60%', height: '85vh', display: 'flex', flexDirection: 'column', p: 3 }}>
-        <Tabs value={activeRightTab} onChange={handleRightTabChange} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+      <Paper
+        elevation={3}
+        sx={{ flex: '1 1 60%', height: '85vh', display: 'flex', flexDirection: 'column', p: 3 }}
+      >
+        <Tabs
+          value={activeRightTab}
+          onChange={handleRightTabChange}
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+        >
           <Tab label="ใบแจ้งหนี้" />
           <Tab label="บำรุงรักษา" />
         </Tabs>
@@ -294,12 +319,16 @@ const RoomDetail = () => {
                 </Button>
               </Box>
 
-              {backendRoomId && <RoomInvoiceTable roomId={backendRoomId} showCreateButton={false} />}
-              {showCreateInv && backendRoomId && (
+              {backendRoomId && (
+                <RoomInvoiceTable roomId={backendRoomId} showCreateButton={false} />
+              )}
+
+              {backendRoomId && (
                 <GenerateInvoiceModal
+                  open={showCreateInv}
                   roomId={backendRoomId}
                   onClose={() => setShowCreateInv(false)}
-                  onSuccess={() => { }}
+                  onSuccess={() => setShowCreateInv(false)}
                 />
               )}
             </Box>
@@ -313,16 +342,19 @@ const RoomDetail = () => {
                   startIcon={<AddIcon />}
                   sx={actionBtnSx}
                   onClick={() => setOpenCreateMaint(true)}
-                  disabled={!backendRoomId}
+                  disabled={!roomNumber}
                 >
                   เพิ่มงานบำรุงรักษา
                 </Button>
               </Box>
 
-              {backendRoomId && <MaintenanceTable roomId={backendRoomId} reloadSignal={maintTick} />}
-              {backendRoomId && (
+              {roomNumber && (
+                <MaintenanceTable roomNumber={Number(roomNumber)} reloadSignal={maintTick} />
+              )}
+
+              {roomNumber && (
                 <CreateMaintenanceModal
-                  roomId={backendRoomId}
+                  roomNumber={Number(roomNumber)}
                   open={openCreateMaint}
                   onClose={() => setOpenCreateMaint(false)}
                   onSuccess={() => setMaintTick((t) => t + 1)}
@@ -332,6 +364,18 @@ const RoomDetail = () => {
           )}
         </Box>
       </Paper>
+
+      {/* Modal แก้ไขห้อง */}
+      {backendRoomId && (
+        <RoomEditModal
+          open={showEdit}
+          onClose={() => setShowEdit(false)}
+          roomId={backendRoomId}
+          initialNumber={Number(roomNumber)}
+          initialStatus={initialStatusForModal}
+          onSaved={() => setReloadTick((t) => t + 1)}
+        />
+      )}
     </Box>
   );
 };

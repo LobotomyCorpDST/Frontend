@@ -8,19 +8,20 @@ import { visuallyHidden } from '@mui/utils';
 import CreateRoomModal from './CreateRoomModal';
 
 import http from '../../api/http';
+import { listMaintenanceByRoomNumber } from '../../api/maintenance';
 
 const headCells = [
-  { id: 'roomNumber',        label: 'Room No.' },
-  { id: 'occupantName',      label: 'Occupant' },
-  { id: 'leaseEndDate',      label: 'Lease End Date' },
-  { id: 'roomStatus',        label: 'Room Status' },
-  { id: 'maintenanceStatus', label: 'Maintenance' },
+  { id: 'roomNumber',        label: 'เลขห้อง' },
+  { id: 'occupantName',      label: 'ผู้เช่าอาศัย' },
+  { id: 'leaseEndDate',      label: 'วันสิ้นสุดสัญญา' },
+  { id: 'roomStatus',        label: 'สถานะห้อง' },
+  { id: 'maintenanceStatus', label: 'สถานะบำรุงรักษา' },
 ];
 
 const headerCellStyle = {
-  backgroundColor: '#343a40', // สีพื้นหลังส่วนหัวของตาราง
-  color: '#f8f9fa',           // สีตัวอักษร
-  fontWeight: 'bold',        // ทำให้ตัวอักษรหนา
+  backgroundColor: '#13438B',
+  color: '#f8f9fa',
+  fontWeight: 'bold',
   padding: '12px',
 };
 
@@ -46,11 +47,12 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     try {
       const roomsJson = await http.get('/api/rooms');
 
-      const withLease = await Promise.all(
+      const withLeaseAndMaintenance = await Promise.all(
         roomsJson.map(async (r) => {
           let leaseEndDate = '-';
           let occupantName = r.tenant?.name || '-';
-          let roomStatus = r.status === 'OCCUPIED' ? 'rent paid' : 'room available';
+          let roomStatus = r.status === 'OCCUPIED' ? 'มีผู้เช่า' : 'ว่าง';
+          let maintenanceStatus = '-';
 
           try {
             const lease = await http.get('/api/leases/active', {
@@ -65,10 +67,29 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
                 '-';
 
               leaseEndDate = lease.endDate || '-';
-              roomStatus = 'rent paid';
+              roomStatus = 'มีผู้เช่า';
             }
           } catch {
+            // continue
+          }
 
+          // Fetch maintenance status
+          try {
+            const maintenanceList = await listMaintenanceByRoomNumber(r.number);
+            if (maintenanceList && maintenanceList.length > 0) {
+              // Find the most recent maintenance record
+              const sortedByDate = [...maintenanceList].sort((a, b) => {
+                const dateA = new Date(a.scheduledDate || 0);
+                const dateB = new Date(b.scheduledDate || 0);
+                return dateB - dateA;
+              });
+              const latest = sortedByDate[0];
+              
+              // Show status and scheduled date
+              maintenanceStatus = `${latest.status} ในวันที่ ${latest.scheduledDate || '-'}`;
+            }
+          } catch {
+            // If no maintenance found, keep as '-'
           }
 
           return {
@@ -77,12 +98,12 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
             tenantInfo: { name: occupantName },
             leaseEndDate,
             roomStatus,
-            maintenanceStatus: '-',
+            maintenanceStatus,
           };
         })
       );
 
-      setRooms(withLease);
+      setRooms(withLeaseAndMaintenance);
     } catch (e) {
       setError(e.message || 'Failed to load rooms');
     } finally {
@@ -209,7 +230,7 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
             ) : (
               <TableRow>
                 <TableCell colSpan={headCells.length} sx={{ textAlign: 'center', py: 3 }}>
-                  No rooms found.
+                  ไม่พบห้อง
                 </TableCell>
               </TableRow>
             )}

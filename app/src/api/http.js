@@ -68,20 +68,24 @@ function makeHttpError(res, body, fallbackMessage) {
   return err;
 }
 
-// ---------- CORE REQUEST ----------
+// ---------- CORE REQUEST (JSON/TEXT) ----------
 async function request(path, { method = 'GET', headers = {}, params, body } = {}) {
   const url = buildUrl(BASE, path, params);
   const token = getToken();
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
+  const baseHeaders = {
+    Accept: 'application/json',
+    ...authHeader,
+    ...headers,
+  };
+  if (body !== undefined && baseHeaders['Content-Type'] == null) {
+    baseHeaders['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(url, {
     method,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...authHeader,
-      ...headers,
-    },
+    headers: baseHeaders,
     body: body !== undefined ? JSON.stringify(body) : undefined,
     mode: 'cors',
     credentials: CREDENTIALS,
@@ -92,22 +96,63 @@ async function request(path, { method = 'GET', headers = {}, params, body } = {}
     try {
       parsed = await parseResponse(res);
       if (typeof parsed === 'string') parsed = { message: parsed };
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
     if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
       try {
         ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
-      } catch {
-        /* noop */
-      }
+      } catch { /* noop */ }
     }
 
     throw makeHttpError(res, parsed, `${method} ${path} failed`);
   }
 
   return parseResponse(res);
+}
+
+// ---------- CORE REQUEST (BLOB) ----------
+async function requestBlob(path, { method = 'GET', headers = {}, params, body } = {}) {
+  const url = buildUrl(BASE, path, params);
+  const token = getToken();
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const baseHeaders = {
+    Accept: '*/*',
+    ...authHeader,
+    ...headers,
+  };
+  if (body !== undefined && baseHeaders['Content-Type'] == null) {
+    baseHeaders['Content-Type'] = 'application/json';
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers: baseHeaders,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    mode: 'cors',
+    credentials: CREDENTIALS,
+  });
+
+  if (!res.ok) {
+    // พยายามอ่านเป็นข้อความ/JSON เพื่อให้ error อ่านง่าย
+    let parsed = null;
+    try {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) parsed = await res.json();
+      else parsed = await res.text();
+      if (typeof parsed === 'string') parsed = { message: parsed };
+    } catch { /* ignore */ }
+
+    if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
+      try {
+        ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+      } catch { /* noop */ }
+    }
+
+    throw makeHttpError(res, parsed, `${method} ${path} failed`);
+  }
+
+  return res.blob();
 }
 
 // ---------- EXPORT ----------
@@ -117,7 +162,14 @@ export const http = {
   put: (path, body, opts) => request(path, { ...opts, method: 'PUT', body }),
   patch: (path, body, opts) => request(path, { ...opts, method: 'PATCH', body }),
   delete: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
+
+  // ✅ สำหรับดึงไฟล์ (เช่น PDF) พร้อมแนบ token
+  getBlob: (path, opts) => requestBlob(path, { ...opts, method: 'GET' }),
 };
 
 export default http;
 export const API_BASE = BASE;
+
+// (มี helper ไว้ใช้แล้วก็ได้)
+export const getRoom = (id) => http.get(`/api/rooms/${id}`);
+export const updateRoom = (id, payload) => http.put(`/api/rooms/${id}`, payload);
