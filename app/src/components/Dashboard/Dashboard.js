@@ -81,7 +81,7 @@ const Dashboard = () => {
                     </Typography>
                     <Box>
                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                            {isAvailable ? 'Available' : 'Occupied'}
+                            {isAvailable ? 'ว่าง' : 'ไม่ว่าง'}
                         </Typography>
                         <Typography variant="body2">
                             {isAvailable ? '-' : room.tenantInfo.name}
@@ -96,7 +96,7 @@ const Dashboard = () => {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
                 <CircularProgress />
-                <Typography sx={{ ml: 2 }}>Loading Dashboard...</Typography>
+                <Typography sx={{ ml: 2 }}>กำลังโหลด Dashboard...</Typography>
             </Box>
         );
     }
@@ -122,11 +122,11 @@ const Dashboard = () => {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
                 {/* The floor selector dropdown has been removed */}
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }} gap={2}>
-                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Total Rooms</Typography>
+                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>จำนวนห้องทั้งหมด</Typography>
                     <Chip label={rooms.length} color="primary" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
-                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Available</Typography>
+                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ว่าง</Typography>
                     <Chip label={availableRooms.length} color="success" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
-                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>Occupied</Typography>
+                    <Typography sx={{ fontSize: '24px', fontWeight: 'bold' }}>ไม่ว่าง</Typography>
                     <Chip label={unavailableRooms.length} color="error" sx={{ fontSize: '24px', p: 2, borderRadius: '8px' }} />
                 </Box>
             </Box>
@@ -138,7 +138,7 @@ const Dashboard = () => {
                     <Box key={floorNum} sx={{ mb: 4 }}>
                         {/* Display a heading for each floor */}
                         <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
-                            Floor {floorNum}
+                            ชั้น {floorNum}
                         </Typography>
                         {/* Display the room cards for the current floor */}
                         <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
