@@ -1,0 +1,8 @@
+resources:
+  - deployment.yaml
+  - service-nodeport.yaml
+
+images:
+  - name: your-docker-user/fe-web
+    newTag: latest
+namespace: doomed-apt
