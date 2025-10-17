@@ -11,7 +11,10 @@ export const getRoomById = (id) =>
   http.get(`/api/rooms/${id}`);
 
 export const updateRoom = (id, payload) =>
-  http.patch(`/api/rooms/${id}`, payload);
+  http.put(`/api/rooms/${id}`, payload);
 
 export const pingRooms = () =>
   http.get('/api/rooms/ping');
+
+export const deleteRoom = (id) => 
+  http.delete(`/api/rooms/${id}`);

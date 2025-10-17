@@ -32,16 +32,31 @@ export const createLeaseByRoomNumber = async ({ tenantId, roomNumber, startDate 
   return http.post(apiPath('/leases'), { tenantId, roomId: roomView.id, startDate });
 };
 
-// ---------- Update ----------
-/** endLease: PUT /api/leases/{id}/end { endDate?: 'YYYY-MM-DD' } */
-export const endLease = (leaseId, endDate) =>
-  http.put(apiPath(`/leases/${leaseId}/end`), endDate ? { endDate } : {});
+
 
 /** settleLease: POST /api/leases/{id}/settle?date=YYYY-MM-DD */
 export const settleLease = (leaseId, date) =>
   http.post(apiPath(`/leases/${leaseId}/settle`), null, {
     params: date ? { date } : undefined,
   });
+
+// ---------- Update ----------
+
+// ✅ Get lease by ID
+export const getLeaseById = (leaseId) =>
+  http.get(apiPath(`/leases/${leaseId}`));
+
+// ✅ Update (PATCH) lease partially
+export const updateLease = (leaseId, payload) =>
+  http.patch(apiPath(`/leases/${leaseId}`), payload);
+
+// ✅ Delete lease
+export const deleteLease = (leaseId) =>
+  http.delete(apiPath(`/leases/${leaseId}`));
+
+/** endLease: PUT /api/leases/{id}/end { endDate?: 'YYYY-MM-DD' } */
+export const endLease = (leaseId, endDate) =>
+  http.put(apiPath(`/leases/${leaseId}/end`), endDate ? { endDate } : {});
 
 // ---------- Print / Open ----------
 /**

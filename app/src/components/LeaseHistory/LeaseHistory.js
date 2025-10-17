@@ -5,7 +5,8 @@ import {
   TableRow, TableCell, TableBody, CircularProgress, Alert, Stack
 } from '@mui/material';
 import { getAllLeases, settleLease, openLease } from '../../api/lease';
-import CreateLeaseModal from '../Lease/CreateLeaseModal'; // ใช้ modal ใหม่
+import CreateLeaseModal from '../Lease/CreateLeaseModal';
+import LeaseEditModal from './LeaseEditModal'; // new
 
 const fmt = (d) => {
   if (!d) return '-';
@@ -21,8 +22,12 @@ const LeaseHistory = () => {
 
   const [roomFilter, setRoomFilter] = useState('');
 
-  // ใช้ CreateLeaseModal แทน dialog ภายในไฟล์
+  // create modal
   const [openCreate, setOpenCreate] = useState(false);
+
+  // edit modal
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editLeaseId, setEditLeaseId] = useState(null);
 
   const loadAll = async () => {
     setLoading(true);
@@ -45,7 +50,8 @@ const LeaseHistory = () => {
     return allRows.filter(l => String(l?.room?.number ?? '').includes(q));
   }, [allRows, roomFilter]);
 
-  const onMarkSettled = async (id) => {
+  const onMarkSettled = async (id, e) => {
+    if (e) e.stopPropagation();
     try {
       setMarkingId(id);
       await settleLease(id, fmt(new Date()));
@@ -57,15 +63,21 @@ const LeaseHistory = () => {
     }
   };
 
-  const onPrint = async (id) => {
+  const onPrint = async (id, e) => {
+    if (e) e.stopPropagation();
     try {
       setPrintingId(id);
-      await openLease(id);              // ใช้ http.getBlob เปิดไฟล์พร้อม token
+      await openLease(id);
     } catch (e) {
       setErr(e?.message || 'เปิดสัญญาเพื่อพิมพ์ไม่สำเร็จ');
     } finally {
       setPrintingId(null);
     }
+  };
+
+  const openForEdit = (id) => {
+    setEditLeaseId(id);
+    setOpenEdit(true);
   };
 
   return (
@@ -82,7 +94,6 @@ const LeaseHistory = () => {
             flexWrap: 'wrap'
           }}
         >
-          {/* ซ้าย: กรองเลขห้อง + โหลดทั้งหมด */}
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               label="เลขห้อง (กรอง)"
@@ -99,7 +110,6 @@ const LeaseHistory = () => {
             </Button>
           </Box>
 
-          {/* ขวา: ปุ่มเพิ่มสัญญาเช่า */}
           <Button variant="contained" onClick={() => setOpenCreate(true)}>
             + เพิ่มสัญญาเช่า
           </Button>
@@ -119,7 +129,7 @@ const LeaseHistory = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ห้อง</TableCell>
-                <TableCell>Tenant</TableCell>
+                <TableCell>ผู้เช่าอาศัย</TableCell>
                 <TableCell>Custom Name</TableCell>
                 <TableCell>เริ่ม</TableCell>
                 <TableCell>สิ้นสุด</TableCell>
@@ -130,35 +140,53 @@ const LeaseHistory = () => {
             </TableHead>
             <TableBody>
               {rows.map((l) => (
-                <TableRow key={l.id} hover>
+                <TableRow
+                  key={l.id}
+                  hover
+                  sx={{ cursor: 'pointer' }}
+                  onClick={() => openForEdit(l.id)}
+                >
                   <TableCell>{l.room?.number ?? '-'}</TableCell>
                   <TableCell>{l.tenant?.name || '-'}</TableCell>
                   <TableCell>{l.customName || '-'}</TableCell>
                   <TableCell>{fmt(l.startDate)}</TableCell>
                   <TableCell>{fmt(l.endDate)}</TableCell>
                   <TableCell>{l.status || '-'}</TableCell>
-                  <TableCell>
-                    {l.settled ? `Yes (${fmt(l.settledDate)})` : 'No'}
-                  </TableCell>
+                  <TableCell>{l.settled ? `Yes (${fmt(l.settledDate)})` : 'No'}</TableCell>
                   <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Button
-                        size="small"
-                        onClick={() => onPrint(l.id)}
-                        disabled={printingId === l.id}
-                      >
-                        {printingId === l.id ? 'Opening…' : 'Print'}
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => onMarkSettled(l.id)}
-                        disabled={!!l.settled || markingId === l.id}
-                      >
-                        {markingId === l.id ? 'Saving...' : 'Mark Settled'}
-                      </Button>
-                    </Stack>
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button
+                      size="small"
+                      onClick={(e) => onPrint(l.id, e)}
+                      disabled={printingId === l.id}
+                    >
+                      {printingId === l.id ? 'Opening…' : 'Print'}
+                    </Button>
+
+                    {/* ✅ New Edit button */}
+                    <Button
+                      size="small"
+                      variant="outlined"
+                     color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openForEdit(l.id);
+                     }}
+                   >
+                     Edit
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={(e) => onMarkSettled(l.id, e)}
+                      disabled={!!l.settled || markingId === l.id}
+                    >
+                      {markingId === l.id ? 'Saving...' : 'Mark Settled'}
+                   </Button>
+                  </Stack>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
@@ -172,7 +200,6 @@ const LeaseHistory = () => {
         </Typography>
       )}
 
-      {/* ใช้ CreateLeaseModal ตัวใหม่ */}
       <CreateLeaseModal
         open={openCreate}
         onClose={() => setOpenCreate(false)}
@@ -180,6 +207,13 @@ const LeaseHistory = () => {
           setOpenCreate(false);
           await loadAll();
         }}
+      />
+
+      <LeaseEditModal
+        open={openEdit}
+        leaseId={editLeaseId}
+        onClose={() => { setOpenEdit(false); setEditLeaseId(null); }}
+        onSaved={async () => { setOpenEdit(false); setEditLeaseId(null); await loadAll(); }}
       />
     </Box>
   );
