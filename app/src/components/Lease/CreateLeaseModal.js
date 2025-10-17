@@ -9,6 +9,7 @@ const initial = {
   roomNumber: '',
   tenantId: '',
   startDate: '',
+  endDate: '',
   monthlyRent: '',
   depositBaht: '',
   customName: '',
@@ -42,6 +43,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess }) => {
       room:   { number: Number(form.roomNumber) },
       tenant: { id: Number(form.tenantId) },
       startDate: form.startDate, // YYYY-MM-DD
+      endDate: form.endDate || undefined,
       monthlyRent: form.monthlyRent ? Number(form.monthlyRent) : undefined,
       depositBaht: form.depositBaht ? Number(form.depositBaht) : undefined,
       customName: form.customName || undefined,
@@ -103,6 +105,17 @@ const CreateLeaseModal = ({ open, onClose, onSuccess }) => {
 
           <Grid item xs={12} sm={6}>
             <TextField
+              label="วันที่สิ้นสุดสัญญา"
+              type="date"
+              value={form.endDate}
+              onChange={set('endDate')}
+              fullWidth size="small"
+              InputLabelProps={{ shrink: true }}
+              disabled={saving}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
               label="ค่าเช่าต่อเดือน (บาท)"
               value={form.monthlyRent}
               onChange={(e) => setForm(f => ({ ...f, monthlyRent: e.target.value.replace(/[^\d.]/g, '') }))}
@@ -111,6 +124,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess }) => {
               disabled={saving}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <TextField
               label="เงินมัดจำ (บาท)"
