@@ -67,7 +67,7 @@ pipeline {
                     kubectl config current-context
 
                     REM --- Apply manifests ---
-                    kubectl apply -n %K8S_NAMESPACE% -f app\\k8s\\
+                    kubectl apply -n %K8S_NAMESPACE% -k app\\k8s\\
 
                     REM --- Compute TAG (git short SHA หรือ BUILD_NUMBER สำรอง) ---
                     for /f %%i in ('git rev-parse --short HEAD ^|^| echo %BUILD_NUMBER%') do set TAG=%%i
