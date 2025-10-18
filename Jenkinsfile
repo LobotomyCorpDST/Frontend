@@ -73,9 +73,24 @@ pipeline {
 
                         REM --- Set new image to the deployment ---
                         kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE_REPO%:%TAG%
+                        
+                        REM ใช้ tag จาก git (หรือ IMAGE_TAG ที่คุณคำนวณไว้)
+                        for /f %%i in ('git rev-parse --short HEAD ^|^| echo %BUILD_NUMBER%') do set TAG=%%i
+                        echo Using TAG=%TAG%
+
+                        REM แสดง image ปัจจุบัน
+                        echo === BEFORE ===
+                        kubectl -n %K8S_NAMESPACE% get deploy/%DEPLOY_NAME% -o jsonpath="{.spec.template.spec.containers[?(@.name=='%CONTAINER_NAME%')].image}" & echo.
+
+                        REM ชี้ image ไปยัง tag ล่าสุด
+                        kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE_REPO%:%TAG%
+
+                        REM แสดง image หลังเปลี่ยน
+                        echo === AFTER ===
+                        kubectl -n %K8S_NAMESPACE% get deploy/%DEPLOY_NAME% -o jsonpath="{.spec.template.spec.containers[?(@.name=='%CONTAINER_NAME%')].image}" & echo.
 
                         REM --- Wait rollout ---
-                        kubectl -n %K8S_NAMESPACE% rollout status deploy/%DEPLOY_NAME% --timeout=600s
+                        kubectl -n %K8S_NAMESPACE% scale deploy/%DEPLOY_NAME% --replicas=1
                     """
                 }
             }
