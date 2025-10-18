@@ -1,0 +1,8 @@
+resources:
+  - deployment.yaml
+  - service-nodeport.yaml
+
+images:
+  - name: mmmmnl/lobotomy_but_front
+    newTag: latest
+namespace: doomed-apt
