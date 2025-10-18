@@ -3,6 +3,6 @@ resources:
   - service-nodeport.yaml
 
 images:
-  - name: your-docker-user/fe-web
+  - name: mmmmnl/lobotomy_but_front
     newTag: latest
 namespace: doomed-apt
