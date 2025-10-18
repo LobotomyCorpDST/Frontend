@@ -1,0 +1,3 @@
+it('createAndAttach', () => {
+    cy.visit('/');
+});
