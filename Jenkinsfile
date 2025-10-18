@@ -8,12 +8,14 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                dir('app') {
-                    bat 'docker build . -t mmmmnl/lobotomy_but_front:v.0.0'
-                }
+        stage('Build image') {
+          steps {
+            withCredentials([
+              file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')
+            ]) {
+              bat 'docker build . -t %IMAGE_REPO%:%IMAGE_TAG%'
             }
+          }
         }
 
         stage('List image') {
@@ -40,8 +42,14 @@ pipeline {
         }
 
         stage('Push image') {
+            
             steps {
-                bat 'docker push mmmmnl/lobotomy_but_front:v.0.0'
+                withCredentials([
+                    file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')
+                ])
+                {
+                    bat 'docker push %IMAGE_REPO%:%IMAGE_TAG%'
+                }
             }
         }
 
