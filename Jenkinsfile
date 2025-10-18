@@ -29,15 +29,16 @@ pipeline {
             }
         }
         stage('Login Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
-                                                 usernameVariable: 'DOCKERHUB_USERNAME',
-                                                 passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                    bat '''
-                        echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-                    '''
-                }
+        steps {
+            withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
+                                            usernameVariable: 'DOCKERHUB_USERNAME',
+                                            passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+            bat '''
+                docker logout
+                echo %DOCKERHUB_PASSWORD% | docker login -u %DOCKERHUB_USERNAME% --password-stdin
+            '''
             }
+        }
         }
         stage('Push image') {
             steps {
