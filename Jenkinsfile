@@ -5,10 +5,10 @@ pipeline {
 
   stages {
 
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    stage('Checkout code') {
+        steps {
+            git branch: 'main', url: 'https://github.com/LobotomyCorpDST/Frontend.git'
+        }
     }
 
     stage('Load env from secret file') {
