@@ -99,6 +99,7 @@ pipeline {
                                                 usernameVariable: 'DOCKERHUB_USERNAME',
                                                 passwordVariable: 'DOCKERHUB_PASSWORD')]) {
           bat '''
+            cd app
             if "%IMAGE%"=="" ( echo IMAGE empty & exit /b 1 )
             echo Building %IMAGE%
             docker build -t %IMAGE% .
