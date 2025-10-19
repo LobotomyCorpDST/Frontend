@@ -1,6 +1,5 @@
 pipeline {
-  agent { label 'node' }
-
+  agent { label 'node' }   // Windows agent ที่มี git + docker + kubectl
   options { timestamps() }
 
   stages {
@@ -134,7 +133,7 @@ pipeline {
               rem === ตั้ง kubeconfig ===
               set KUBECONFIG=%KUBECONFIG_FILE%
 
-              rem === โหลดตัวแปรจาก secret file (KEY=VALUE) ===
+              rem === โหลดตัวแปรจาก backend-env-file (KEY=VALUE; ใช้คีย์ BACK_*) ===
               for /f "usebackq tokens=* delims=" %%L in ("%ENV_FILE_BACK%") do (
                 set "LINE=%%L"
                 if not "!LINE!"=="" if /I not "!LINE:~0,1!"=="#" (
@@ -144,13 +143,19 @@ pipeline {
                 )
               )
 
-              rem === ค่าบังคับต้องมี ===
-              if "%K8S_NAMESPACE%"==""  ( echo ERROR: K8S_NAMESPACE missing & exit /b 1 )
-              if "%DEPLOY_NAME%"==""    ( echo ERROR: DEPLOY_NAME missing   & exit /b 1 )
-              if "%CONTAINER_NAME%"=="" ( echo ERROR: CONTAINER_NAME missing & exit /b 1 )
+              rem === ตรวจคีย์ที่ต้องมี ===
+              if "%K8S_NAMESPACE%"==""   ( echo ERROR: K8S_NAMESPACE missing & exit /b 1 )
+              if "%BACK_DEPLOY%"==""     ( echo ERROR: BACK_DEPLOY missing   & exit /b 1 )
+              if "%BACK_CONTAINER%"==""  ( echo ERROR: BACK_CONTAINER missing & exit /b 1 )
+              if "%BACK_IMAGE_REPO%"=="" ( echo ERROR: BACK_IMAGE_REPO missing & exit /b 1 )
 
-              rem === กำหนด image backend ที่ build/push ไว้ ===
-              set "IMAGE=mmmmnl/lobotomy:v.1.0"
+              rem === สร้าง IMAGE โดยอิงจากไฟล์ secret (ถ้าไม่มี IMAGE_TAG จะใช้ v.1.0 ให้ตรงกับ build/push) ===
+              if "%IMAGE_TAG%"=="" (
+                set "TAG=v.1.0"
+              ) else (
+                set "TAG=%IMAGE_TAG%"
+              )
+              set "IMAGE=%BACK_IMAGE_REPO%:%TAG%"
 
               rem === apply manifests (รองรับ kustomization.yaml) ===
               if exist k8s\\kustomization.yaml (
@@ -159,11 +164,11 @@ pipeline {
                 kubectl apply -n %K8S_NAMESPACE% -f k8s\\
               )
 
-              rem === อัปเดต image ===
-              kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE%
+              rem === อัปเดต image ตาม BACK_* ===
+              kubectl -n %K8S_NAMESPACE% set image deploy/%BACK_DEPLOY% %BACK_CONTAINER%=%IMAGE%
 
               rem === ติดตามผล rollout ===
-              kubectl -n %K8S_NAMESPACE% rollout status deploy/%DEPLOY_NAME% --timeout=180s
+              kubectl -n %K8S_NAMESPACE% rollout status deploy/%BACK_DEPLOY% --timeout=180s
 
               endlocal
             '''
