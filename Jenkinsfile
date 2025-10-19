@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'node' } 
+  agent { label 'node' }   
 
   stages {
     stage('Checkout code') {
@@ -38,7 +38,7 @@ pipeline {
       }
     }
 
-    stage('Deploy to K8s') {
+    stage('Deploy Frontend to K8s') {
       steps {
         withCredentials([
           file(credentialsId: 'kubeconfig-prod',   variable: 'KUBECONFIG_FILE'),
@@ -66,24 +66,18 @@ pipeline {
             if "%CONTAINER_NAME%"=="" ( echo ERROR: CONTAINER_NAME missing & exit /b 1 )
             if "%IMAGE_REPO%"==""     ( echo ERROR: IMAGE_REPO missing    & exit /b 1 )
 
-            rem === คำนวณ TAG (ถ้าไม่มี IMAGE_TAG จะ fallback) ===
-            set "TAG=%IMAGE_TAG%"
-            if "%TAG%"=="" (
-              for /f "usebackq" %%i in (`git rev-parse --short=7 HEAD 2^>NUL`) do set TAG=%%i
-            )
-            if "%TAG%"=="" set TAG=%BUILD_NUMBER%
-
-            rem === sanitize TAG ===
-            set "TAG=%TAG:/=-%"
-            set "TAG=%TAG::=-%"
-            set "TAG=%TAG: =%"
-
+            rem === ใช้ TAG คงที่ตามขั้นตอน build/push (v.1.0) ===
+            set "TAG=v.1.0"
             set "IMAGE=%IMAGE_REPO%:%TAG%"
 
-            rem === apply manifests (ปรับ path ให้ตรง repo คุณ) ===
-            kubectl apply -n %K8S_NAMESPACE% -f app\\k8s\\
+            rem === apply manifests (รองรับกรณีมี kustomization.yaml) ===
+            if exist app\\k8s\\kustomization.yaml (
+              kubectl apply -n %K8S_NAMESPACE% -k app\\k8s\\
+            ) else (
+              kubectl apply -n %K8S_NAMESPACE% -f app\\k8s\\
+            )
 
-            rem === อัปเดต image ให้ตรงกับ tag ===
+            rem === อัปเดต image ให้ตรงกับ tag ที่ push ไป ===
             kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE%
 
             rem === ติดตามผล rollout ===
@@ -93,6 +87,24 @@ pipeline {
           '''
         }
       }
+    }
+
+    // เรียกให้ Backend pipeline ไปรัน Jenkinsfile ของตัวเอง
+    stage('Trigger Backend pipeline') {
+      steps {
+        script {
+          build job: 'APT-Backend-Pipeline', wait: true, propagate: true
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo '✅ Frontend pipeline finished and Backend pipeline triggered.'
+    }
+    failure {
+      echo '❌ Frontend pipeline failed.'
     }
   }
 }
