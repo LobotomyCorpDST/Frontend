@@ -1,147 +1,87 @@
 pipeline {
-  agent { label 'node' }   // Windows agent ที่มี git + docker + kubectl
+    agent { label 'node' }
 
-  options { timestamps() }
-
-  stages {
-
-    stage('Checkout code') {
-        steps {
-            git branch: 'main', url: 'https://github.com/LobotomyCorpDST/Frontend.git'
+    stages {
+        stage('Checkout code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/LobotomyCorpDST/Frontend.git'
+            }
         }
-    }
-
-    stage('Load env from secret file') {
-      steps {
-        withCredentials([file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')]) {
-          bat '''
-            setlocal EnableDelayedExpansion
-
-            rem ===== Load KEY=VALUE จาก secret file =====
-            for /f "usebackq tokens=* delims=" %%L in ("%ENV_FILE%") do (
-              set "LINE=%%L"
-              if not "!LINE!"=="" if /I not "!LINE:~0,1!"=="#" (
-                for /f "tokens=1,2 delims==" %%A in ("!LINE!") do (
-                  set "%%A=%%B"
-                )
-              )
-            )
-
-            rem ===== สร้าง TAG (fallback เมื่อ IMAGE_TAG ว่าง) =====
-            set "TAG=%IMAGE_TAG%"
-            if "%TAG%"=="" (
-              for /f "usebackq" %%i in (`git rev-parse --short=7 HEAD 2^>NUL`) do set TAG=%%i
-            )
-            if "%TAG%"=="" set TAG=%BUILD_NUMBER%
-
-            rem ===== Sanitize TAG กันอักขระต้องห้าม =====
-            set "TAG=%TAG:/=-%"
-            set "TAG=%TAG::=-%"
-            set "TAG=%TAG: =%"
-            set "TAG=%TAG:^&=-%"
-            set "TAG=%TAG:|=-%"
-            set "TAG=%TAG:(=%"
-            set "TAG=%TAG:)=%"
-
-            rem ===== ค่าพื้นฐาน ถ้าว่าง =====
-            if "%K8S_NAMESPACE%"==""   set K8S_NAMESPACE=doomed-apt
-            if "%DEPLOY_NAME%"==""     set DEPLOY_NAME=frontend-deployment
-            if "%CONTAINER_NAME%"==""  set CONTAINER_NAME=frontend
-            if "%IMAGE_REPO%"==""      set IMAGE_REPO=mmmmnl/lobotomy_but_front
-            if "%K8S_DIR%"==""         set K8S_DIR=k8s\\frontend
-
-            if "%TAG%"=="" (
-              echo ERROR: TAG is empty. Aborting.
-              exit /b 1
-            )
-
-            set "IMAGE=%IMAGE_REPO%:%TAG%"
-
-            echo Using:
-            echo   K8S_NAMESPACE=%K8S_NAMESPACE%
-            echo   DEPLOY_NAME=%DEPLOY_NAME%
-            echo   CONTAINER_NAME=%CONTAINER_NAME%
-            echo   IMAGE=%IMAGE%
-            echo   K8S_DIR=%K8S_DIR%
-
-            > image.env echo IMAGE=%IMAGE%
-            >> image.env echo TAG=%TAG%
-            >> image.env echo K8S_NAMESPACE=%K8S_NAMESPACE%
-            >> image.env echo DEPLOY_NAME=%DEPLOY_NAME%
-            >> image.env echo CONTAINER_NAME=%CONTAINER_NAME%
-            >> image.env echo K8S_DIR=%K8S_DIR%
-
-            endlocal
-          '''
-          script {
-            def txt = readFile('image.env')
-            def kv = [:]
-            txt.readLines()
-              .findAll { it && it.contains('=') }
-              .each { line ->
-                def parts = line.split('=', 2)
-                kv[parts[0]] = parts.size() > 1 ? parts[1] : ''
-              }
-            env.IMAGE          = kv.IMAGE
-            env.TAG            = kv.TAG
-            env.K8S_NAMESPACE  = kv.K8S_NAMESPACE
-            env.DEPLOY_NAME    = kv.DEPLOY_NAME
-            env.CONTAINER_NAME = kv.CONTAINER_NAME
-            env.K8S_DIR        = kv.K8S_DIR
-          }
+        stage('Build') {
+            steps {
+                dir('app') {
+                    sh 'docker build . -t mmmmnl/lobotomy_but_front:v.0.0'
+                }
+            }
         }
-      }
-    }
-
-    stage('Docker build & push') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
-                                                usernameVariable: 'DOCKERHUB_USERNAME',
-                                                passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-          bat '''
-            cd app
-            if "%IMAGE%"=="" ( echo IMAGE empty & exit /b 1 )
-            echo Building %IMAGE%
-            docker build -t %IMAGE% .
-
-            echo %DH_PASS% | docker login -u %DH_USER% --password-stdin
-            docker push %IMAGE%
-            docker logout
-          '''
+        stage('List image') {
+            steps {
+                sh 'docker images'
+            }
         }
-      }
-    }
-
-    stage('Deploy Frontend') {
-      steps {
-        withCredentials([file(credentialsId: 'kubeconfig-prod', variable: 'KUBECONFIG_FILE')]) {
-          bat '''
-            set KUBECONFIG=%KUBECONFIG_FILE%
-
-            rem ----- apply manifests -----
-            if exist %K8S_DIR%\\kustomization.yaml (
-              kubectl apply -n %K8S_NAMESPACE% -k %K8S_DIR%\\
-            ) else (
-              if exist %K8S_DIR%\\frontend-deployment.yaml      kubectl apply -n %K8S_NAMESPACE% -f %K8S_DIR%\\frontend-deployment.yaml
-              if exist %K8S_DIR%\\frontend-service-nodeport.yaml kubectl apply -n %K8S_NAMESPACE% -f %K8S_DIR%\\frontend-service-nodeport.yaml
-            )
-
-            rem ----- update image -----
-            kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE%
-            kubectl -n %K8S_NAMESPACE% rollout status deploy/%DEPLOY_NAME% --timeout=180s
-            kubectl -n %K8S_NAMESPACE% get svc frontend -o wide
-          '''
+        stage('Login Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
+                                                 usernameVariable: 'DOCKERHUB_USERNAME',
+                                                 passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    sh '''
+                        echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+                    '''
+                }
+            }
         }
-      }
-    }
-  }
+        stage('Push image') {
+            steps {
+                sh 'docker push mmmmnl/lobotomy_but_front:v.1.0'
+            }
+        }
 
-  post {
-    success {
-      echo "✅ Deployment successful: ${env.IMAGE}"
+        stage('Deploy to K8s') {
+            steps {
+                withCredentials([
+                file(credentialsId: 'kubeconfig-prod',   variable: 'KUBECONFIG_FILE'),
+                file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')
+                ]) {
+                sh '''
+                    set -euo pipefail
+
+                    # ใช้ kubeconfig ที่ส่งมาเป็นไฟล์
+                    export KUBECONFIG="${KUBECONFIG_FILE}"
+
+                    # โหลดตัวแปรจาก secret file (รูปแบบ KEY=VALUE)
+                    # set -a ทำให้ตัวแปรที่ถูก "source" ถูก export กลายเป็น env ทันที
+                    set -a
+                    . "${ENV_FILE}"
+                    set +a
+
+                    # ตรวจว่า key สำคัญมีครบ
+                    : "${K8S_NAMESPACE:?K8S_NAMESPACE missing in secret file}"
+                    : "${DEPLOY_NAME:?DEPLOY_NAME missing in secret file}"
+                    : "${CONTAINER_NAME:?CONTAINER_NAME missing in secret file}"
+                    : "${IMAGE_REPO:?IMAGE_REPO missing in secret file}"
+                    # IMAGE_TAG จะมีหรือไม่มีก็ได้ ถ้าไม่มีก็ fallback เป็น commit/BUILD_NUMBER
+                    IMAGE_TAG="${IMAGE_TAG:-}"
+
+                    # Apply manifests
+                    kubectl apply -n "${K8S_NAMESPACE}" -f app/k8s/
+
+                    # กำหนด image ให้ตรง tag ที่กำหนดใน secret file
+                    if [ -n "${IMAGE_TAG}" ]; then
+                    IMAGE="${IMAGE_REPO}:${IMAGE_TAG}"
+                    else
+                    TAG="$(git rev-parse --short HEAD 2>/dev/null || echo "${BUILD_NUMBER}")"
+                    IMAGE="${IMAGE_REPO}:${TAG}"
+                    fi
+
+                    kubectl -n "${K8S_NAMESPACE}" set image "deploy/${DEPLOY_NAME}" "${CONTAINER_NAME}=${IMAGE}"
+
+                    # ติดตามผล rollout
+                    kubectl -n "${K8S_NAMESPACE}" rollout status "deploy/${DEPLOY_NAME}" --timeout=180s
+                '''
+                }
+            }
+        }
+
+
     }
-    failure {
-      echo "❌ Pipeline failed."
-    }
-  }
 }

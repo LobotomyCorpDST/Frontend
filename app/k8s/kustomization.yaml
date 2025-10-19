@@ -6,4 +6,4 @@ resources:
   - service-nodeport.yaml
 images:
   - name: mmmmnl/lobotomy_but_front
-    newTag: latest
+    newTag: v.1.0
