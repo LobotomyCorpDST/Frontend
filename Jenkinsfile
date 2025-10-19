@@ -95,7 +95,9 @@ pipeline {
 
     stage('Docker build & push') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
+                                                usernameVariable: 'DOCKERHUB_USERNAME',
+                                                passwordVariable: 'DOCKERHUB_PASSWORD')]) {
           bat '''
             if "%IMAGE%"=="" ( echo IMAGE empty & exit /b 1 )
             echo Building %IMAGE%
