@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Load env from secret file') {
       steps {
-        withCredentials([file(credentialsId: 'frontend-env', variable: 'ENV_FILE')]) {
+        withCredentials([file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')]) {
           bat '''
             setlocal EnableDelayedExpansion
             for /f "usebackq tokens=* delims=" %%L in ("%ENV_FILE%") do (
