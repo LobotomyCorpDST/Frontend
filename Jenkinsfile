@@ -1,107 +1,113 @@
 pipeline {
-    agent { label 'node' }
-    
-    stages {
-        stage('Checkout code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/LobotomyCorpDST/Frontend.git'
-            }
-        }
+  agent { label 'node' }
 
-        stage('Build image') {
-          steps {
-            withCredentials([
-              file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')
-            ]) {
-              bat 'docker build . -t %IMAGE_REPO%:%IMAGE_TAG%'
-            }
+  stages {
+    stage('Load env from secret file') {
+      steps {
+        withCredentials([file(credentialsId: 'frontend-env', variable: 'ENV_FILE')]) {
+          bat '''
+            setlocal EnableDelayedExpansion
+            for /f "usebackq tokens=* delims=" %%L in ("%ENV_FILE%") do (
+              set "LINE=%%L"
+              rem ข้ามบรรทัดว่าง/คอมเมนต์
+              if not "!LINE!"=="" if /I not "!LINE:~0,1!"=="#" (
+                for /f "tokens=1,2 delims==" %%A in ("!LINE!") do (
+                  set "%%A=%%B"
+                )
+              )
+            )
+
+            rem ===== ตรวจ/ตั้งค่า fallback =====
+            rem ถ้า IMAGE_TAG ว่าง ให้ fallback เป็น git short sha หรือ BUILD_NUMBER
+            set "TAG=%IMAGE_TAG%"
+            if "%TAG%"=="" (
+              for /f "usebackq" %%i in (`git rev-parse --short=7 HEAD 2^>NUL`) do set TAG=%%i
+            )
+            if "%TAG%"=="" set TAG=%BUILD_NUMBER%
+
+            rem กรองอักขระต้องห้ามใน tag
+            set "TAG=%TAG:/=-%"
+            set "TAG=%TAG::=-%"
+            set "TAG=%TAG: =%"
+            set "TAG=%TAG:^&=-%"
+            set "TAG=%TAG:|=-%"
+            set "TAG=%TAG:(=%"
+            set "TAG=%TAG:)=%"
+
+            if "%K8S_NAMESPACE%"=="" set K8S_NAMESPACE=doomed-apt
+            if "%DEPLOY_NAME%"==""  set DEPLOY_NAME=frontend-deployment
+            if "%CONTAINER_NAME%"=="" set CONTAINER_NAME=frontend
+            if "%IMAGE_REPO%"=="" set IMAGE_REPO=mmmmnl/lobotomy_but_front
+
+            if "%TAG%"=="" (
+              echo ERROR: TAG is empty. Aborting.
+              exit /b 1
+            )
+
+            set "IMAGE=%IMAGE_REPO%:%TAG%"
+            echo Using:
+            echo   K8S_NAMESPACE=%K8S_NAMESPACE%
+            echo   DEPLOY_NAME=%DEPLOY_NAME%
+            echo   CONTAINER_NAME=%CONTAINER_NAME%
+            echo   IMAGE=%IMAGE%
+
+            rem ส่งค่าออกเป็นไฟล์เพื่อใช้ในขั้นต่อไป
+            > image.env echo IMAGE=%IMAGE%
+            >> image.env echo TAG=%TAG%
+            >> image.env echo K8S_NAMESPACE=%K8S_NAMESPACE%
+            >> image.env echo DEPLOY_NAME=%DEPLOY_NAME%
+            >> image.env echo CONTAINER_NAME=%CONTAINER_NAME%
+            endlocal
+          '''
+          script {
+            def m = readProperties file: 'image.env'
+            env.IMAGE          = m.IMAGE
+            env.TAG            = m.TAG
+            env.K8S_NAMESPACE  = m.K8S_NAMESPACE
+            env.DEPLOY_NAME    = m.DEPLOY_NAME
+            env.CONTAINER_NAME = m.CONTAINER_NAME
           }
         }
-
-        stage('List image') {
-            steps {
-                bat 'docker images'
-            }
-        }
-
-        stage('Login Docker Hub') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'docker-hub-creds',
-                        usernameVariable: 'DOCKERHUB_USERNAME',
-                        passwordVariable: 'DOCKERHUB_PASSWORD'
-                    )
-                ]) {
-                    bat '''
-                        docker logout
-                        echo %DOCKERHUB_PASSWORD% | docker login -u %DOCKERHUB_USERNAME% --password-stdin
-                    '''
-                }
-            }
-        }
-
-        stage('Push image') {
-            
-            steps {
-                withCredentials([
-                    file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')
-                ])
-                {
-                    bat 'docker push %IMAGE_REPO%:%IMAGE_TAG%'
-                }
-            }
-        }
-
-        stage('Deploy to K8s') {
-            steps {
-                withCredentials([
-                    file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE'),
-                    file(credentialsId: 'kubeconfig-prod',  variable: 'KUBECONFIG_FILE') 
-                ]) {
-                    bat """
-                        REM --- Load env vars from secret file (รองรับ path ที่มีช่องว่าง) ---
-                        for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do set %%a=%%b
-
-                        echo Loaded env: %K8S_NAMESPACE% %DEPLOY_NAME% %CONTAINER_NAME% %IMAGE_REPO%
-
-                        REM --- Set kubeconfig ---
-                        set KUBECONFIG=%KUBECONFIG_FILE%
-
-                        REM --- Sanity checks ---
-                        kubectl version --client
-                        kubectl config current-context
-
-                        REM --- Apply manifests ---
-                        kubectl apply -n %K8S_NAMESPACE% -k app\\k8s\\
-
-                        REM --- Compute TAG ---
-                        for /f %%i in ('git rev-parse --short HEAD ^|^| echo %BUILD_NUMBER%') do set TAG=%%i
-                        echo Using TAG=%TAG%
-
-                        REM --- Set new image to the deployment ---
-                        kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE_REPO%:%TAG%
-                        
-                        REM ใช้ tag จาก git (หรือ IMAGE_TAG ที่คุณคำนวณไว้)
-                        for /f %%i in ('git rev-parse --short HEAD ^|^| echo %BUILD_NUMBER%') do set TAG=%%i
-                        echo Using TAG=%TAG%
-
-                        REM แสดง image ปัจจุบัน
-                        echo === BEFORE ===
-                        kubectl -n %K8S_NAMESPACE% get deploy/%DEPLOY_NAME% -o jsonpath="{.spec.template.spec.containers[?(@.name=='%CONTAINER_NAME%')].image}" & echo.
-
-                        REM ชี้ image ไปยัง tag ล่าสุด
-                        kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE_REPO%:%TAG%
-
-                        REM แสดง image หลังเปลี่ยน
-                        echo === AFTER ===
-                        kubectl -n %K8S_NAMESPACE% get deploy/%DEPLOY_NAME% -o jsonpath="{.spec.template.spec.containers[?(@.name=='%CONTAINER_NAME%')].image}" & echo.
-
-                        REM --- Wait rollout ---
-                        kubectl -n %K8S_NAMESPACE% scale deploy/%DEPLOY_NAME% --replicas=1
-                    """
-                }
-            }
-        }
+      }
     }
+
+    stage('Docker build & push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+          bat '''
+            if "%IMAGE%"=="" ( echo IMAGE empty & exit /b 1 )
+            echo Building %IMAGE%
+            docker build -t %IMAGE% .
+            echo %DH_PASS% | docker login -u %DH_USER% --password-stdin
+            docker push %IMAGE%
+            docker logout
+          '''
+        }
+      }
+    }
+
+    stage('Deploy Frontend') {
+      steps {
+        withCredentials([file(credentialsId: 'kubeconfig-prod', variable: 'KUBECONFIG_FILE')]) {
+          bat '''
+            set KUBECONFIG=%KUBECONFIG_FILE%
+
+            rem ถ้ามี kustomization ของ frontend ให้ใช้ -k, ไม่งั้น -f รายไฟล์
+            if exist k8s\\frontend\\kustomization.yaml (
+              kubectl apply -n %K8S_NAMESPACE% -k k8s\\frontend\\
+            ) else (
+              if exist k8s\\frontend\\frontend-deployment.yaml kubectl apply -n %K8S_NAMESPACE% -f k8s\\frontend\\frontend-deployment.yaml
+              if exist k8s\\frontend\\frontend-service-nodeport.yaml kubectl apply -n %K8S_NAMESPACE% -f k8s\\frontend\\frontend-service-nodeport.yaml
+            )
+
+            rem อัปเดต image ให้ตรงกับที่ push แล้ว
+            kubectl -n %K8S_NAMESPACE% set image deploy/%DEPLOY_NAME% %CONTAINER_NAME%=%IMAGE%
+
+            kubectl -n %K8S_NAMESPACE% rollout status deploy/%DEPLOY_NAME% --timeout=180s
+            kubectl -n %K8S_NAMESPACE% get svc frontend -o wide
+          '''
+        }
+      }
+    }
+  }
 }
