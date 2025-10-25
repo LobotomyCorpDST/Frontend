@@ -21,7 +21,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
 
     const showSearch =
         currentPageLabel !== "Dashboard" &&
-        currentPageLabel !== "ประวัติสัญญาเช่า";
+        currentPageLabel !== "ประวัติสัญญาเช่า" &&
+        currentPageLabel !== "รายงานสรุป";
 
     const showAdd =
         currentPageLabel === "ห้องทั้งหมด" ||

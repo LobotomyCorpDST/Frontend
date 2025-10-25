@@ -25,6 +25,9 @@ spec:
         - name: frontend
           image: mmmmnl/lobotomy_but_front:latest
           imagePullPolicy: IfNotPresent
+          env:
+            - name: REACT_APP_API
+              value: "http://localhost:32081"
           ports:
             - containerPort: 3000
               name: http
