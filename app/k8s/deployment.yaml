@@ -29,22 +29,24 @@ spec:
             - name: REACT_APP_API
               value: "http://localhost:32081"
           ports:
-            - containerPort: 3000
+            - containerPort: 80
               name: http
           readinessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 30
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 10
+            failureThreshold: 3
           livenessProbe:
-            tcpSocket:
-              port: 3000
-            initialDelaySeconds: 60
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
             periodSeconds: 20
             timeoutSeconds: 5
-            failureThreshold: 10
+            failureThreshold: 3
           resources:
             requests:
               cpu: "100m"

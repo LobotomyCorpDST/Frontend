@@ -19,13 +19,26 @@ import {
   CircularProgress,
   Chip,
   Divider,
+  ToggleButtonGroup,
+  ToggleButton,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
-import { getSummaryByRoomNumber, getSummaryByRoomNumberAndMonth, getSummaryByTenant, getSummaryByMonth } from '../../api/report';
+import {
+  getSummaryByRoomNumber,
+  getSummaryByRoomNumberAndMonth,
+  getSummaryByTenant,
+  getSummaryByMonth,
+  getMonthlyTrend,
+} from '../../api/report';
 import http from '../../api/http';
+import ElectricityTrendChart from '../Charts/ElectricityTrendChart';
+import WaterTrendChart from '../Charts/WaterTrendChart';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 const SummaryReport = () => {
   // Filter state
-  const [filterType, setFilterType] = useState('room'); // 'room', 'tenant', 'month'
+  const [filterType, setFilterType] = useState('room');
   const [selectedRoom, setSelectedRoom] = useState('');
   const [selectedTenant, setSelectedTenant] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -39,12 +52,20 @@ const SummaryReport = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load rooms and tenants on mount
+  // Chart state (independent from summary)
+  const [chartMetric, setChartMetric] = useState('units');
+  const [trendData, setTrendData] = useState([]);
+  const [trendMonths, setTrendMonths] = useState(6);
+  const [chartLoading, setChartLoading] = useState(false);
+
+  // View mode state (summary or graph)
+  const [viewMode, setViewMode] = useState('summary');
+
   useEffect(() => {
     loadRoomsAndTenants();
   }, []);
 
-  // Auto-load summary when filters change
+  // Load summary table data (right side)
   useEffect(() => {
     if (filterType === 'room' && selectedRoom) {
       loadSummary();
@@ -52,15 +73,27 @@ const SummaryReport = () => {
       loadSummary();
     } else if (filterType === 'month' && selectedYear && selectedMonth) {
       loadSummary();
+    } else {
+      setSummary(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, selectedRoom, selectedTenant, selectedYear, selectedMonth, includeMonthFilter]);
+
+  // Load chart data (left side) - ONLY for room selection
+  useEffect(() => {
+    if (filterType === 'room' && selectedRoom) {
+      loadChartData();
+    } else {
+      setTrendData([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRoom, trendMonths, filterType]);
 
   const loadRoomsAndTenants = async () => {
     try {
       const [roomsData, tenantsData] = await Promise.all([
         http.get('/api/rooms'),
-        http.get('/api/tenants')
+        http.get('/api/tenants'),
       ]);
       setRooms(roomsData || []);
       setTenants(tenantsData || []);
@@ -95,12 +128,31 @@ const SummaryReport = () => {
     }
   };
 
+  const loadChartData = async () => {
+    if (!selectedRoom) {
+      setTrendData([]);
+      return;
+    }
+
+    setChartLoading(true);
+    try {
+      const data = await getMonthlyTrend(selectedRoom, trendMonths);
+      setTrendData(data || []);
+    } catch (e) {
+      console.error('Failed to load chart data:', e);
+      setTrendData([]);
+    } finally {
+      setChartLoading(false);
+    }
+  };
+
   const handleFilterTypeChange = (e) => {
     setFilterType(e.target.value);
     setSummary(null);
     setSelectedRoom('');
     setSelectedTenant('');
     setIncludeMonthFilter(false);
+    setTrendData([]);
   };
 
   const formatCurrency = (n) => {
@@ -131,7 +183,7 @@ const SummaryReport = () => {
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {cards.map((card, idx) => (
-          <Grid item xs={12} sm={6} md={4} key={idx}>
+          <Grid item xs={12} sm={6} key={idx}>
             <Card
               sx={{
                 borderLeft: `4px solid ${card.color}`,
@@ -142,7 +194,7 @@ const SummaryReport = () => {
                 <Typography variant="subtitle2" color="text.secondary">
                   {card.label}
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', color: card.color }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: card.color }}>
                   {card.value}
                 </Typography>
               </CardContent>
@@ -204,8 +256,90 @@ const SummaryReport = () => {
     );
   };
 
+  const renderChartSection = () => {
+    // Only show charts when room is selected
+    if (filterType !== 'room' || !selectedRoom) {
+      return (
+        <Paper sx={{ p: 5, textAlign: 'center', height: '100%' }}>
+          <Typography color="text.secondary" variant="h6">
+            เลือกห้องเพื่อดูกราฟแนวโน้มการใช้งาน
+          </Typography>
+          <Typography color="text.secondary" variant="body2" sx={{ mt: 2 }}>
+            กราฟจะแสดงการใช้ไฟฟ้าและน้ำประปาตามเดือน
+          </Typography>
+        </Paper>
+      );
+    }
+
+    if (chartLoading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    return (
+      <Box>
+        {/* Metric Toggle */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center', gap: 2, alignItems: 'center' }}>
+          <ToggleButtonGroup
+            value={chartMetric}
+            exclusive
+            onChange={(e, value) => value && setChartMetric(value)}
+            size="small"
+          >
+            <ToggleButton value="units">หน่วย</ToggleButton>
+            <ToggleButton value="baht">บาท</ToggleButton>
+          </ToggleButtonGroup>
+
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>ช่วงเวลา</InputLabel>
+            <Select
+              value={trendMonths}
+              onChange={(e) => setTrendMonths(e.target.value)}
+              label="ช่วงเวลา"
+            >
+              <MenuItem value={3}>3 เดือน</MenuItem>
+              <MenuItem value={6}>6 เดือน</MenuItem>
+              <MenuItem value={12}>12 เดือน</MenuItem>
+              <MenuItem value={24}>24 เดือน</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        {/* Charts in Horizontal Layout - Full Width */}
+        <Box sx={{
+          display: 'flex',
+          gap: 2,
+          flexDirection: { xs: 'column', md: 'row' },
+          width: '100%'
+        }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Electricity Chart */}
+            <ElectricityTrendChart
+              data={trendData}
+              metric={chartMetric}
+              height={400}
+              roomNumber={selectedRoom}
+            />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Water Chart */}
+            <WaterTrendChart
+              data={trendData}
+              metric={chartMetric}
+              height={400}
+              roomNumber={selectedRoom}
+            />
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main', mb: 3 }}>
         รายงานสรุป
       </Typography>
@@ -228,123 +362,59 @@ const SummaryReport = () => {
             </FormControl>
           </Grid>
 
-          {/* Room Selector */}
+          {/* Room Selector with Smart Search */}
           {filterType === 'room' && (
             <>
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>เลือกห้อง</InputLabel>
-                  <Select
-                    value={selectedRoom}
-                    onChange={(e) => setSelectedRoom(e.target.value)}
-                    label="เลือกห้อง"
-                  >
-                    {rooms.map((room) => (
-                      <MenuItem key={room.id} value={room.number}>
-                        ห้อง {room.number}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <SmartSearchAutocomplete
+                  options={rooms.map((r) => ({
+                    id: r.id,
+                    label: `ห้อง ${r.number}${r.tenantName ? ` - ${r.tenantName}` : ''}`,
+                    value: r.number,
+                    searchText: `${r.number} ${r.tenantName || ''}`,
+                  }))}
+                  label="เลือกห้อง"
+                  value={selectedRoom}
+                  onChange={(value) => setSelectedRoom(value)}
+                  placeholder="พิมพ์เพื่อค้นหา..."
+                />
               </Grid>
-
-              {/* Month filter for room */}
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>กรองตามเดือน</InputLabel>
-                  <Select
-                    value={includeMonthFilter ? 'yes' : 'no'}
-                    onChange={(e) => setIncludeMonthFilter(e.target.value === 'yes')}
-                    label="กรองตามเดือน"
-                  >
-                    <MenuItem value="no">ทั้งหมด</MenuItem>
-                    <MenuItem value="yes">เฉพาะเดือนที่เลือก</MenuItem>
-                  </Select>
-                </FormControl>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={includeMonthFilter}
+                      onChange={(e) => setIncludeMonthFilter(e.target.checked)}
+                    />
+                  }
+                  label="กรองตามเดือน"
+                />
               </Grid>
-
-              {includeMonthFilter && (
-                <>
-                  <Grid item xs={6} sm={3} md={1.5}>
-                    <FormControl fullWidth>
-                      <InputLabel>เดือน</InputLabel>
-                      <Select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        label="เดือน"
-                      >
-                        {[...Array(12)].map((_, i) => (
-                          <MenuItem key={i + 1} value={i + 1}>
-                            {i + 1}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6} sm={3} md={1.5}>
-                    <FormControl fullWidth>
-                      <InputLabel>ปี</InputLabel>
-                      <Select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                        label="ปี"
-                      >
-                        {[...Array(5)].map((_, i) => {
-                          const year = new Date().getFullYear() - i;
-                          return (
-                            <MenuItem key={year} value={year}>
-                              {year}
-                            </MenuItem>
-                          );
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </>
-              )}
             </>
           )}
 
-          {/* Tenant Selector */}
+          {/* Tenant Selector with Smart Search */}
           {filterType === 'tenant' && (
             <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>เลือกผู้เช่า</InputLabel>
-                <Select
-                  value={selectedTenant}
-                  onChange={(e) => setSelectedTenant(e.target.value)}
-                  label="เลือกผู้เช่า"
-                >
-                  {tenants.map((tenant) => (
-                    <MenuItem key={tenant.id} value={tenant.id}>
-                      {tenant.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <SmartSearchAutocomplete
+                options={tenants.map((t) => ({
+                  id: t.id,
+                  label: t.name,
+                  value: t.id,
+                  searchText: t.name,
+                }))}
+                label="เลือกผู้เช่า"
+                value={selectedTenant}
+                onChange={(value) => setSelectedTenant(value)}
+                placeholder="พิมพ์ชื่อผู้เช่า..."
+              />
             </Grid>
           )}
 
-          {/* Month/Year Selector */}
-          {filterType === 'month' && (
+          {/* Month/Year Selectors */}
+          {(filterType === 'month' || (filterType === 'room' && includeMonthFilter)) && (
             <>
-              <Grid item xs={6} sm={3} md={2}>
-                <FormControl fullWidth>
-                  <InputLabel>เดือน</InputLabel>
-                  <Select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    label="เดือน"
-                  >
-                    {[...Array(12)].map((_, i) => (
-                      <MenuItem key={i + 1} value={i + 1}>
-                        {i + 1}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6} sm={3} md={2}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>ปี</InputLabel>
                   <Select
@@ -352,14 +422,27 @@ const SummaryReport = () => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     label="ปี"
                   >
-                    {[...Array(5)].map((_, i) => {
-                      const year = new Date().getFullYear() - i;
-                      return (
-                        <MenuItem key={year} value={year}>
-                          {year}
-                        </MenuItem>
-                      );
-                    })}
+                    {[2024, 2025, 2026].map((y) => (
+                      <MenuItem key={y} value={y}>
+                        {y}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>เดือน</InputLabel>
+                  <Select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    label="เดือน"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <MenuItem key={m} value={m}>
+                        {m}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -368,55 +451,60 @@ const SummaryReport = () => {
         </Grid>
       </Paper>
 
-      {/* Loading State */}
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
-          <CircularProgress />
-          <Typography sx={{ ml: 2 }}>กำลังโหลดข้อมูล...</Typography>
-        </Box>
-      )}
+      <Divider sx={{ my: 3 }} />
 
-      {/* Error State */}
-      {error && (
-        <Paper sx={{ p: 3, backgroundColor: '#ffebee' }}>
-          <Typography color="error">{error}</Typography>
-        </Paper>
-      )}
+      {/* View Mode Toggle */}
+      <Paper sx={{ p: 2, mb: 3, display: 'flex', justifyContent: 'center' }}>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={(e, value) => value && setViewMode(value)}
+          aria-label="view mode"
+        >
+          <ToggleButton value="summary" aria-label="summary view">
+            สรุป
+          </ToggleButton>
+          <ToggleButton value="graph" aria-label="graph view">
+            กราฟ
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Paper>
 
-      {/* Summary Display */}
-      {!loading && !error && summary && (
+      {/* Main Content - Full Width */}
+      {/* Summary View */}
+      {viewMode === 'summary' && (
         <>
-          {/* Summary Header */}
-          <Paper sx={{ p: 2, mb: 3, backgroundColor: '#e3f2fd' }}>
-            <Typography variant="h6">
-              {filterType === 'room' && `ห้อง ${summary.roomNumber}`}
-              {filterType === 'tenant' && `ผู้เช่า: ${summary.tenantName}`}
-              {filterType === 'month' && `เดือน ${summary.month}/${summary.year}`}
-              {includeMonthFilter && filterType === 'room' && ` - เดือน ${summary.month}/${summary.year}`}
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {error && !loading && (
+            <Typography color="error" sx={{ textAlign: 'center', py: 3 }}>
+              {error}
             </Typography>
-          </Paper>
+          )}
 
-          {/* Summary Cards */}
-          {renderSummaryCards()}
+          {!loading && !error && summary && (
+            <>
+              {renderSummaryCards()}
+              {renderInvoicesTable()}
+            </>
+          )}
 
-          <Divider sx={{ my: 3 }} />
-
-          {/* Invoices Table */}
-          <Typography variant="h6" gutterBottom>
-            รายละเอียดใบแจ้งหนี้
-          </Typography>
-          {renderInvoicesTable()}
+          {!loading && !error && !summary && (
+            <Paper sx={{ p: 5, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                เลือกตัวกรองเพื่อแสดงข้อมูลสรุป
+              </Typography>
+            </Paper>
+          )}
         </>
       )}
 
-      {/* No data state */}
-      {!loading && !error && !summary && (
-        <Paper sx={{ p: 5, textAlign: 'center' }}>
-          <Typography color="text.secondary">
-            เลือกตัวกรองเพื่อดูรายงานสรุป
-          </Typography>
-        </Paper>
-      )}
+      {/* Graph View */}
+      {viewMode === 'graph' && renderChartSection()}
     </Box>
   );
 };

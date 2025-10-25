@@ -1,4 +1,5 @@
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
@@ -13,6 +14,18 @@ COPY . .
 ARG REACT_APP_API=http://localhost:32081
 ENV REACT_APP_API=${REACT_APP_API}
 
-EXPOSE 3000
+# Build production bundle
+RUN npm run build
 
-CMD ["npm", "start"]
+# Production stage
+FROM nginx:alpine
+
+# Copy built files to nginx
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

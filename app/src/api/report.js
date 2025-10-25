@@ -41,3 +41,26 @@ export async function getSummaryByTenant(tenantId) {
 export async function getSummaryByMonth(year, month) {
   return http.get(`/api/reports/by-month/${year}/${month}`);
 }
+
+/**
+ * Get floor comparison data for a specific month (for bar chart)
+ */
+export async function getFloorComparison(year, month) {
+  return http.get(`/api/reports/floor-comparison/${year}/${month}`);
+}
+
+/**
+ * Get monthly trend data for a specific room (for line chart)
+ */
+export async function getMonthlyTrend(roomNumber, months = 6) {
+  return http.get(`/api/reports/monthly-trend/${roomNumber}`, { params: { months } });
+}
+
+/**
+ * Get monthly trend data for an entire floor (for line chart)
+ */
+export async function getFloorTrend(floor, startMonth, endMonth) {
+  return http.get(`/api/reports/floor-trend/${floor}`, {
+    params: { startMonth, endMonth }
+  });
+}

@@ -60,7 +60,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     };
 
     return (
-        <Box sx={{ maxWidth: "1200px", margin: "40px auto", px: 3 }}>
+        <Box sx={{ maxWidth: "1800px", margin: "40px auto", px: 3 }}>
             <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
                 <Box
                     sx={{
