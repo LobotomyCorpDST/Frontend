@@ -30,10 +30,12 @@ import {
   getSummaryByTenant,
   getSummaryByMonth,
   getMonthlyTrend,
+  getFloorRoomsComparison,
 } from '../../api/report';
 import http from '../../api/http';
 import ElectricityTrendChart from '../Charts/ElectricityTrendChart';
 import WaterTrendChart from '../Charts/WaterTrendChart';
+import FloorComparisonPieChart from '../Charts/FloorComparisonPieChart';
 import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 const SummaryReport = () => {
@@ -57,6 +59,10 @@ const SummaryReport = () => {
   const [trendData, setTrendData] = useState([]);
   const [trendMonths, setTrendMonths] = useState(6);
   const [chartLoading, setChartLoading] = useState(false);
+
+  // Floor comparison state (pie chart)
+  const [floorComparisonData, setFloorComparisonData] = useState([]);
+  const [floorComparisonLoading, setFloorComparisonLoading] = useState(false);
 
   // View mode state (summary or graph)
   const [viewMode, setViewMode] = useState('summary');
@@ -83,8 +89,10 @@ const SummaryReport = () => {
   useEffect(() => {
     if (filterType === 'room' && selectedRoom) {
       loadChartData();
+      loadFloorComparisonData();
     } else {
       setTrendData([]);
+      setFloorComparisonData([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom, trendMonths, filterType]);
@@ -146,6 +154,24 @@ const SummaryReport = () => {
     }
   };
 
+  const loadFloorComparisonData = async () => {
+    if (!selectedRoom) {
+      setFloorComparisonData([]);
+      return;
+    }
+
+    setFloorComparisonLoading(true);
+    try {
+      const data = await getFloorRoomsComparison(selectedRoom);
+      setFloorComparisonData(data || []);
+    } catch (e) {
+      console.error('Failed to load floor comparison data:', e);
+      setFloorComparisonData([]);
+    } finally {
+      setFloorComparisonLoading(false);
+    }
+  };
+
   const handleFilterTypeChange = (e) => {
     setFilterType(e.target.value);
     setSummary(null);
@@ -153,6 +179,7 @@ const SummaryReport = () => {
     setSelectedTenant('');
     setIncludeMonthFilter(false);
     setTrendData([]);
+    setFloorComparisonData([]);
   };
 
   const formatCurrency = (n) => {
@@ -333,6 +360,22 @@ const SummaryReport = () => {
               roomNumber={selectedRoom}
             />
           </Box>
+        </Box>
+
+        {/* Floor Comparison Pie Chart - Full Width Below */}
+        <Box sx={{ mt: 3, width: '100%' }}>
+          {floorComparisonLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <FloorComparisonPieChart
+              data={floorComparisonData}
+              metric={chartMetric}
+              height={450}
+              roomNumber={selectedRoom}
+            />
+          )}
         </Box>
       </Box>
     );

@@ -64,3 +64,10 @@ export async function getFloorTrend(floor, startMonth, endMonth) {
     params: { startMonth, endMonth }
   });
 }
+
+/**
+ * Get room-level comparison data for the entire floor of a selected room (for pie chart)
+ */
+export async function getFloorRoomsComparison(roomNumber) {
+  return http.get(`/api/reports/floor-rooms-comparison/${roomNumber}`);
+}
