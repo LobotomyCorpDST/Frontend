@@ -165,6 +165,7 @@ export const http = {
 
   // ✅ สำหรับดึงไฟล์ (เช่น PDF) พร้อมแนบ token
   getBlob: (path, opts) => requestBlob(path, { ...opts, method: 'GET' }),
+  postBlob: (path, body, opts) => requestBlob(path, { ...opts, method: 'POST', body }),
 };
 
 export default http;

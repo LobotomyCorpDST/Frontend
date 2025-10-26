@@ -91,3 +91,32 @@ export const openLease = async (id, view = 'print') => {
   // ปล่อยให้เบราว์เซอร์ cache ไฟล์ไว้ชั่วคราว
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 };
+
+// ---------- Bulk Print ----------
+/**
+ * Bulk print multiple leases as a single combined PDF
+ * @param {Array<number>} leaseIds - Array of lease IDs to print
+ * @returns {Promise<void>} Opens the combined PDF in a new window
+ */
+export const bulkPrintLeases = async (leaseIds) => {
+  if (!leaseIds || leaseIds.length === 0) {
+    throw new Error('No leases selected for printing');
+  }
+
+  try {
+    const blob = await http.postBlob(apiPath('/leases/bulk-pdf'), { ids: leaseIds });
+
+    // Check if response is actually a PDF
+    if (blob && blob.type && blob.type.includes('text/html')) {
+      const text = await blob.text();
+      throw new Error(text || 'Bulk print failed');
+    }
+
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (error) {
+    console.error('Bulk print leases failed:', error);
+    throw error;
+  }
+};

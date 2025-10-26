@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel,
   // Other MUI Components
   Dialog, DialogTitle, DialogActions, Button, DialogContent, Typography,
-  Grid, CircularProgress, Box, Tooltip, IconButton, Chip, Link,
+  Grid, CircularProgress, Box, Tooltip, IconButton, Chip, Link, Checkbox, Toolbar, Alert,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import PrintIcon from '@mui/icons-material/Print';
@@ -13,7 +13,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import EditIcon from '@mui/icons-material/Edit';
 import EditInvoiceModal from '../Invoice/EditInvoiceModal';
 
-import { listInvoices, openInvoice, computeDisplayStatus } from '../../api/invoice';
+import { listInvoices, openInvoice, computeDisplayStatus, bulkPrintInvoices } from '../../api/invoice';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
 
 // Style object copied from MaintenanceHistory
@@ -25,6 +25,7 @@ const headerCellStyle = {
 
 // Headers defined for MUI Table
 const headCells = [
+  { id: 'select', label: '', disableSorting: true },
   { id: 'roomNumber', label: 'ห้อง' },
   { id: 'id', label: 'ID ใบแจ้งหนี้' },
   { id: 'issueDate', label: 'วันมอบหมาย' },
@@ -62,6 +63,11 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
   const prevSignal = useRef(addInvoiceSignal);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkPrinting, setBulkPrinting] = useState(false);
+  const [bulkError, setBulkError] = useState('');
 
   const handleEdit = (invoice) => {
     setSelectedInvoice(invoice);
@@ -152,6 +158,47 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
     setInvoiceToPrint(null);
   };
 
+  // Bulk selection handlers
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === filteredInvoices.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredInvoices.map((inv) => inv.id)));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+    setBulkError('');
+  };
+
+  const handleBulkPrint = async () => {
+    if (selectedIds.size === 0) return;
+
+    setBulkPrinting(true);
+    setBulkError('');
+    try {
+      await bulkPrintInvoices(Array.from(selectedIds));
+      handleClearSelection();
+    } catch (err) {
+      setBulkError(err?.message || 'Failed to print invoices');
+    } finally {
+      setBulkPrinting(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
@@ -170,6 +217,46 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
 
   return (
     <>
+      {/* Bulk action toolbar */}
+      {selectedIds.size > 0 && (
+        <Toolbar
+          sx={{
+            pl: { sm: 2 },
+            pr: { xs: 1, sm: 1 },
+            bgcolor: 'primary.light',
+            color: 'primary.contrastText',
+            borderRadius: 1,
+            mb: 2,
+          }}
+        >
+          <Typography sx={{ flex: '1 1 100%' }} variant="subtitle1" component="div">
+            {selectedIds.size} selected
+          </Typography>
+          <Tooltip title="Print Selected">
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<PrintIcon />}
+              onClick={handleBulkPrint}
+              disabled={bulkPrinting}
+              sx={{ mr: 1 }}
+            >
+              {bulkPrinting ? 'Printing...' : `Print (${selectedIds.size})`}
+            </Button>
+          </Tooltip>
+          <Button variant="outlined" color="inherit" onClick={handleClearSelection}>
+            Clear
+          </Button>
+        </Toolbar>
+      )}
+
+      {/* Bulk error message */}
+      {bulkError && (
+        <Alert severity="error" onClose={() => setBulkError('')} sx={{ mb: 2 }}>
+          {bulkError}
+        </Alert>
+      )}
+
       <TableContainer
         component={Paper}
         sx={{
@@ -187,7 +274,14 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
                   sortDirection={sortConfig.key === headCell.id ? sortConfig.direction : false}
                   onClick={() => !headCell.disableSorting && handleRequestSort(headCell.id)}
                 >
-                  {headCell.disableSorting ? (
+                  {headCell.id === 'select' ? (
+                    <Checkbox
+                      indeterminate={selectedIds.size > 0 && selectedIds.size < filteredInvoices.length}
+                      checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length}
+                      onChange={handleSelectAll}
+                      sx={{ color: '#f8f9fa', '&.Mui-checked': { color: '#f8f9fa' } }}
+                    />
+                  ) : headCell.disableSorting ? (
                     headCell.label
                   ) : (
                     <TableSortLabel
@@ -223,8 +317,15 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
                   sx={{
                     '&:hover': { backgroundColor: '#f1f3f5' },
                     '&:last-child td, &:last-child th': { border: 0 },
+                    backgroundColor: selectedIds.has(invoice.id) ? 'rgba(25, 118, 210, 0.08)' : 'inherit',
                   }}
                 >
+                  <TableCell padding="checkbox" sx={{ borderBottom: '1px solid #e0e6eb' }}>
+                    <Checkbox
+                      checked={selectedIds.has(invoice.id)}
+                      onChange={() => handleToggleSelect(invoice.id)}
+                    />
+                  </TableCell>
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
                     <Link component="button" variant="body2" sx={{ fontWeight: 'bold' }} onClick={() => handleRoomClick(invoice.room?.number)}>
                       {invoice.room?.number || 'N/A'}
