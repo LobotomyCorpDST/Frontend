@@ -35,6 +35,7 @@ kubectl get pods -n doomed-apt
 ### Step 2: Deploy the Application
 
 Navigate to the project directory and apply all Kubernetes manifests:
+(Don't use this same path, this is my file structure)
 
 ```bash
 cd c:\Users\itm\Desktop\front+backshoyt
