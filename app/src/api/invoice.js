@@ -73,3 +73,26 @@ export const getInvoiceById = (id) => http.get(`/api/invoices/${id}`);
 export const updateInvoice = (id, payload) => http.patch(`/api/invoices/${id}`, payload);
 
 export const deleteInvoice = (id) => http.delete(`/api/invoices/${id}`);
+
+// ---------- Bulk Print ----------
+/**
+ * Bulk print multiple invoices as a single combined PDF
+ * @param {Array<number>} invoiceIds - Array of invoice IDs to print
+ * @returns {Promise<void>} Opens the combined PDF in a new window
+ */
+export async function bulkPrintInvoices(invoiceIds) {
+  if (!invoiceIds || invoiceIds.length === 0) {
+    throw new Error('No invoices selected for printing');
+  }
+
+  try {
+    const blob = await http.postBlob('/api/invoices/bulk-pdf', { ids: invoiceIds });
+
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (error) {
+    console.error('Bulk print failed:', error);
+    throw error;
+  }
+}

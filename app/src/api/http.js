@@ -3,7 +3,7 @@ const RAW_BASE =
   process.env.REACT_APP_API ||
   process.env.REACT_APP_API_BASE ||
   process.env.REACT_APP_API_BASE_URL ||
-  'http://localhost:8080/api';
+  'http://localhost:8080';
 
 const BASE = String(RAW_BASE).replace(/\/+$/, '');
 
@@ -165,6 +165,7 @@ export const http = {
 
   // ✅ สำหรับดึงไฟล์ (เช่น PDF) พร้อมแนบ token
   getBlob: (path, opts) => requestBlob(path, { ...opts, method: 'GET' }),
+  postBlob: (path, body, opts) => requestBlob(path, { ...opts, method: 'POST', body }),
 };
 
 export default http;

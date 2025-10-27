@@ -2,9 +2,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box, Paper, Typography, TextField, Button, Table, TableHead,
-  TableRow, TableCell, TableBody, CircularProgress, Alert, Stack
+  TableRow, TableCell, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip
 } from '@mui/material';
-import { getAllLeases, settleLease, openLease } from '../../api/lease';
+import PrintIcon from '@mui/icons-material/Print';
+import { getAllLeases, settleLease, openLease, bulkPrintLeases } from '../../api/lease';
 import CreateLeaseModal from '../Lease/CreateLeaseModal';
 import LeaseEditModal from './LeaseEditModal'; // new
 
@@ -28,6 +29,11 @@ const LeaseHistory = () => {
   // edit modal
   const [openEdit, setOpenEdit] = useState(false);
   const [editLeaseId, setEditLeaseId] = useState(null);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkPrinting, setBulkPrinting] = useState(false);
+  const [bulkError, setBulkError] = useState('');
 
   const loadAll = async () => {
     setLoading(true);
@@ -80,6 +86,47 @@ const LeaseHistory = () => {
     setOpenEdit(true);
   };
 
+  // Bulk selection handlers
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === rows.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(rows.map((l) => l.id)));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+    setBulkError('');
+  };
+
+  const handleBulkPrint = async () => {
+    if (selectedIds.size === 0) return;
+
+    setBulkPrinting(true);
+    setBulkError('');
+    try {
+      await bulkPrintLeases(Array.from(selectedIds));
+      handleClearSelection();
+    } catch (error) {
+      setBulkError(error?.message || 'Failed to print leases');
+    } finally {
+      setBulkPrinting(false);
+    }
+  };
+
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       <Typography variant="h4" sx={{ mb: 2 }}>ประวัติสัญญาเช่า</Typography>
@@ -116,6 +163,46 @@ const LeaseHistory = () => {
         </Box>
       </Paper>
 
+      {/* Bulk action toolbar */}
+      {selectedIds.size > 0 && (
+        <Toolbar
+          sx={{
+            pl: { sm: 2 },
+            pr: { xs: 1, sm: 1 },
+            bgcolor: 'primary.light',
+            color: 'primary.contrastText',
+            borderRadius: 1,
+            mb: 2,
+          }}
+        >
+          <Typography sx={{ flex: '1 1 100%' }} variant="subtitle1" component="div">
+            {selectedIds.size} selected
+          </Typography>
+          <Tooltip title="Print Selected">
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<PrintIcon />}
+              onClick={handleBulkPrint}
+              disabled={bulkPrinting}
+              sx={{ mr: 1 }}
+            >
+              {bulkPrinting ? 'กำลังปริ้น...' : `ปริ้น (${selectedIds.size})`}
+            </Button>
+          </Tooltip>
+          <Button variant="outlined" color="inherit" onClick={handleClearSelection}>
+            ล้าง
+          </Button>
+        </Toolbar>
+      )}
+
+      {/* Bulk error message */}
+      {bulkError && (
+        <Alert severity="error" onClose={() => setBulkError('')} sx={{ mb: 2 }}>
+          {bulkError}
+        </Alert>
+      )}
+
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
@@ -128,6 +215,13 @@ const LeaseHistory = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={selectedIds.size > 0 && selectedIds.size < rows.length}
+                    checked={rows.length > 0 && selectedIds.size === rows.length}
+                    onChange={handleSelectAll}
+                  />
+                </TableCell>
                 <TableCell>ห้อง</TableCell>
                 <TableCell>ผู้เช่าอาศัย</TableCell>
                 <TableCell>เริ่ม</TableCell>
@@ -142,9 +236,18 @@ const LeaseHistory = () => {
                 <TableRow
                   key={l.id}
                   hover
-                  sx={{ cursor: 'pointer' }}
+                  sx={{
+                    cursor: 'pointer',
+                    backgroundColor: selectedIds.has(l.id) ? 'rgba(25, 118, 210, 0.08)' : 'inherit',
+                  }}
                   onClick={() => openForEdit(l.id)}
                 >
+                  <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds.has(l.id)}
+                      onChange={() => handleToggleSelect(l.id)}
+                    />
+                  </TableCell>
                   <TableCell>{l.room?.number ?? '-'}</TableCell>
                   <TableCell>{l.tenant?.name || '-'}</TableCell>
                   <TableCell>{fmt(l.startDate)}</TableCell>

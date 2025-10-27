@@ -21,7 +21,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
 
     const showSearch =
         currentPageLabel !== "Dashboard" &&
-        currentPageLabel !== "ประวัติสัญญาเช่า";
+        currentPageLabel !== "ประวัติสัญญาเช่า" &&
+        currentPageLabel !== "รายงานสรุป";
 
     const showAdd =
         currentPageLabel === "ห้องทั้งหมด" ||
@@ -59,7 +60,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     };
 
     return (
-        <Box sx={{ maxWidth: "1200px", margin: "40px auto", px: 3 }}>
+        <Box sx={{ maxWidth: "1800px", margin: "40px auto", px: 3 }}>
             <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
                 <Box
                     sx={{
