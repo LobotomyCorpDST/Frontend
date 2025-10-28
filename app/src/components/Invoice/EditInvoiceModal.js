@@ -10,8 +10,10 @@ import {
   Alert,
   CircularProgress,
   Typography,
+  Divider,
 } from '@mui/material';
 import { getInvoiceById, updateInvoice, deleteInvoice } from '../../api/invoice';
+import DocumentUploadComponent from '../Common/DocumentUploadComponent';
 
 export default function EditInvoiceModal({ open, onClose, invoiceId, onSaved }) {
   const [invoice, setInvoice] = useState(null);
@@ -190,6 +192,16 @@ export default function EditInvoiceModal({ open, onClose, invoiceId, onSaved }) 
                 fullWidth
                 value={invoice.otherBaht || ''}
                 onChange={handleChange('otherBaht')}
+              />
+            </Grid>
+
+            {/* Document Upload Section */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <DocumentUploadComponent
+                entityType="INVOICE"
+                entityId={invoiceId}
+                readOnly={false}
               />
             </Grid>
           </Grid>

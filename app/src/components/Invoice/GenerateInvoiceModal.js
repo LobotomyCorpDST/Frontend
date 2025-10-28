@@ -58,6 +58,8 @@ export default function GenerateInvoiceModal({ open, onClose, onCreated, roomId 
 
   const [includeCommonFee, setIncludeCommonFee] = useState(true);
   const [includeGarbageFee, setIncludeGarbageFee] = useState(false);
+  const [customCommonFee, setCustomCommonFee] = useState('');
+  const [customGarbageFee, setCustomGarbageFee] = useState('');
 
   const [openAfter, setOpenAfter] = useState('print'); // 'print' | 'pdf'
   const [loading, setLoading] = useState(false);
@@ -94,6 +96,14 @@ export default function GenerateInvoiceModal({ open, onClose, onCreated, roomId 
         waterRate: numOrUndef(waterRate),
         otherBaht: numOrUndef(otherBaht),
       };
+
+      // Add custom fees if checkboxes are unchecked
+      if (!includeCommonFee && customCommonFee) {
+        payload.commonFeeBaht = numOrUndef(customCommonFee);
+      }
+      if (!includeGarbageFee && customGarbageFee) {
+        payload.garbageFeeBaht = numOrUndef(customGarbageFee);
+      }
 
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
@@ -272,27 +282,59 @@ export default function GenerateInvoiceModal({ open, onClose, onCreated, roomId 
           </Grid>
         </Grid>
 
-        {/* Options */}
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={includeCommonFee}
-                onChange={(e) => setIncludeCommonFee(e.target.checked)}
+        {/* Fee Options */}
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          ค่าธรรมเนียมเพิ่มเติม
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={includeCommonFee}
+                  onChange={(e) => setIncludeCommonFee(e.target.checked)}
+                />
+              }
+              label="ใช้ค่าส่วนกลางจากห้อง"
+            />
+            {!includeCommonFee && (
+              <TextField
+                fullWidth
+                size="small"
+                label="ค่าส่วนกลาง (บาท)"
+                type="number"
+                value={customCommonFee}
+                onChange={(e) => setCustomCommonFee(e.target.value)}
+                inputProps={{ step: '0.01', min: '0' }}
+                sx={{ mt: 1 }}
               />
-            }
-            label="Include Common Fee"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={includeGarbageFee}
-                onChange={(e) => setIncludeGarbageFee(e.target.checked)}
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={includeGarbageFee}
+                  onChange={(e) => setIncludeGarbageFee(e.target.checked)}
+                />
+              }
+              label="ใช้ค่าขยะจากห้อง"
+            />
+            {!includeGarbageFee && (
+              <TextField
+                fullWidth
+                size="small"
+                label="ค่าขยะ (บาท)"
+                type="number"
+                value={customGarbageFee}
+                onChange={(e) => setCustomGarbageFee(e.target.value)}
+                inputProps={{ step: '0.01', min: '0' }}
+                sx={{ mt: 1 }}
               />
-            }
-            label="Include Garbage Fee"
-          />
-        </Stack>
+            )}
+          </Grid>
+        </Grid>
 
         {/* Open after create */}
         <Stack spacing={1} sx={{ mt: 2 }}>

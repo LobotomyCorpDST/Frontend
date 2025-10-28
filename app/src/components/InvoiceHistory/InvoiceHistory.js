@@ -11,10 +11,14 @@ import { visuallyHidden } from '@mui/utils';
 import PrintIcon from '@mui/icons-material/Print';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import EditIcon from '@mui/icons-material/Edit';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import SettingsIcon from '@mui/icons-material/Settings';
 import EditInvoiceModal from '../Invoice/EditInvoiceModal';
 
-import { listInvoices, openInvoice, computeDisplayStatus, bulkPrintInvoices } from '../../api/invoice';
+import { listInvoices, openInvoice, computeDisplayStatus, bulkPrintInvoices, getCurrentMonthInvoices } from '../../api/invoice';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
+import CsvImportModal from './CsvImportModal';
+import InvoiceSettingsModal from './InvoiceSettingsModal';
 
 // Style object copied from MaintenanceHistory
 const headerCellStyle = {
@@ -68,6 +72,10 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkPrinting, setBulkPrinting] = useState(false);
   const [bulkError, setBulkError] = useState('');
+
+  // Modal state for CSV import and settings
+  const [openCsvImport, setOpenCsvImport] = useState(false);
+  const [openSettings, setOpenSettings] = useState(false);
 
   const handleEdit = (invoice) => {
     setSelectedInvoice(invoice);
@@ -199,6 +207,17 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
     }
   };
 
+  const handleSelectCurrentMonth = async () => {
+    try {
+      const currentMonthInvoices = await getCurrentMonthInvoices();
+      const currentMonthIds = currentMonthInvoices.map((inv) => inv.id);
+      setSelectedIds(new Set(currentMonthIds));
+      setBulkError('');
+    } catch (err) {
+      setBulkError(err?.message || 'Failed to get current month invoices');
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
@@ -217,6 +236,24 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
 
   return (
     <>
+      {/* Main action toolbar */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 2 }}>
+        <Button
+          variant="outlined"
+          startIcon={<UploadFileIcon />}
+          onClick={() => setOpenCsvImport(true)}
+        >
+          นำเข้า CSV
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<SettingsIcon />}
+          onClick={() => setOpenSettings(true)}
+        >
+          ตั้งค่าใบแจ้งหนี้
+        </Button>
+      </Box>
+
       {/* Bulk action toolbar */}
       {selectedIds.size > 0 && (
         <Toolbar
@@ -244,8 +281,11 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
               {bulkPrinting ? 'Printing...' : `Print (${selectedIds.size})`}
             </Button>
           </Tooltip>
-          <Button variant="outlined" color="inherit" onClick={handleClearSelection}>
+          <Button variant="outlined" color="inherit" onClick={handleClearSelection} sx={{ mr: 1 }}>
             Clear
+          </Button>
+          <Button variant="outlined" color="inherit" onClick={handleSelectCurrentMonth}>
+            เลือกเฉพาะเดือนปัจจุบัน
           </Button>
         </Toolbar>
       )}
@@ -413,6 +453,23 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
         onSaved={() => {
         setOpenEdit(false);
         loadInvoices();
+        }}
+      />
+
+      <CsvImportModal
+        open={openCsvImport}
+        onClose={() => setOpenCsvImport(false)}
+        onSuccess={() => {
+          setOpenCsvImport(false);
+          loadInvoices();
+        }}
+      />
+
+      <InvoiceSettingsModal
+        open={openSettings}
+        onClose={() => setOpenSettings(false)}
+        onSuccess={() => {
+          setOpenSettings(false);
         }}
       />
 

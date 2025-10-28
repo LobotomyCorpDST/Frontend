@@ -96,3 +96,49 @@ export async function bulkPrintInvoices(invoiceIds) {
     throw error;
   }
 }
+
+// ---------- CSV Import ----------
+/**
+ * Import invoices from CSV file
+ * @param {File} file - CSV file
+ * @returns {Promise<Object>} Import result with success/failure counts
+ */
+export async function importInvoicesFromCsv(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const token =
+    localStorage.getItem('token') ||
+    localStorage.getItem('access_token') ||
+    localStorage.getItem('jwt');
+
+  const BASE =
+    process.env.REACT_APP_API ||
+    process.env.REACT_APP_API_BASE ||
+    process.env.REACT_APP_API_BASE_URL ||
+    'http://localhost:8080';
+
+  const url = `${BASE}/api/invoices/import-csv`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || 'Failed to import CSV');
+  }
+
+  return response.json();
+}
+
+// ---------- Get Current Month Invoices ----------
+/**
+ * Get all invoices for the current calendar month
+ * @returns {Promise<Array>} Array of invoices
+ */
+export async function getCurrentMonthInvoices() {
+  return http.get('/api/invoices/current-month');
+}

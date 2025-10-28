@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, MenuItem, Button, Alert, CircularProgress, Stack
+  TextField, MenuItem, Button, Alert, CircularProgress, Stack, Divider
 } from '@mui/material';
 import { getMaintenanceByID, updateMaintenance } from '../../api/maintenance';
+import DocumentUploadComponent from '../Common/DocumentUploadComponent';
 
 export default function EditMaintenanceModal({ open, onClose, maintenanceId, onSaved }) {
   const [maintenance, setMaintenance] = useState(null);
@@ -91,6 +92,14 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
                   onChange={handleChange('costBaht')}
                   inputProps={{ step: '0.01', min: '0' }}
                   fullWidth
+                />
+
+                {/* Document Upload Section */}
+                <Divider sx={{ my: 2 }} />
+                <DocumentUploadComponent
+                  entityType="MAINTENANCE"
+                  entityId={maintenanceId}
+                  readOnly={false}
                 />
               </Stack>
             )}
