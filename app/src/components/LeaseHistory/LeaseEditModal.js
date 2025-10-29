@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, Grid, Alert, Box, CircularProgress,
-  InputAdornment, IconButton, Typography, Paper, Stack
+  InputAdornment, IconButton, Typography, Paper, Stack, Divider
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { getLeaseById, updateLease, deleteLease } from '../../api/lease';
 import { getTenantById } from '../../api/tenant';
+import DocumentUploadComponent from '../Common/DocumentUploadComponent';
 
 // default date helper
 const today = new Date().toISOString().slice(0, 10);
@@ -283,6 +284,16 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
                   multiline
                   rows={3}
                   disabled={saving || deleting}
+                />
+              </Grid>
+
+              {/* Document Upload Section */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <DocumentUploadComponent
+                  entityType="LEASE"
+                  entityId={leaseId}
+                  readOnly={false}
                 />
               </Grid>
 
