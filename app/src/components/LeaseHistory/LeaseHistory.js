@@ -8,6 +8,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import { getAllLeases, settleLease, openLease, bulkPrintLeases } from '../../api/lease';
 import CreateLeaseModal from '../Lease/CreateLeaseModal';
 import LeaseEditModal from './LeaseEditModal'; // new
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 const fmt = (d) => {
   if (!d) return '-';
@@ -21,7 +22,7 @@ const LeaseHistory = () => {
   const [markingId, setMarkingId] = useState(null);
   const [printingId, setPrintingId] = useState(null);
 
-  const [roomFilter, setRoomFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // create modal
   const [openCreate, setOpenCreate] = useState(false);
@@ -50,11 +51,21 @@ const LeaseHistory = () => {
 
   useEffect(() => { loadAll(); }, []);
 
+  // Convert leases to searchable options
+  const searchOptions = useMemo(() => {
+    return allRows.map((lease) => ({
+      id: lease.id,
+      label: `Lease #${lease.id} - ห้อง ${lease.room?.number ?? '-'} - ${lease.tenant?.name ?? '-'}`,
+      value: lease.id,
+      searchText: `${lease.id} ${lease.room?.number ?? ''} ${lease.tenant?.name ?? ''}`,
+    }));
+  }, [allRows]);
+
+  // Filter leases based on search
   const rows = useMemo(() => {
-    const q = roomFilter.trim();
-    if (!q) return allRows;
-    return allRows.filter(l => String(l?.room?.number ?? '').includes(q));
-  }, [allRows, roomFilter]);
+    if (!searchTerm) return allRows;
+    return allRows.filter(l => l.id === searchTerm);
+  }, [allRows, searchTerm]);
 
   const onMarkSettled = async (id, e) => {
     if (e) e.stopPropagation();
@@ -141,19 +152,16 @@ const LeaseHistory = () => {
             flexWrap: 'wrap'
           }}
         >
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
-              label="เลขห้อง (กรอง)"
-              size="small"
-              value={roomFilter}
-              onChange={(e) => setRoomFilter(e.target.value.replace(/\D/g, ''))}
-              placeholder="เช่น 101"
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexGrow: 1, maxWidth: 600 }}>
+            <SmartSearchAutocomplete
+              options={searchOptions}
+              label="ค้นหาสัญญาเช่า"
+              value={searchTerm}
+              onChange={(value) => setSearchTerm(value)}
+              placeholder="พิมพ์เลข Lease, ห้อง, หรือชื่อผู้เช่า..."
             />
             <Button variant="contained" onClick={loadAll} disabled={loading}>
               โหลดทั้งหมด
-            </Button>
-            <Button variant="outlined" onClick={() => setRoomFilter('')} disabled={!roomFilter}>
-              ล้างตัวกรอง
             </Button>
           </Box>
 

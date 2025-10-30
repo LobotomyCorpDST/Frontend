@@ -18,24 +18,35 @@ import MaintenanceHistory from '../Maintenance/MaintenanceHistory';
 import TenantList from '../TenantList/TenantList';
 import SummaryReport from '../SummaryReport/SummaryReport';
 import SupplyInventoryPage from '../SupplyInventory/SupplyInventoryPage';
+import UserManagement from '../UserManagement/UserManagement';
 
 import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
-
-const navigationItems = [
-  { label: "Dashboard", component: <Dashboard isGuest={false} /> },
-  { label: "ห้องทั้งหมด", component: <RoomList /> },
-  { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
-  { label: "บำรุงรักษา", component: <MaintenanceHistory /> },
-  { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
-  { label: "ผู้เช่าทั้งหมด", component: <TenantList /> },
-  { label: "คลังอพาร์ทเมนต์", component: <SupplyInventoryPage /> },
-  { label: "รายงานสรุป", component: <SummaryReport /> },
-];
 
 function HomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
+
+  // Get user role from localStorage
+  const userRole = (localStorage.getItem('role') || 'STAFF').toUpperCase();
+  const isGuest = userRole === 'GUEST';
+
+  // Role-based navigation: ADMIN sees all pages, others see limited menu
+  const navigationItems = userRole === 'ADMIN' ? [
+    { label: "Dashboard", component: <Dashboard isGuest={false} /> },
+    { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
+    { label: "ห้องทั้งหมด", component: <RoomList /> },
+    { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
+    { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
+    { label: "ผู้เช่าทั้งหมด", component: <TenantList /> },
+    { label: "รายงานสรุป", component: <SummaryReport /> },
+    { label: "คลังวัสดุ", component: <SupplyInventoryPage /> },
+    { label: "User Management", component: <UserManagement /> },
+  ] : [
+    // STAFF, USER, GUEST: Limited navigation (Dashboard + Maintenance)
+    { label: "Dashboard", component: <Dashboard isGuest={isGuest} /> },
+    { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
+  ];
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
 
@@ -53,9 +64,9 @@ function HomePage() {
       // ignore errors
     }
 
-    // throw away token
+    // throw away token and role
     try {
-      ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+      ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
     // เผื่อมี state อะไรผูกกับหน้าเก่า

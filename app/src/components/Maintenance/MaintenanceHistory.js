@@ -11,6 +11,7 @@ import { listMaintenance } from '../../api/maintenance';
 import { getRoomByNumber } from '../../api/room';
 import EditMaintenanceModal from '../Maintenance/EditMaintenanceModal';
 import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -52,15 +53,25 @@ const headCells = [
   { id: 'actions', label: 'Actions', disableSorting: true },
 ];
 
-export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal }) {
+export default function MaintenanceHistory({ searchTerm: externalSearchTerm, addMaintenanceSignal, userRole }) {
   const [loading, setLoading] = useState(true);
   const [allMaintenance, setAllMaintenance] = useState([]);
-  const [filteredMaintenance, setFilteredMaintenance] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [openCreate, setOpenCreate] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+
+  // Get user role and room (for USER role filtering)
+  const currentUserRole = userRole || (localStorage.getItem('role') || 'GUEST').toUpperCase();
+  const currentUserRoomId = localStorage.getItem('room_id'); // For USER role filtering
+
+  // Permission checks
+  const canCreate = ['ADMIN', 'USER'].includes(currentUserRole);
+  const canEdit = ['ADMIN', 'STAFF'].includes(currentUserRole);
+  const canDelete = currentUserRole === 'ADMIN';
+  const isGuest = currentUserRole === 'GUEST';
 
   // --- Load maintenance list ---
   async function loadData() {
@@ -68,7 +79,6 @@ export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal })
     try {
       const data = await listMaintenance();
       setAllMaintenance(data || []);
-      setFilteredMaintenance(data || []);
     } catch (error) {
       console.error('Failed to fetch maintenance list:', error);
       setAllMaintenance([]);
@@ -79,32 +89,42 @@ export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal })
 
   useEffect(() => { loadData(); }, []);
 
-  // ✅ Auto-open CreateModal when HomeNavBar triggers
+  // ✅ Auto-open CreateModal when HomeNavBar triggers (only if user has permission)
   useEffect(() => {
-    if (addMaintenanceSignal > 0) {
+    if (addMaintenanceSignal > 0 && canCreate) {
       setOpenCreate(true);
     }
-  }, [addMaintenanceSignal]);
+  }, [addMaintenanceSignal, canCreate]);
 
-  // --- Filter logic ---
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredMaintenance(allMaintenance);
-      return;
-    }
-    const lower = searchTerm.toLowerCase();
-    const filtered = allMaintenance.filter((item) => {
-      const ref = `c${item.roomNumber}0${item.id}`.toLowerCase();
-      return (
-        item.roomNumber?.toString().includes(lower) ||
-        item.id?.toString().includes(lower) ||
-        ref.includes(lower) ||
-        item.description?.toLowerCase().includes(lower) ||
-        item.status?.toLowerCase().includes(lower)
-      );
+  // --- Convert to searchable options ---
+  const searchOptions = useMemo(() => {
+    return allMaintenance.map((item) => {
+      const ref = `C${item.roomNumber}0${item.id}`;
+      return {
+        id: item.id,
+        label: `${ref} - ห้อง ${item.roomNumber} - ${item.description || 'ไม่มีคำอธิบาย'}`,
+        value: item.id,
+        searchText: `${ref} ${item.roomNumber} ${item.id} ${item.description || ''} ${item.status || ''}`,
+      };
     });
-    setFilteredMaintenance(filtered);
-  }, [searchTerm, allMaintenance]);
+  }, [allMaintenance]);
+
+  // --- Filter maintenance based on search and user role ---
+  const filteredMaintenance = useMemo(() => {
+    let filtered = allMaintenance;
+
+    // USER role: Only show maintenance for their assigned room
+    if (currentUserRole === 'USER' && currentUserRoomId) {
+      filtered = filtered.filter((item) => item.roomId === parseInt(currentUserRoomId));
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter((item) => item.id === searchTerm);
+    }
+
+    return filtered;
+  }, [allMaintenance, searchTerm, currentUserRole, currentUserRoomId]);
 
   // --- Sorting ---
   const handleRequestSort = (property) => {
@@ -149,6 +169,17 @@ export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal })
 
   return (
     <>
+      {/* Smart Search */}
+      <Box sx={{ mb: 3, maxWidth: 600 }}>
+        <SmartSearchAutocomplete
+          options={searchOptions}
+          label="ค้นหาบำรุงรักษา"
+          value={searchTerm}
+          onChange={(value) => setSearchTerm(value)}
+          placeholder="พิมพ์หมายเลขอ้างอิง, ห้อง, หรือคำอธิบาย..."
+        />
+      </Box>
+
       <TableContainer
         component={Paper}
         sx={{
@@ -217,14 +248,21 @@ export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal })
                   <TableCell>{renderStatus(item.status)}</TableCell>
                   <TableCell>{item.description}</TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      onClick={() => handleEdit(item.id)}
-                    >
-                      แก้ไข
-                    </Button>
+                    {canEdit && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleEdit(item.id)}
+                      >
+                        แก้ไข
+                      </Button>
+                    )}
+                    {!canEdit && !isGuest && (
+                      <Typography variant="caption" color="text.secondary">
+                        ไม่มีสิทธิ์แก้ไข
+                      </Typography>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -252,8 +290,8 @@ export default function MaintenanceHistory({ searchTerm, addMaintenanceSignal })
         />
       )}
 
-      {/* Create Modal */}
-      {openCreate && (
+      {/* Create Modal - Only for ADMIN and USER */}
+      {openCreate && canCreate && (
         <CreateMaintenanceModal
           open={openCreate}
           onClose={() => setOpenCreate(false)}

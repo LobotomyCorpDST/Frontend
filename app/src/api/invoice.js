@@ -49,6 +49,10 @@ export async function listInvoicesByRoom(roomId) {
   return http.get(`/api/invoices/by-room/${roomId}`);
 }
 
+export async function getLatestInvoiceByRoom(roomId) {
+  return http.get(`/api/invoices/by-room/${roomId}/latest`);
+}
+
 // ---------- Status ops ----------
 export async function markPaid(id, paidDate) {
   return http.post(`/api/invoices/${id}/mark-paid`, null, {

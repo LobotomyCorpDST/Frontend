@@ -26,6 +26,7 @@ import RoomEditModal from '../RoomEdit/RoomEditModal';
 
 import { getRoomByNumber } from '../../api/room';
 import { getActiveLease, getLeaseHistory } from '../../api/lease';
+import { getLatestInvoiceByRoom } from '../../api/invoice';
 
 const actionBtnSx = { borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 2 };
 const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '-');
@@ -33,6 +34,10 @@ const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '-');
 const RoomDetail = () => {
   const { roomNumber } = useParams();
   const navigate = useNavigate();
+
+  // Get user role for permission checks
+  const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
+  const isAdmin = userRole === 'ADMIN';
 
   const [room, setRoom] = useState(null);
   const [backendRoomId, setBackendRoomId] = useState(null);
@@ -66,7 +71,19 @@ const RoomDetail = () => {
         const history = await getLeaseHistory(Number(roomNumber));
         setLeaseHistory(Array.isArray(history) ? history : []);
 
-        // 3) จัดข้อมูลฝั่งซ้าย
+        // 3) โหลดใบแจ้งหนี้ล่าสุด (ถ้ามี)
+        let latestInvoice = null;
+        try {
+          if (roomRes?.id) {
+            const invoiceRes = await getLatestInvoiceByRoom(roomRes.id);
+            latestInvoice = invoiceRes?.data || invoiceRes || null;
+          }
+        } catch (e) {
+          // ไม่มีใบแจ้งหนี้ หรือ error -> ใช้ N/A
+          console.warn('No latest invoice found:', e);
+        }
+
+        // 4) จัดข้อมูลฝั่งซ้าย
         const tenant = active?.tenant || null;
         const nameToShow = tenant?.name || 'N/A';
         const formattedRoom = {
@@ -81,10 +98,20 @@ const RoomDetail = () => {
           checkOutDate: fmt(active?.endDate),
           leaseStartDate: fmt(active?.startDate),
           leaseEndDate: fmt(active?.endDate),
-          latestUsage: {
-            electricity: { units: 'N/A', baht: 'N/A' },
-            water: { units: 'N/A', baht: 'N/A' },
-            totalBaht: 'N/A',
+          latestUsage: latestInvoice ? {
+            electricity: {
+              units: latestInvoice.electricityUnits || '0',
+              baht: latestInvoice.electricityBaht || '0'
+            },
+            water: {
+              units: latestInvoice.waterUnits || '0',
+              baht: latestInvoice.waterBaht || '0'
+            },
+            totalBaht: latestInvoice.totalBaht || '0',
+          } : {
+            electricity: { units: 'ไม่มีข้อมูล', baht: 'ไม่มีข้อมูล' },
+            water: { units: 'ไม่มีข้อมูล', baht: 'ไม่มีข้อมูล' },
+            totalBaht: 'ไม่มีข้อมูล',
           },
         };
         setRoom(formattedRoom);
@@ -235,18 +262,21 @@ const RoomDetail = () => {
           </Paper>
         </Box>
 
-        <Box sx={{ pt: 2, mt: 'auto', borderTop: 1, borderColor: 'divider' }}>
-          <Button
-            variant="outlined"
-            startIcon={<EditIcon />}
-            fullWidth
-            sx={actionBtnSx}
-            onClick={() => setShowEdit(true)}
-            disabled={!backendRoomId}
-          >
-            แก้ไขข้อมูล
-          </Button>
-        </Box>
+        {/* Edit Room Button - ADMIN only */}
+        {isAdmin && (
+          <Box sx={{ pt: 2, mt: 'auto', borderTop: 1, borderColor: 'divider' }}>
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              fullWidth
+              sx={actionBtnSx}
+              onClick={() => setShowEdit(true)}
+              disabled={!backendRoomId}
+            >
+              แก้ไขข้อมูล
+            </Button>
+          </Box>
+        )}
       </Paper>
 
       {/* Right Paper */}
@@ -266,23 +296,32 @@ const RoomDetail = () => {
         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
           {activeRightTab === 0 && (
             <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  sx={actionBtnSx}
-                  onClick={() => setShowCreateInv(true)}
-                  disabled={!backendRoomId}
-                >
-                  สร้างใบแจ้งหนี้
-                </Button>
-              </Box>
+              {/* Invoice Tab - ADMIN only per user requirements */}
+              {!isAdmin ? (
+                <Alert severity="info">
+                  เฉพาะ Admin เท่านั้นที่สามารถดูและจัดการใบแจ้งหนี้ได้
+                </Alert>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      sx={actionBtnSx}
+                      onClick={() => setShowCreateInv(true)}
+                      disabled={!backendRoomId}
+                    >
+                      สร้างใบแจ้งหนี้
+                    </Button>
+                  </Box>
 
-              {backendRoomId && (
-                <RoomInvoiceTable roomId={backendRoomId} showCreateButton={false} />
+                  {backendRoomId && (
+                    <RoomInvoiceTable roomId={backendRoomId} showCreateButton={false} />
+                  )}
+                </>
               )}
 
-              {backendRoomId && (
+              {backendRoomId && isAdmin && (
                 <GenerateInvoiceModal
                   open={showCreateInv}
                   roomId={backendRoomId}

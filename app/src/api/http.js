@@ -100,7 +100,7 @@ async function request(path, { method = 'GET', headers = {}, params, body } = {}
 
     if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
       try {
-        ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+        ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
       } catch { /* noop */ }
     }
 
@@ -145,7 +145,7 @@ async function requestBlob(path, { method = 'GET', headers = {}, params, body } 
 
     if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
       try {
-        ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+        ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
       } catch { /* noop */ }
     }
 

@@ -3,13 +3,15 @@ import { Navigate } from 'react-router-dom';
 
 export default function RedirectIfAuthed({ children }) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const rawRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-  const role = rawRole ? String(rawRole).toLowerCase() : null;
 
+  // Redirect authenticated users based on role
   if (token) {
-    if (role === 'guest') {
+    const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+    // Guest has separate dashboard-only experience
+    if (role?.toLowerCase() === 'guest') {
       return <Navigate to="/home-guest" replace />;
     }
+    // All other roles (ADMIN, STAFF, USER) go to main home
     return <Navigate to="/home" replace />;
   }
 

@@ -4,6 +4,8 @@ import http from './http';
 // ----- CRUD พื้นฐาน -----
 export const listTenants = () => http.get('/api/tenants');
 
+export const listTenantsWithRooms = () => http.get('/api/tenants/with-rooms');
+
 export const getTenantById = (id) => http.get(`/api/tenants/${id}`);
 
 export const createTenant = (payload) => http.post('/api/tenants', payload);

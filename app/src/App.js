@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from "./components/LoginPage/LoginPage";
 import HomePage from "./components/Home/Home";
 import HomePageForGuest from "./components/HomeForGuest/HomeForGuest";
+import HomeForUser from "./components/HomeForUser/HomeForUser";
 import RoomDetail from './components/RoomDetail/RoomDetail';
 import InvoiceListPage from './components/Invoice/InvoiceListPage';
 import LeaseHistory from './components/LeaseHistory/LeaseHistory';
@@ -35,17 +36,17 @@ function App() {
           />
 
           {/* ===== DASHBOARDS ===== */}
-          {/* Admin/Staff only */}
+          {/* Main home for ADMIN, STAFF, USER - role-based navigation within components */}
           <Route
             path="/home"
             element={
-              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF', 'USER']}>
                 <HomePage />
               </PrivateRoute>
             }
           />
 
-          {/* Guest only */}
+          {/* Guest-specific home - dashboard only, no maintenance */}
           <Route
             path="/home-guest"
             element={
@@ -55,11 +56,15 @@ function App() {
             }
           />
 
-          {/* ===== OTHER PROTECTED ROUTES (Admin/Staff only) ===== */}
+          {/* Legacy route - redirect to /home */}
+          <Route path="/home-user" element={<Navigate to="/home" replace />} />
+
+          {/* ===== OTHER PROTECTED ROUTES ===== */}
+          {/* Room details: ADMIN, STAFF, and USER (USER can only view their own room) */}
           <Route
             path="/room-details/:roomNumber"
             element={
-              <PrivateRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <PrivateRoute allowedRoles={['ADMIN', 'STAFF', 'USER']}>
                 <RoomDetail />
               </PrivateRoute>
             }

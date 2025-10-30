@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import CreateRoomModal from './CreateRoomModal';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 import http from '../../api/http';
 import { listMaintenanceByRoomNumber } from '../../api/maintenance';
@@ -25,13 +26,14 @@ const headerCellStyle = {
   padding: '12px',
 };
 
-const RoomList = ({ searchTerm, addRoomSignal }) => {
+const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'ascending' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openCreate, setOpenCreate] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const prevSignal = useRef(addRoomSignal);
   useEffect(() => {
@@ -145,14 +147,20 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
   };
 
+  // Convert rooms to searchable options for SmartSearch
+  const searchOptions = useMemo(() => {
+    return sortedRooms.map((room) => ({
+      id: room.roomId,
+      label: `ห้อง ${room.roomNumber}${room.tenantInfo.name !== '-' ? ` - ${room.tenantInfo.name}` : ''}`,
+      value: room.roomNumber,
+      searchText: `${room.roomNumber} ${room.tenantInfo.name || ''}`,
+    }));
+  }, [sortedRooms]);
+
+  // Filter rooms based on selected search value
   const filteredRooms = useMemo(() => {
-    const term = (searchTerm || '').toLowerCase();
-    if (!term) return sortedRooms;
-    return sortedRooms.filter(
-      (room) =>
-        String(room.roomNumber).includes(term) ||
-        (room.tenantInfo.name || '').toLowerCase().includes(term)
-    );
+    if (!searchTerm) return sortedRooms;
+    return sortedRooms.filter((room) => room.roomNumber === searchTerm);
   }, [sortedRooms, searchTerm]);
 
   const handleRowClick = (roomNumber) => {
@@ -164,6 +172,15 @@ const RoomList = ({ searchTerm, addRoomSignal }) => {
 
   return (
     <>
+      <Box sx={{ mb: 3, maxWidth: 400 }}>
+        <SmartSearchAutocomplete
+          options={searchOptions}
+          label="ค้นหาห้อง"
+          value={searchTerm}
+          onChange={(value) => setSearchTerm(value)}
+          placeholder="พิมพ์เลขห้องหรือชื่อผู้เช่า..."
+        />
+      </Box>
       <TableContainer
         component={Paper}
         sx={{

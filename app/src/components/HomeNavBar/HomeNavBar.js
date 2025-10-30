@@ -19,16 +19,27 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     const CurrentComponent = navigationItems[activeIndex].component;
     const currentPageLabel = navigationItems[activeIndex].label;
 
+    // Get user role for permission checks
+    const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
+    const canCreateMaintenance = ['ADMIN', 'USER'].includes(userRole);
+
     const showSearch =
         currentPageLabel !== "Dashboard" &&
         currentPageLabel !== "ประวัติสัญญาเช่า" &&
         currentPageLabel !== "รายงานสรุป";
 
-    const showAdd =
-        currentPageLabel === "ห้องทั้งหมด" ||
-        currentPageLabel === "ใบแจ้งหนี้" ||
-        currentPageLabel === "ผู้เช่าทั้งหมด" ||
-        currentPageLabel === "บำรุงรักษา";
+    // Show Add button based on page AND permissions
+    const showAdd = (() => {
+        if (currentPageLabel === "บำรุงรักษา") {
+            return canCreateMaintenance; // Only ADMIN and USER can create maintenance
+        }
+        if (currentPageLabel === "ห้องทั้งหมด" ||
+            currentPageLabel === "ใบแจ้งหนี้" ||
+            currentPageLabel === "ผู้เช่าทั้งหมด") {
+            return userRole === 'ADMIN'; // Only ADMIN for other pages
+        }
+        return false;
+    })();
 
     const handleSearchChange = (event) => setSearchTerm(event.target.value);
 

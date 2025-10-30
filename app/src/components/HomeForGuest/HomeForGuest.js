@@ -37,9 +37,9 @@ function HomePageForGuest() {
             // ignore errors
         }
 
-        // throw away token
+        // throw away token and role
         try {
-            ['token', 'access_token', 'jwt'].forEach((k) => localStorage.removeItem(k));
+            ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
         } catch (_) { }
 
         // เผื่อมี state อะไรผูกกับหน้าเก่า
