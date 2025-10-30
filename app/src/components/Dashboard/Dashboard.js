@@ -20,6 +20,11 @@ const Dashboard = ({ isGuest = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Get user role and room for USER role restrictions
+  const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
+  const userRoomId = localStorage.getItem('room_id');
+  const isUserRole = userRole === 'USER';
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -28,13 +33,18 @@ const Dashboard = ({ isGuest = false }) => {
         // ✅ ใช้ /api/rooms เพื่อให้ตรงกับ back-end รอบนี้
         const roomsData = await http.get('/api/rooms');
 
-        const transformed = (Array.isArray(roomsData) ? roomsData : []).map((room) => ({
+        let transformed = (Array.isArray(roomsData) ? roomsData : []).map((room) => ({
           id: room.id,
           roomNumber: room.number,
           floor: Math.floor(Number(room.number) / 100) || 0,
           roomStatus: room.status === 'OCCUPIED' ? 'Not Available' : 'room available',
           tenantInfo: { name: room.tenant?.name || '' },
         }));
+
+        // USER role: Only show their assigned room
+        if (isUserRole && userRoomId) {
+          transformed = transformed.filter((room) => room.id === parseInt(userRoomId));
+        }
 
         setRooms(transformed);
       } catch (e) {
@@ -43,10 +53,20 @@ const Dashboard = ({ isGuest = false }) => {
         setLoading(false);
       }
     })();
-  }, [location.pathname]);
+  }, [location.pathname, isUserRole, userRoomId]);
 
   const handleRoomNumberClick = (roomNumber) => {
     if (isGuest) return;
+
+    // USER role: Only allow clicking their own room
+    if (isUserRole) {
+      const clickedRoom = rooms.find(r => r.roomNumber === roomNumber);
+      if (clickedRoom && clickedRoom.id === parseInt(userRoomId)) {
+        navigate(`/room-details/${roomNumber}`);
+      }
+      return;
+    }
+
     navigate(`/room-details/${roomNumber}`);
   };
 
@@ -59,19 +79,22 @@ const Dashboard = ({ isGuest = false }) => {
 
   const RoomCard = ({ room }) => {
     const isAvailable = room.roomStatus.toLowerCase() === 'room available';
+    const canClickRoom = !isGuest && (!isUserRole || room.id === parseInt(userRoomId));
+
     return (
       <Card
         sx={{
           width: 150,
           height: 150,
-          cursor: 'pointer',
+          cursor: canClickRoom ? 'pointer' : 'default',
           border: '1px solid',
           borderColor: isAvailable ? 'success.main' : 'error.main',
           backgroundColor: isAvailable ? 'success.light' : '#ffebee',
           transition: 'transform 0.15s ease',
-          '&:hover': { transform: 'scale(1.03)' }
+          '&:hover': canClickRoom ? { transform: 'scale(1.03)' } : {},
+          opacity: canClickRoom ? 1 : 0.6
         }}
-        onClick={() => !isGuest && handleRoomNumberClick(room.roomNumber)}
+        onClick={() => canClickRoom && handleRoomNumberClick(room.roomNumber)}
       >
         <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
           <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>

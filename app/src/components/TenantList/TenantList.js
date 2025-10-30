@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './TenantList.css';
 import CreateTenantModal from './CreateTenantModal';
 import EditTenantModal from '../TenantDetail/EditTenantModal'; // ✅ new import
-import { listTenants, deleteTenant } from '../../api/tenant';
+import { listTenantsWithRooms, deleteTenant } from '../../api/tenant';
 import { Button, Stack } from '@mui/material';
 
 const TenantList = ({ searchTerm, addTenantSignal }) => {
@@ -23,7 +23,7 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
     setLoading(true);
     setError('');
     try {
-      const tenantData = await listTenants();
+      const tenantData = await listTenantsWithRooms();
       setTenants(tenantData);
     } catch (e) {
       setError(e.message || 'Failed to load tenants');
@@ -67,7 +67,7 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
         String(tenant.id).toLowerCase().includes(term) ||
         tenant.name.toLowerCase().includes(term) ||
         tenant.phone.includes(term) ||
-        (tenant.room?.number && String(tenant.room.number).includes(term))
+        (tenant.roomNumbers && tenant.roomNumbers.some(num => String(num).includes(term)))
     );
   }, [sortedTenants, searchTerm]);
 
@@ -104,10 +104,8 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
               <th onClick={() => handleSort('name')} className="sortable">Tenant Name</th>
               <th onClick={() => handleSort('phone')} className="sortable">Phone</th>
               <th onClick={() => handleSort('lineId')} className="sortable">LINE ID</th>
-              <th onClick={() => handleSort('idCardNumber')} className="sortable">ID Card</th>
-              <th onClick={() => handleSort('email')} className="sortable">Email</th>
-              <th onClick={() => handleSort('room')} className="sortable">Room No.</th>
-              <th>Actions</th> {/* ✅ new column */}
+              <th>Room No.</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -121,9 +119,11 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
                 <td>{tenant.name}</td>
                 <td>{tenant.phone}</td>
                 <td>{tenant.lineId || '-'}</td>
-                <td>{tenant.idCardNumber || '-'}</td>
-                <td>{tenant.email || '-'}</td>
-                <td>{tenant.room?.number || 'N/A'}</td>
+                <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', maxWidth: '200px' }}>
+                  {tenant.roomNumbers && tenant.roomNumbers.length > 0
+                    ? tenant.roomNumbers.map((num) => `ห้อง ${num}`).join(', ')
+                    : 'ไม่มีห้อง'}
+                </td>
                 <td>
                   <Stack direction="row" spacing={1} justifyContent="center">
                     <Button

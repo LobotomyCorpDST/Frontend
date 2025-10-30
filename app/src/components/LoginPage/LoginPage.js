@@ -29,7 +29,7 @@ export default function LoginPage() {
     return baseHeight;
   };
 
-  // --- ADMIN LOGIN ---
+  // --- MAIN LOGIN ---
   const handleLogin = async (e) => {
     e?.preventDefault?.();
     setError('');
@@ -38,14 +38,40 @@ export default function LoginPage() {
     const p = password;
     if (!u || !p) return;
 
+    // Prevent guest login via main login button
+    if (u.toLowerCase() === 'guest') {
+      setError('Please use the "Guest Login" button for guest access');
+      return;
+    }
+
     setLoading(true);
     try {
+      // Clear any stale auth data before setting new credentials
+      ['token', 'access_token', 'jwt', 'role', 'room_id'].forEach((k) => localStorage.removeItem(k));
+
       const res = await http.post('/api/auth/login', { username: u, password: p });
       const data = res?.data ?? res;
       if (data?.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', 'admin');
-        navigate('/home');
+
+        // Get role from response (backend should return it)
+        const userRole = data.role || 'STAFF'; // Default to STAFF if not provided
+        localStorage.setItem('role', userRole.toLowerCase());
+
+        // Store room_id if provided (for USER role)
+        if (data.roomId) {
+          localStorage.setItem('room_id', data.roomId);
+        }
+
+        // Route based on actual role
+        if (userRole.toUpperCase() === 'GUEST') {
+          navigate('/home-guest');
+        } else if (userRole.toUpperCase() === 'USER') {
+          navigate('/home-user');
+        } else {
+          // ADMIN or STAFF
+          navigate('/home');
+        }
       } else {
         throw new Error('Login response has no token');
       }
@@ -61,6 +87,9 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
+      // Clear any stale auth data before setting new credentials
+      ['token', 'access_token', 'jwt', 'role', 'room_id'].forEach((k) => localStorage.removeItem(k));
+
       // ✅ Calls backend with predefined guest credentials
       const res = await http.post('/api/auth/login', {
         username: 'guest',
@@ -188,7 +217,7 @@ export default function LoginPage() {
 
           {/* Buttons Section */}
           <Stack spacing={2} alignItems="center">
-            {/* Admin Login */}
+            {/* Main Login */}
             <Button
               type="submit"
               disabled={loading || !username.trim() || !password}
@@ -202,7 +231,7 @@ export default function LoginPage() {
                 '&:hover': { backgroundColor: '#15305e' },
               }}
             >
-              {loading ? 'Logging in...' : 'Admin Login'}
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
 
             {/* Guest Login */}

@@ -48,6 +48,10 @@ export default function RoomInvoiceTable({
   onCreateClick,
   showCreateButton = true,
 }) {
+  // Get user role for permission checks
+  const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
+  const isAdmin = userRole === 'ADMIN';
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -151,32 +155,35 @@ export default function RoomInvoiceTable({
                       </IconButton>
                     </Tooltip>
 
-                    {inv.status === 'PAID' ? (
-                      <Tooltip title="เปลี่ยนเป็นยังไม่ชำระ">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="warning"
-                          sx={{ ml: 1, ...actionBtnSx, px: 1.5 }}
-                          startIcon={<UndoIcon />}
-                          onClick={() => doUnpaid(inv.id)}
-                        >
-                          Mark Unpaid
-                        </Button>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip title="ทำเครื่องหมายว่าชำระแล้ว">
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="success"
-                          sx={{ ml: 1, ...actionBtnSx, px: 1.5 }}
-                          startIcon={<TaskAltIcon />}
-                          onClick={() => doMarkPaid(inv.id)}
-                        >
-                          Mark Paid
-                        </Button>
-                      </Tooltip>
+                    {/* Mark Paid/Unpaid buttons - ADMIN only */}
+                    {isAdmin && (
+                      inv.status === 'PAID' ? (
+                        <Tooltip title="เปลี่ยนเป็นยังไม่ชำระ">
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            sx={{ ml: 1, ...actionBtnSx, px: 1.5 }}
+                            startIcon={<UndoIcon />}
+                            onClick={() => doUnpaid(inv.id)}
+                          >
+                            Mark Unpaid
+                          </Button>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="ทำเครื่องหมายว่าชำระแล้ว">
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            sx={{ ml: 1, ...actionBtnSx, px: 1.5 }}
+                            startIcon={<TaskAltIcon />}
+                            onClick={() => doMarkPaid(inv.id)}
+                          >
+                            Mark Paid
+                          </Button>
+                        </Tooltip>
+                      )
                     )}
                   </TableCell>
                 </TableRow>

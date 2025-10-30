@@ -14,6 +14,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EditInvoiceModal from '../Invoice/EditInvoiceModal';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 import { listInvoices, openInvoice, computeDisplayStatus, bulkPrintInvoices, getCurrentMonthInvoices } from '../../api/invoice';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
@@ -56,7 +57,7 @@ function renderStatusChip(inv) {
 }
 
 // ---------- component ----------
-const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
+const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
   const prevSignal = useRef(addInvoiceSignal);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -143,14 +145,20 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
     });
   }, [invoices, sortConfig]);
 
+  // Convert invoices to searchable options for SmartSearch
+  const searchOptions = useMemo(() => {
+    return sortedInvoices.map((inv) => ({
+      id: inv.id,
+      label: `Invoice #${inv.id} - ห้อง ${inv.room?.number ?? '-'} - ${formatCurrency(inv.totalBaht)} บาท`,
+      value: inv.id,
+      searchText: `${inv.id} ${inv.room?.number ?? ''} ${inv.totalBaht ?? ''}`,
+    }));
+  }, [sortedInvoices]);
+
+  // Filter invoices based on selected search value
   const filteredInvoices = useMemo(() => {
-    const term = (searchTerm || '').toLowerCase();
-    if (!term) return sortedInvoices;
-    return sortedInvoices.filter(
-      (inv) =>
-        String(inv.room?.number ?? '').includes(term) ||
-        String(inv.id ?? '').includes(term)
-    );
+    if (!searchTerm) return sortedInvoices;
+    return sortedInvoices.filter((inv) => inv.id === searchTerm);
   }, [sortedInvoices, searchTerm]);
 
   const handleRoomClick = (roomNumber) => {
@@ -296,6 +304,17 @@ const InvoiceHistory = ({ searchTerm, addInvoiceSignal }) => {
           {bulkError}
         </Alert>
       )}
+
+      {/* Smart Search */}
+      <Box sx={{ mb: 3, maxWidth: 600 }}>
+        <SmartSearchAutocomplete
+          options={searchOptions}
+          label="ค้นหาใบแจ้งหนี้"
+          value={searchTerm}
+          onChange={(value) => setSearchTerm(value)}
+          placeholder="พิมพ์เลขห้อง, เลข Invoice, หรือจำนวนเงิน..."
+        />
+      </Box>
 
       <TableContainer
         component={Paper}

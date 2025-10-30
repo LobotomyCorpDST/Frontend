@@ -408,7 +408,7 @@ const SummaryReport = () => {
           {/* Room Selector with Smart Search */}
           {filterType === 'room' && (
             <>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} sm={9} md={9}>
                 <SmartSearchAutocomplete
                   options={rooms.map((r) => ({
                     id: r.id,
@@ -438,7 +438,7 @@ const SummaryReport = () => {
 
           {/* Tenant Selector with Smart Search */}
           {filterType === 'tenant' && (
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={9} md={9}>
               <SmartSearchAutocomplete
                 options={tenants.map((t) => ({
                   id: t.id,
