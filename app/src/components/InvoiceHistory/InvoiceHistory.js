@@ -14,12 +14,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EditInvoiceModal from '../Invoice/EditInvoiceModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 import { listInvoices, openInvoice, computeDisplayStatus, bulkPrintInvoices, getCurrentMonthInvoices } from '../../api/invoice';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
 import CsvImportModal from './CsvImportModal';
 import InvoiceSettingsModal from './InvoiceSettingsModal';
+import { fuzzyMatchScore } from '../../utils/fuzzySearch';
 
 // Style object copied from MaintenanceHistory
 const headerCellStyle = {
@@ -57,7 +57,7 @@ function renderStatusChip(inv) {
 }
 
 // ---------- component ----------
-const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) => {
+const InvoiceHistory = ({ searchTerm: externalSearchTerm, onSearchOptionsUpdate, addInvoiceSignal }) => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +68,6 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
   const prevSignal = useRef(addInvoiceSignal);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -145,7 +144,7 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
     });
   }, [invoices, sortConfig]);
 
-  // Convert invoices to searchable options for SmartSearch
+  // Convert invoices to searchable options for HomeNavBar
   const searchOptions = useMemo(() => {
     return sortedInvoices.map((inv) => ({
       id: inv.id,
@@ -155,11 +154,25 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
     }));
   }, [sortedInvoices]);
 
-  // Filter invoices based on selected search value
+  // Notify parent component about search options for HomeNavBar
+  useEffect(() => {
+    if (onSearchOptionsUpdate) {
+      onSearchOptionsUpdate(searchOptions);
+    }
+  }, [searchOptions, onSearchOptionsUpdate]);
+
+  // Filter invoices based on search from parent (fuzzy search on all fields)
   const filteredInvoices = useMemo(() => {
-    if (!searchTerm) return sortedInvoices;
-    return sortedInvoices.filter((inv) => inv.id === searchTerm);
-  }, [sortedInvoices, searchTerm]);
+    if (!externalSearchTerm) return sortedInvoices;
+
+    const searchTermStr = String(externalSearchTerm).toLowerCase();
+
+    // Always use fuzzy search for all inputs (handles exact matches with score 0)
+    return sortedInvoices.filter((inv) => {
+      const searchText = `${inv.id} ${inv.room?.number ?? ''} ${inv.totalBaht ?? ''}`.toLowerCase();
+      return fuzzyMatchScore(searchTermStr, searchText) < 10;
+    });
+  }, [sortedInvoices, externalSearchTerm]);
 
   const handleRoomClick = (roomNumber) => {
     if (roomNumber) navigate(`/room-details/${roomNumber}`);
@@ -304,17 +317,6 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
           {bulkError}
         </Alert>
       )}
-
-      {/* Smart Search */}
-      <Box sx={{ mb: 3, maxWidth: 600 }}>
-        <SmartSearchAutocomplete
-          options={searchOptions}
-          label="ค้นหาใบแจ้งหนี้"
-          value={searchTerm}
-          onChange={(value) => setSearchTerm(value)}
-          placeholder="พิมพ์เลขห้อง, เลข Invoice, หรือจำนวนเงิน..."
-        />
-      </Box>
 
       <TableContainer
         component={Paper}

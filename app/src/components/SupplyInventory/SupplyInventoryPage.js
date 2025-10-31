@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -133,14 +133,14 @@ const SupplyInventoryPage = () => {
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'space-between', alignItems: 'center' }}>
         <TextField
-          label="ค้นหา"
+          label="ค้นหาวัสดุ"
           variant="outlined"
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, maxWidth: 400 }}
         />
         <Button
           variant="contained"

@@ -135,8 +135,8 @@ const Dashboard = ({ isGuest = false }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* แจ้งเตือนงานซ่อมถึงกำหนดวันนี้ */}
-      <MaintenanceToastPanel />
+      {/* แจ้งเตือนงานซ่อมถึงกำหนดวันนี้ - Hide for GUEST, filter for USER */}
+      {!isGuest && <MaintenanceToastPanel userRole={userRole} userRoomId={userRoomId} />}
 
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
         Dashboard

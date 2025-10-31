@@ -27,25 +27,26 @@ function HomePage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
 
-  // Get user role from localStorage
+  // Get user role and username from localStorage
   const userRole = (localStorage.getItem('role') || 'STAFF').toUpperCase();
+  const username = localStorage.getItem('username') || 'User';
   const isGuest = userRole === 'GUEST';
 
   // Role-based navigation: ADMIN sees all pages, others see limited menu
   const navigationItems = userRole === 'ADMIN' ? [
-    { label: "Dashboard", component: <Dashboard isGuest={false} /> },
-    { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
-    { label: "ห้องทั้งหมด", component: <RoomList /> },
-    { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
-    { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
-    { label: "ผู้เช่าทั้งหมด", component: <TenantList /> },
-    { label: "รายงานสรุป", component: <SummaryReport /> },
-    { label: "คลังวัสดุ", component: <SupplyInventoryPage /> },
-    { label: "User Management", component: <UserManagement /> },
+    { label: "Dashboard", component: Dashboard, props: { isGuest: false } },
+    { label: "บำรุงรักษา", component: MaintenanceHistory, props: { userRole } },
+    { label: "ห้องทั้งหมด", component: RoomList, props: {} },
+    { label: "ใบแจ้งหนี้", component: InvoiceHistory, props: {} },
+    { label: "ประวัติสัญญาเช่า", component: LeaseHistory, props: {} },
+    { label: "ผู้เช่าทั้งหมด", component: TenantList, props: {} },
+    { label: "รายงานสรุป", component: SummaryReport, props: {} },
+    { label: "คลังวัสดุ", component: SupplyInventoryPage, props: {} },
+    { label: "User Management", component: UserManagement, props: {} },
   ] : [
     // STAFF, USER, GUEST: Limited navigation (Dashboard + Maintenance)
-    { label: "Dashboard", component: <Dashboard isGuest={isGuest} /> },
-    { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
+    { label: "Dashboard", component: Dashboard, props: { isGuest } },
+    { label: "บำรุงรักษา", component: MaintenanceHistory, props: { userRole } },
   ];
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
@@ -64,9 +65,9 @@ function HomePage() {
       // ignore errors
     }
 
-    // throw away token and role
+    // throw away token, role, and username
     try {
-      ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
+      ['token', 'access_token', 'jwt', 'role', 'room_id', 'username'].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
     // เผื่อมี state อะไรผูกกับหน้าเก่า
@@ -89,7 +90,7 @@ function HomePage() {
     >
       <Toolbar sx={{ p: '16px' }}>
         <AccountCircleIcon sx={{ mr: 2, fontSize: '2rem', color: "#13438B" }} />
-        <Typography variant="h6" noWrap>กิตติชาติ</Typography>
+        <Typography variant="h6" noWrap>{username}</Typography>
       </Toolbar>
       <Divider />
 

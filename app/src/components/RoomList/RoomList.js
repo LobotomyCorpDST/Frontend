@@ -2,14 +2,14 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel,
-  Box, Link, Typography,
+  Box, Link,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import CreateRoomModal from './CreateRoomModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 import http from '../../api/http';
 import { listMaintenanceByRoomNumber } from '../../api/maintenance';
+import { fuzzyMatchScore } from '../../utils/fuzzySearch';
 
 const headCells = [
   { id: 'roomNumber',        label: 'เลขห้อง' },
@@ -26,14 +26,13 @@ const headerCellStyle = {
   padding: '12px',
 };
 
-const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
+const RoomList = ({ searchTerm: externalSearchTerm, onSearchOptionsUpdate, addRoomSignal }) => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'ascending' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openCreate, setOpenCreate] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
   const prevSignal = useRef(addRoomSignal);
   useEffect(() => {
@@ -147,7 +146,7 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
   };
 
-  // Convert rooms to searchable options for SmartSearch
+  // Convert rooms to searchable options for HomeNavBar
   const searchOptions = useMemo(() => {
     return sortedRooms.map((room) => ({
       id: room.roomId,
@@ -157,11 +156,25 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
     }));
   }, [sortedRooms]);
 
-  // Filter rooms based on selected search value
+  // Notify parent component about search options for HomeNavBar
+  useEffect(() => {
+    if (onSearchOptionsUpdate) {
+      onSearchOptionsUpdate(searchOptions);
+    }
+  }, [searchOptions, onSearchOptionsUpdate]);
+
+  // Filter rooms based on search from parent (fuzzy search on all fields)
   const filteredRooms = useMemo(() => {
-    if (!searchTerm) return sortedRooms;
-    return sortedRooms.filter((room) => room.roomNumber === searchTerm);
-  }, [sortedRooms, searchTerm]);
+    if (!externalSearchTerm) return sortedRooms;
+
+    const searchTermStr = String(externalSearchTerm).toLowerCase();
+
+    // Always use fuzzy search for all inputs (handles exact matches with score 0)
+    return sortedRooms.filter((room) => {
+      const searchText = `${room.roomNumber} ${room.tenantInfo.name || ''}`.toLowerCase();
+      return fuzzyMatchScore(searchTermStr, searchText) < 10;
+    });
+  }, [sortedRooms, externalSearchTerm]);
 
   const handleRowClick = (roomNumber) => {
     navigate(`/room-details/${roomNumber}`);
@@ -172,15 +185,6 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
 
   return (
     <>
-      <Box sx={{ mb: 3, maxWidth: 400 }}>
-        <SmartSearchAutocomplete
-          options={searchOptions}
-          label="ค้นหาห้อง"
-          value={searchTerm}
-          onChange={(value) => setSearchTerm(value)}
-          placeholder="พิมพ์เลขห้องหรือชื่อผู้เช่า..."
-        />
-      </Box>
       <TableContainer
         component={Paper}
         sx={{

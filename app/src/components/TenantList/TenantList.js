@@ -5,8 +5,9 @@ import CreateTenantModal from './CreateTenantModal';
 import EditTenantModal from '../TenantDetail/EditTenantModal'; // ✅ new import
 import { listTenantsWithRooms, deleteTenant } from '../../api/tenant';
 import { Button, Stack } from '@mui/material';
+import { fuzzyMatchScore } from '../../utils/fuzzySearch';
 
-const TenantList = ({ searchTerm, addTenantSignal }) => {
+const TenantList = ({ searchTerm: externalSearchTerm, onSearchOptionsUpdate, addTenantSignal }) => {
   const navigate = useNavigate();
   const [tenants, setTenants] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
@@ -59,17 +60,35 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
     });
   }, [tenants, sortConfig]);
 
+  // Convert tenants to searchable options for HomeNavBar
+  const searchOptions = useMemo(() => {
+    return sortedTenants.map((tenant) => ({
+      id: tenant.id,
+      label: `${tenant.name} - ID: ${tenant.id}${tenant.phone ? ` - ${tenant.phone}` : ''}${tenant.roomNumbers?.length ? ` - ห้อง ${tenant.roomNumbers.join(', ')}` : ''}`,
+      value: tenant.id,
+      searchText: `${tenant.id} ${tenant.name} ${tenant.phone || ''} ${tenant.roomNumbers?.join(' ') || ''}`,
+    }));
+  }, [sortedTenants]);
+
+  // Notify parent component about search options for HomeNavBar
+  useEffect(() => {
+    if (onSearchOptionsUpdate) {
+      onSearchOptionsUpdate(searchOptions);
+    }
+  }, [searchOptions, onSearchOptionsUpdate]);
+
+  // Filter tenants based on search from parent (fuzzy search on all fields)
   const filteredTenants = useMemo(() => {
-    const term = (searchTerm || '').toLowerCase();
-    if (!term) return sortedTenants;
-    return sortedTenants.filter(
-      (tenant) =>
-        String(tenant.id).toLowerCase().includes(term) ||
-        tenant.name.toLowerCase().includes(term) ||
-        tenant.phone.includes(term) ||
-        (tenant.roomNumbers && tenant.roomNumbers.some(num => String(num).includes(term)))
-    );
-  }, [sortedTenants, searchTerm]);
+    if (!externalSearchTerm) return sortedTenants;
+
+    const searchTermStr = String(externalSearchTerm).toLowerCase();
+
+    // Always use fuzzy search for all inputs (handles exact matches with score 0)
+    return sortedTenants.filter((tenant) => {
+      const searchText = `${tenant.id} ${tenant.name} ${tenant.phone || ''} ${tenant.roomNumbers?.join(' ') || ''}`.toLowerCase();
+      return fuzzyMatchScore(searchTermStr, searchText) < 10;
+    });
+  }, [sortedTenants, externalSearchTerm]);
 
   const handleRowClick = (tenantId) => {
     navigate(`/tenant-details/${tenantId}`);

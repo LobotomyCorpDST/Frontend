@@ -1,17 +1,16 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Typography, Chip, Box, TableSortLabel, Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
 import { visuallyHidden } from '@mui/utils';
 import { useNavigate } from 'react-router-dom';
 import { listMaintenance } from '../../api/maintenance';
 import { getRoomByNumber } from '../../api/room';
 import EditMaintenanceModal from '../Maintenance/EditMaintenanceModal';
 import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
+import { fuzzyMatchScore } from '../../utils/fuzzySearch';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -53,15 +52,15 @@ const headCells = [
   { id: 'actions', label: 'Actions', disableSorting: true },
 ];
 
-export default function MaintenanceHistory({ searchTerm: externalSearchTerm, addMaintenanceSignal, userRole }) {
+export default function MaintenanceHistory({ searchTerm: externalSearchTerm, onSearchOptionsUpdate, addMaintenanceSignal, userRole }) {
   const [loading, setLoading] = useState(true);
   const [allMaintenance, setAllMaintenance] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [openCreate, setOpenCreate] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const lastSignalRef = useRef(null);
 
   // Get user role and room (for USER role filtering)
   const currentUserRole = userRole || (localStorage.getItem('role') || 'GUEST').toUpperCase();
@@ -90,8 +89,10 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
   useEffect(() => { loadData(); }, []);
 
   // ✅ Auto-open CreateModal when HomeNavBar triggers (only if user has permission)
+  // Use timestamp pattern to prevent auto-opening on navigation
   useEffect(() => {
-    if (addMaintenanceSignal > 0 && canCreate) {
+    if (addMaintenanceSignal !== null && addMaintenanceSignal !== lastSignalRef.current && canCreate) {
+      lastSignalRef.current = addMaintenanceSignal;
       setOpenCreate(true);
     }
   }, [addMaintenanceSignal, canCreate]);
@@ -109,6 +110,13 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
     });
   }, [allMaintenance]);
 
+  // Notify parent component about search options for HomeNavBar
+  useEffect(() => {
+    if (onSearchOptionsUpdate) {
+      onSearchOptionsUpdate(searchOptions);
+    }
+  }, [searchOptions, onSearchOptionsUpdate]);
+
   // --- Filter maintenance based on search and user role ---
   const filteredMaintenance = useMemo(() => {
     let filtered = allMaintenance;
@@ -118,13 +126,20 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
       filtered = filtered.filter((item) => item.roomId === parseInt(currentUserRoomId));
     }
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter((item) => item.id === searchTerm);
+    // Apply search filter (fuzzy search on all fields)
+    if (externalSearchTerm) {
+      const searchTermStr = String(externalSearchTerm).toLowerCase();
+
+      // Always use fuzzy search for all inputs (handles exact matches with score 0)
+      filtered = filtered.filter((item) => {
+        const ref = `C${item.roomNumber}0${item.id}`;
+        const searchText = `${ref} ${item.roomNumber} ${item.id} ${item.description || ''} ${item.status || ''}`.toLowerCase();
+        return fuzzyMatchScore(searchTermStr, searchText) < 10;
+      });
     }
 
     return filtered;
-  }, [allMaintenance, searchTerm, currentUserRole, currentUserRoomId]);
+  }, [allMaintenance, externalSearchTerm, currentUserRole, currentUserRoomId]);
 
   // --- Sorting ---
   const handleRequestSort = (property) => {
@@ -169,17 +184,6 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
 
   return (
     <>
-      {/* Smart Search */}
-      <Box sx={{ mb: 3, maxWidth: 600 }}>
-        <SmartSearchAutocomplete
-          options={searchOptions}
-          label="ค้นหาบำรุงรักษา"
-          value={searchTerm}
-          onChange={(value) => setSearchTerm(value)}
-          placeholder="พิมพ์หมายเลขอ้างอิง, ห้อง, หรือคำอธิบาย..."
-        />
-      </Box>
-
       <TableContainer
         component={Paper}
         sx={{

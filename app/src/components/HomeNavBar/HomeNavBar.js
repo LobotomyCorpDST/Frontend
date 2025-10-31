@@ -1,32 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Button,
-  InputAdornment,
-  TextField,
   Paper,
+  InputAdornment,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
+import { fuzzyFilter } from '../../utils/fuzzySearch';
 
 const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
-    const [searchTerm, setSearchTerm] = useState("");
     const [addRoomSignal, setAddRoomSignal] = useState(0);
     const [addInvoiceSignal, setAddInvoiceSignal] = useState(0);
     const [addTenantSignal, setAddTenantSignal] = useState(0);
-    const [addMaintenanceSignal, setAddMaintenanceSignal] = useState(0);
+    const [addMaintenanceSignal, setAddMaintenanceSignal] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchOptions, setSearchOptions] = useState([]);
 
     const CurrentComponent = navigationItems[activeIndex].component;
     const currentPageLabel = navigationItems[activeIndex].label;
+    const currentProps = navigationItems[activeIndex].props || {};
 
     // Get user role for permission checks
     const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
     const canCreateMaintenance = ['ADMIN', 'USER'].includes(userRole);
 
-    const showSearch =
-        currentPageLabel !== "Dashboard" &&
-        currentPageLabel !== "ประวัติสัญญาเช่า" &&
-        currentPageLabel !== "รายงานสรุป";
+    // Show search bar based on current page (exclude certain pages)
+    const showSearch = ![
+        "หน้าหลัก",
+        "รายงานการเงิน",
+        "ประวัติสัญญาเช่า",
+        "คลังอพาร์ทเมนต์"
+    ].includes(currentPageLabel);
+
+    // Search handlers
+    const handleSearchOptionsUpdate = useCallback((options) => {
+        setSearchOptions(options || []);
+    }, []);
+
+    const handleSearchInputChange = (_event, newInputValue) => {
+        setSearchTerm(newInputValue);
+    };
+
+    const handleSearchChange = (_event, newValue) => {
+        if (typeof newValue === 'string') {
+            // User typed and pressed Enter (freeSolo behavior)
+            setSearchTerm(newValue);
+        } else if (newValue && typeof newValue === 'object') {
+            // User selected from dropdown
+            const selectedValue = newValue.label || newValue.value || String(newValue.id || '');
+            setSearchTerm(selectedValue);
+        } else {
+            // Cleared
+            setSearchTerm('');
+        }
+    };
 
     // Show Add button based on page AND permissions
     const showAdd = (() => {
@@ -41,8 +71,6 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
         return false;
     })();
 
-    const handleSearchChange = (event) => setSearchTerm(event.target.value);
-
     const handleAddClick = () => {
         if (currentPageLabel === "ห้องทั้งหมด") {
             setAddRoomSignal((s) => s + 1);
@@ -51,7 +79,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
         } else if (currentPageLabel === "ผู้เช่าทั้งหมด") {
             setAddTenantSignal((s) => s + 1);
         } else if (currentPageLabel === "บำรุงรักษา") {
-            setAddMaintenanceSignal((s) => s + 1);
+            setAddMaintenanceSignal(Date.now());
         }
     };
 
@@ -84,23 +112,44 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                     {(showSearch || showAdd) && (
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                             {showSearch && (
-                                <TextField
+                                <Autocomplete
                                     size="small"
-                                    placeholder="ค้นหา"
-                                    value={searchTerm}
+                                    freeSolo
+                                    options={searchOptions}
+                                    inputValue={searchTerm}
+                                    onInputChange={handleSearchInputChange}
                                     onChange={handleSearchChange}
-                                    sx={{
-                                        backgroundColor: "#f0f4fa",
-                                        borderRadius: "8px",
-                                        "& .MuiOutlinedInput-notchedOutline": { border: 0 },
+                                    getOptionLabel={(option) => {
+                                        if (typeof option === 'string') return option;
+                                        return option?.label || String(option?.value || option?.id || '');
                                     }}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
+                                    filterOptions={(options, { inputValue }) => {
+                                        // Use fuzzy search for filtering
+                                        return fuzzyFilter(options, inputValue, 10);
                                     }}
+                                    sx={{ minWidth: 300 }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            placeholder="ค้นหา"
+                                            sx={{
+                                                backgroundColor: "#f0f4fa",
+                                                borderRadius: "8px",
+                                                "& .MuiOutlinedInput-notchedOutline": { border: 0 },
+                                            }}
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                startAdornment: (
+                                                    <>
+                                                        <InputAdornment position="start">
+                                                            <SearchIcon />
+                                                        </InputAdornment>
+                                                        {params.InputProps.startAdornment}
+                                                    </>
+                                                ),
+                                            }}
+                                        />
+                                    )}
                                 />
                             )}
 
@@ -123,13 +172,15 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                     )}
                 </Box>
 
-                {React.cloneElement(CurrentComponent, {
-                    searchTerm,
-                    addRoomSignal,
-                    addInvoiceSignal,
-                    addTenantSignal,
-                    addMaintenanceSignal,
-                })}
+                <CurrentComponent
+                    {...currentProps}
+                    searchTerm={searchTerm}
+                    onSearchOptionsUpdate={handleSearchOptionsUpdate}
+                    addRoomSignal={addRoomSignal}
+                    addInvoiceSignal={addInvoiceSignal}
+                    addTenantSignal={addTenantSignal}
+                    addMaintenanceSignal={addMaintenanceSignal}
+                />
             </Paper>
         </Box>
     );

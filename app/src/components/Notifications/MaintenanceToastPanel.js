@@ -2,21 +2,40 @@ import React, { useEffect, useState } from 'react';
 import './MaintenanceToastPanel.css';
 import { fetchMaintenanceNotifications } from '../../api/notifications';
 
-export default function MaintenanceToastPanel() {
+export default function MaintenanceToastPanel({ userRole, userRoomId }) {
   const [alerts, setAlerts] = useState([]);
   const [dismissed, setDismissed] = useState(false); // กดปิดชั่วคราว
 
   useEffect(() => {
     (async () => {
+      // GUEST: Should not see notifications (handled by Dashboard conditional rendering)
+      if (userRole === 'GUEST') {
+        setAlerts([]);
+        setDismissed(false);
+        return;
+      }
+
       const todayISO = new Date().toLocaleDateString('en-CA', {
         timeZone: 'Asia/Bangkok',
       });
       const data = await fetchMaintenanceNotifications(todayISO);
       console.log('🔔 notifications fetched:', data);  // <— ดูใน Console
-      setAlerts(Array.isArray(data) ? data : []);
+
+      let filteredData = Array.isArray(data) ? data : [];
+
+      // USER: Filter to only their assigned room's notifications
+      if (userRole === 'USER' && userRoomId) {
+        filteredData = filteredData.filter(item =>
+          item.roomId === parseInt(userRoomId)
+        );
+      }
+
+      // STAFF/ADMIN: Show all notifications (no filtering)
+
+      setAlerts(filteredData);
       setDismissed(false);
     })();
-  }, []);
+  }, [userRole, userRoomId]);
 
   // ถ้าไม่อยากให้แสดงตอนว่าง ให้คง return null แต่เพื่อดีบัก เราจะโชว์ header ว่า "ไม่มีแจ้งเตือน"
   if (dismissed) return null;

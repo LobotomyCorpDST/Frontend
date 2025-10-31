@@ -22,8 +22,8 @@ import RoomDetailUser from '../RoomDetail/RoomDetailUser';
 import http from '../../api/http';
 
 const navigationItems = [
-  { label: 'Dashboard', component: <Dashboard isGuest={true} /> },
-  { label: 'ห้องของฉัน', component: <RoomDetailUser /> },
+  { label: 'Dashboard', component: Dashboard, props: { isGuest: true } },
+  { label: 'ห้องของฉัน', component: RoomDetailUser, props: {} },
 ];
 
 function HomeForUser() {

@@ -47,7 +47,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       // Clear any stale auth data before setting new credentials
-      ['token', 'access_token', 'jwt', 'role', 'room_id'].forEach((k) => localStorage.removeItem(k));
+      ['token', 'access_token', 'jwt', 'role', 'room_id', 'username'].forEach((k) => localStorage.removeItem(k));
 
       const res = await http.post('/api/auth/login', { username: u, password: p });
       const data = res?.data ?? res;
@@ -57,6 +57,9 @@ export default function LoginPage() {
         // Get role from response (backend should return it)
         const userRole = data.role || 'STAFF'; // Default to STAFF if not provided
         localStorage.setItem('role', userRole.toLowerCase());
+
+        // Store username for display in navigation drawer
+        localStorage.setItem('username', data.username || u);
 
         // Store room_id if provided (for USER role)
         if (data.roomId) {
@@ -88,7 +91,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       // Clear any stale auth data before setting new credentials
-      ['token', 'access_token', 'jwt', 'role', 'room_id'].forEach((k) => localStorage.removeItem(k));
+      ['token', 'access_token', 'jwt', 'role', 'room_id', 'username'].forEach((k) => localStorage.removeItem(k));
 
       // ✅ Calls backend with predefined guest credentials
       const res = await http.post('/api/auth/login', {
@@ -100,6 +103,7 @@ export default function LoginPage() {
       if (data?.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', 'guest');
+        localStorage.setItem('username', data.username || 'guest');
         navigate('/home-guest');
       } else {
         throw new Error('Guest login failed: no token returned');

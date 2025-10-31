@@ -15,12 +15,15 @@ import Dashboard from '../Dashboard/Dashboard';
 import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
 
 const navigationItems = [
-    { label: "Dashboard", component: <Dashboard isGuest={true}/> },
+    { label: "Dashboard", component: Dashboard, props: { isGuest: true } },
 ];
 function HomePageForGuest() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const navigate = useNavigate();
+
+    // Get username from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
 
     const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
 
@@ -37,9 +40,9 @@ function HomePageForGuest() {
             // ignore errors
         }
 
-        // throw away token and role
+        // throw away token, role, and username
         try {
-            ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
+            ['token', 'access_token', 'jwt', 'role', 'room_id', 'username'].forEach((k) => localStorage.removeItem(k));
         } catch (_) { }
 
         // เผื่อมี state อะไรผูกกับหน้าเก่า
@@ -62,7 +65,7 @@ function HomePageForGuest() {
         >
             <Toolbar sx={{ p: '16px' }}>
                 <AccountCircleIcon sx={{ mr: 2, fontSize: '2rem', color: "#13438B" }} />
-                <Typography variant="h6" noWrap>กิตติชาติ</Typography>
+                <Typography variant="h6" noWrap>{username}</Typography>
             </Toolbar>
             <Divider />
 

@@ -1,7 +1,7 @@
 // src/components/LeaseHistory/LeaseHistory.js
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Box, Paper, Typography, TextField, Button, Table, TableHead,
+  Box, Paper, Typography, Button, Table, TableHead,
   TableRow, TableCell, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
@@ -9,6 +9,7 @@ import { getAllLeases, settleLease, openLease, bulkPrintLeases } from '../../api
 import CreateLeaseModal from '../Lease/CreateLeaseModal';
 import LeaseEditModal from './LeaseEditModal'; // new
 import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
+import { fuzzyMatchScore } from '../../utils/fuzzySearch';
 
 const fmt = (d) => {
   if (!d) return '-';
@@ -61,10 +62,17 @@ const LeaseHistory = () => {
     }));
   }, [allRows]);
 
-  // Filter leases based on search
+  // Filter leases based on search (fuzzy search on all fields)
   const rows = useMemo(() => {
     if (!searchTerm) return allRows;
-    return allRows.filter(l => l.id === searchTerm);
+
+    const searchTermStr = String(searchTerm).toLowerCase();
+
+    // Use fuzzy search on all searchable fields
+    return allRows.filter(lease => {
+      const searchText = `${lease.id} ${lease.room?.number ?? ''} ${lease.tenant?.name ?? ''}`.toLowerCase();
+      return fuzzyMatchScore(searchTermStr, searchText) < 10;
+    });
   }, [allRows, searchTerm]);
 
   const onMarkSettled = async (id, e) => {
@@ -158,7 +166,6 @@ const LeaseHistory = () => {
               label="ค้นหาสัญญาเช่า"
               value={searchTerm}
               onChange={(value) => setSearchTerm(value)}
-              placeholder="พิมพ์เลข Lease, ห้อง, หรือชื่อผู้เช่า..."
             />
             <Button variant="contained" onClick={loadAll} disabled={loading}>
               โหลดทั้งหมด
