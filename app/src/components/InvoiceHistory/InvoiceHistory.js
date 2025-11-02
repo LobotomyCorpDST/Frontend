@@ -57,7 +57,7 @@ function renderStatusChip(inv) {
 }
 
 // ---------- component ----------
-const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) => {
+const InvoiceHistory = ({ addInvoiceSignal }) => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);

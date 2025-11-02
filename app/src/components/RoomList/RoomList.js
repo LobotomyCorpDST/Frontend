@@ -26,7 +26,7 @@ const headerCellStyle = {
   padding: '12px',
 };
 
-const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
+const RoomList = ({ addRoomSignal }) => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'ascending' });

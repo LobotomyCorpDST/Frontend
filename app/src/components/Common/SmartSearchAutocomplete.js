@@ -1,9 +1,11 @@
 import React from 'react';
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, TextField, InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
 /**
  * Smart search autocomplete with fuzzy matching
  * Supports typing to filter options with flexible matching (e.g., "kart" matches "kant")
+ * Styled to match HomeNavBar search bar design
  */
 const SmartSearchAutocomplete = ({
   options = [],
@@ -63,6 +65,23 @@ const SmartSearchAutocomplete = ({
           label={label}
           placeholder={placeholder}
           variant="outlined"
+          size="small"
+          sx={{
+            backgroundColor: "#f0f4fa",
+            borderRadius: "8px",
+            "& .MuiOutlinedInput-notchedOutline": { border: 0 },
+          }}
+          InputProps={{
+            ...params.InputProps,
+            startAdornment: (
+              <>
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+                {params.InputProps.startAdornment}
+              </>
+            ),
+          }}
         />
       )}
       isOptionEqualToValue={(option, value) => option.value === value.value}
