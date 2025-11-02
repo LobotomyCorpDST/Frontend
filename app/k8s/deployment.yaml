@@ -27,7 +27,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: REACT_APP_API
-              value: "http://backend:8080"
+              value: "http://34.124.205.219:8080"
           ports:
             - containerPort: 80
               name: http
