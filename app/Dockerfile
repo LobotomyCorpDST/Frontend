@@ -11,7 +11,7 @@ COPY . .
 
 # Set API URL for Kubernetes deployment
 # This can be overridden at build time with --build-arg
-ARG REACT_APP_API=/api
+ARG REACT_APP_API=/
 ENV REACT_APP_API=${REACT_APP_API}
 
 # Build production bundle
