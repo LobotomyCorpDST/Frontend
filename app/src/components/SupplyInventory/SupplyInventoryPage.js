@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { getAllSupplies, incrementSupply, decrementSupply, deleteSupply, updateSupply } from '../../api/supply';
 import AddSupplyModal from './AddSupplyModal';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 const headerCellStyle = {
   backgroundColor: '#13438B',
@@ -30,7 +31,7 @@ const headerCellStyle = {
 };
 
 const SupplyInventoryPage = () => {
-  const [supplies, setSupplies] = useState([]);
+  const [allSupplies, setAllSupplies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,8 +44,8 @@ const SupplyInventoryPage = () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getAllSupplies(searchTerm);
-      setSupplies(data);
+      const data = await getAllSupplies('');
+      setAllSupplies(data);
     } catch (err) {
       setError(err.message || 'Failed to load supplies');
     } finally {
@@ -54,7 +55,7 @@ const SupplyInventoryPage = () => {
 
   useEffect(() => {
     loadSupplies();
-  }, [searchTerm]);
+  }, []);
 
   const handleIncrement = async (id) => {
     try {
@@ -121,6 +122,22 @@ const SupplyInventoryPage = () => {
 
   const isLowStock = (amount) => amount < 3;
 
+  // Convert supplies to searchable options for SmartSearch
+  const searchOptions = useMemo(() => {
+    return allSupplies.map((supply) => ({
+      id: supply.id,
+      label: `${supply.supplyName} (${supply.supplyAmount} ชิ้น)`,
+      value: supply.id,
+      searchText: `${supply.supplyName} ${supply.supplyAmount}`,
+    }));
+  }, [allSupplies]);
+
+  // Filter supplies based on selected search value
+  const filteredSupplies = useMemo(() => {
+    if (!searchTerm) return allSupplies;
+    return allSupplies.filter((supply) => supply.id === searchTerm);
+  }, [allSupplies, searchTerm]);
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -133,15 +150,16 @@ const SupplyInventoryPage = () => {
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <TextField
-          label="ค้นหา"
-          variant="outlined"
-          size="small"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ flex: 1 }}
-        />
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'flex-start' }}>
+        <Box sx={{ flex: 1, maxWidth: 400 }}>
+          <SmartSearchAutocomplete
+            options={searchOptions}
+            label="ค้นหาวัสดุ"
+            value={searchTerm}
+            onChange={(value) => setSearchTerm(value)}
+            placeholder="พิมพ์ชื่อวัสดุหรือจำนวน..."
+          />
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -171,14 +189,14 @@ const SupplyInventoryPage = () => {
                   กำลังโหลด...
                 </TableCell>
               </TableRow>
-            ) : supplies.length === 0 ? (
+            ) : filteredSupplies.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} align="center">
                   ไม่พบข้อมูล
                 </TableCell>
               </TableRow>
             ) : (
-              supplies.map((supply) => (
+              filteredSupplies.map((supply) => (
                 <TableRow
                   key={supply.id}
                   sx={{

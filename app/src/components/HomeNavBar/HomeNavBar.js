@@ -2,15 +2,11 @@ import React, { useState } from "react";
 import {
   Box,
   Button,
-  InputAdornment,
-  TextField,
   Paper,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 
 const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
-    const [searchTerm, setSearchTerm] = useState("");
     const [addRoomSignal, setAddRoomSignal] = useState(0);
     const [addInvoiceSignal, setAddInvoiceSignal] = useState(0);
     const [addTenantSignal, setAddTenantSignal] = useState(0);
@@ -22,11 +18,6 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     // Get user role for permission checks
     const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
     const canCreateMaintenance = ['ADMIN', 'USER'].includes(userRole);
-
-    const showSearch =
-        currentPageLabel !== "Dashboard" &&
-        currentPageLabel !== "ประวัติสัญญาเช่า" &&
-        currentPageLabel !== "รายงานสรุป";
 
     // Show Add button based on page AND permissions
     const showAdd = (() => {
@@ -40,8 +31,6 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
         }
         return false;
     })();
-
-    const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
     const handleAddClick = () => {
         if (currentPageLabel === "ห้องทั้งหมด") {
@@ -81,50 +70,24 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                         justifyContent: "end",
                     }}
                 >
-                    {(showSearch || showAdd) && (
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                            {showSearch && (
-                                <TextField
-                                    size="small"
-                                    placeholder="ค้นหา"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                    sx={{
-                                        backgroundColor: "#f0f4fa",
-                                        borderRadius: "8px",
-                                        "& .MuiOutlinedInput-notchedOutline": { border: 0 },
-                                    }}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                            )}
-
-                            {showAdd && (
-                                <Button
-                                    variant="contained"
-                                    startIcon={<AddIcon />}
-                                    onClick={handleAddClick}
-                                    sx={{
-                                        textTransform: "none",
-                                        fontWeight: "bold",
-                                        borderRadius: "8px",
-                                        boxShadow: "none",
-                                    }}
-                                >
-                                    {getButtonLabel()}
-                                </Button>
-                            )}
-                        </Box>
+                    {showAdd && (
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={handleAddClick}
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: "bold",
+                                borderRadius: "8px",
+                                boxShadow: "none",
+                            }}
+                        >
+                            {getButtonLabel()}
+                        </Button>
                     )}
                 </Box>
 
                 {React.cloneElement(CurrentComponent, {
-                    searchTerm,
                     addRoomSignal,
                     addInvoiceSignal,
                     addTenantSignal,

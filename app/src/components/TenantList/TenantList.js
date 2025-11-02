@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button, Stack, Box } from '@mui/material';
 import './TenantList.css';
 import CreateTenantModal from './CreateTenantModal';
-import EditTenantModal from '../TenantDetail/EditTenantModal'; // ✅ new import
+import EditTenantModal from '../TenantDetail/EditTenantModal';
 import { listTenantsWithRooms, deleteTenant } from '../../api/tenant';
-import { Button, Stack } from '@mui/material';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
-const TenantList = ({ searchTerm, addTenantSignal }) => {
+const TenantList = ({ addTenantSignal }) => {
   const navigate = useNavigate();
   const [tenants, setTenants] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openCreate, setOpenCreate] = useState(false);
-  const [selectedTenantId, setSelectedTenantId] = useState(null); // ✅ for edit modal
+  const [selectedTenantId, setSelectedTenantId] = useState(null);
 
   useEffect(() => {
     if (addTenantSignal) setOpenCreate(true);
@@ -59,16 +61,20 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
     });
   }, [tenants, sortConfig]);
 
+  // Convert tenants to searchable options for SmartSearch
+  const searchOptions = useMemo(() => {
+    return sortedTenants.map((tenant) => ({
+      id: tenant.id,
+      label: `${tenant.name} (${tenant.phone})`,
+      value: tenant.id,
+      searchText: `${tenant.id} ${tenant.name} ${tenant.phone} ${tenant.lineId || ''} ${tenant.roomNumbers?.join(' ') || ''}`,
+    }));
+  }, [sortedTenants]);
+
+  // Filter tenants based on selected search value
   const filteredTenants = useMemo(() => {
-    const term = (searchTerm || '').toLowerCase();
-    if (!term) return sortedTenants;
-    return sortedTenants.filter(
-      (tenant) =>
-        String(tenant.id).toLowerCase().includes(term) ||
-        tenant.name.toLowerCase().includes(term) ||
-        tenant.phone.includes(term) ||
-        (tenant.roomNumbers && tenant.roomNumbers.some(num => String(num).includes(term)))
-    );
+    if (!searchTerm) return sortedTenants;
+    return sortedTenants.filter((tenant) => tenant.id === searchTerm);
   }, [sortedTenants, searchTerm]);
 
   const handleRowClick = (tenantId) => {
@@ -96,6 +102,15 @@ const TenantList = ({ searchTerm, addTenantSignal }) => {
 
   return (
     <>
+      <Box sx={{ mb: 3, maxWidth: 400 }}>
+        <SmartSearchAutocomplete
+          options={searchOptions}
+          label="ค้นหาผู้เช่า"
+          value={searchTerm}
+          onChange={(value) => setSearchTerm(value)}
+          placeholder="พิมพ์ชื่อ, เบอร์โทร, หรือเลขห้อง..."
+        />
+      </Box>
       <div className="tenant-list-container">
         <table className="tenant-table">
           <thead>
