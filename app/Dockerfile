@@ -9,10 +9,12 @@ RUN npm install
 
 COPY . .
 
-# Set API URL for Kubernetes deployment
-# This can be overridden at build time with --build-arg
-ARG REACT_APP_API=/
+# Set API URL for builds (pre-deploy uses localhost)
+# These can be overridden at build time with --build-arg
+ARG REACT_APP_API=http://localhost:8080
 ENV REACT_APP_API=${REACT_APP_API}
+ARG REACT_APP_API_BASE=http://localhost:8080
+ENV REACT_APP_API_BASE=${REACT_APP_API_BASE}
 
 # Build production bundle
 RUN npm run build
