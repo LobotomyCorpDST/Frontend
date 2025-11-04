@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -27,9 +27,11 @@ import AddIcon from '@mui/icons-material/Add';
 import { getAllUsers, deleteUser } from '../../api/user';
 import CreateUserModal from './CreateUserModal';
 import EditUserModal from './EditUserModal';
+import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openCreate, setOpenCreate] = useState(false);
@@ -90,6 +92,22 @@ const UserManagement = () => {
     }
   };
 
+  // Convert users to searchable options for SmartSearch
+  const searchOptions = useMemo(() => {
+    return users.map((user) => ({
+      id: user.id,
+      label: `${user.username} (${user.role})${user.roomId ? ` - Room ${user.roomId}` : ''}`,
+      value: user.id,
+      searchText: `${user.id} ${user.username} ${user.role} ${user.roomId || ''}`,
+    }));
+  }, [users]);
+
+  // Filter users based on selected search value
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return users;
+    return users.filter((user) => user.id === searchTerm);
+  }, [users, searchTerm]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
@@ -121,6 +139,16 @@ const UserManagement = () => {
           </Alert>
         )}
 
+        <Box sx={{ mb: 3, maxWidth: 400 }}>
+          <SmartSearchAutocomplete
+            options={searchOptions}
+            label="ค้นหาผู้ใช้"
+            value={searchTerm}
+            onChange={(value) => setSearchTerm(value)}
+            placeholder="พิมพ์ username, role, หรือ room ID..."
+          />
+        </Box>
+
         <TableContainer>
           <Table>
             <TableHead>
@@ -133,7 +161,7 @@ const UserManagement = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.length === 0 ? (
+              {filteredUsers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
                     <Typography variant="body2" color="text.secondary">
@@ -142,7 +170,7 @@ const UserManagement = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
+                filteredUsers.map((user) => (
                   <TableRow key={user.id} hover>
                     <TableCell>{user.id}</TableCell>
                     <TableCell>

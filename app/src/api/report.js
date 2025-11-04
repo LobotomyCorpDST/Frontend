@@ -71,3 +71,20 @@ export async function getFloorTrend(floor, startMonth, endMonth) {
 export async function getFloorRoomsComparison(roomNumber) {
   return http.get(`/api/reports/floor-rooms-comparison/${roomNumber}`);
 }
+
+/**
+ * Get monthly trend data for all rooms owned by a specific tenant
+ * Returns array of RoomTrendDTO (one per room)
+ */
+export async function getTenantRoomsTrend(tenantId, months = 6) {
+  return http.get(`/api/reports/tenant-rooms/${tenantId}`, { params: { months } });
+}
+
+/**
+ * Get room-level comparison data for a specific month (all rooms or filtered by floor)
+ * Returns array of RoomComparisonDTO
+ */
+export async function getMonthAllRoomsComparison(year, month, floor = null) {
+  const params = floor ? { floor } : {};
+  return http.get(`/api/reports/month-all-rooms/${year}/${month}`, { params });
+}
