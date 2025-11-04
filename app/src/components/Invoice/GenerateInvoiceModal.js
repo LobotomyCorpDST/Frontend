@@ -18,10 +18,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { createInvoice, openInvoice } from '../../api/invoice';
-
-const API_BASE =
-  (process.env.REACT_APP_API && process.env.REACT_APP_API.replace(/\/+$/, '')) ||
-  'http://localhost:8080/api';
+import http from '../../api/http';
 
 function numOrUndef(v) {
   if (v === '' || v === null || v === undefined) return undefined;
@@ -71,11 +68,13 @@ export default function GenerateInvoiceModal({ open, onClose, onCreated, roomId 
     if (!Number.isFinite(n) || n <= 0) {
       throw new Error('กรุณากรอกเลขห้องให้ถูกต้อง');
     }
-    const res = await fetch(`${API_BASE}/rooms/by-number/${encodeURIComponent(n)}`);
-    if (!res.ok) throw new Error('ไม่พบห้องตามเลขที่ระบุ');
-    const room = await res.json();
-    if (!room?.id) throw new Error('ข้อมูลห้องไม่ถูกต้อง');
-    return room.id;
+    try {
+      const room = await http.get(`/api/rooms/by-number/${encodeURIComponent(n)}`);
+      if (!room?.id) throw new Error('ข้อมูลห้องไม่ถูกต้อง');
+      return room.id;
+    } catch (error) {
+      throw new Error('ไม่พบห้องตามเลขที่ระบุ');
+    }
   }
 
   async function handleCreate() {

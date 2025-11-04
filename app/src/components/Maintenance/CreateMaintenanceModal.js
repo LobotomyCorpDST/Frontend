@@ -19,6 +19,8 @@ export default function CreateMaintenanceModal({
   const [scheduledDate, setScheduledDate] = useState(today);
   const [description, setDescription] = useState('');
   const [costBaht, setCostBaht] = useState('');
+  const [responsiblePerson, setResponsiblePerson] = useState('');
+  const [responsiblePhone, setResponsiblePhone] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -48,7 +50,9 @@ export default function CreateMaintenanceModal({
         roomNumber: effectiveRoomNumber,
         description: description.trim(),
         scheduledDate, // YYYY-MM-DD
-        costBaht: costBaht === '' ? null : Number(costBaht)
+        costBaht: costBaht === '' ? null : Number(costBaht),
+        responsiblePerson: responsiblePerson.trim() || null,
+        responsiblePhone: responsiblePhone.trim() || null
       };
 
       await createMaintenance(payload);
@@ -110,6 +114,22 @@ export default function CreateMaintenanceModal({
             value={costBaht}
             onChange={(e) => setCostBaht(e.target.value)}
             inputProps={{ step: '0.01', min: '0' }}
+            fullWidth
+          />
+
+          <TextField
+            label="ผู้รับผิดชอบ"
+            value={responsiblePerson}
+            onChange={(e) => setResponsiblePerson(e.target.value)}
+            placeholder="ชื่อผู้รับผิดชอบ"
+            fullWidth
+          />
+
+          <TextField
+            label="เบอร์โทรศัพท์"
+            value={responsiblePhone}
+            onChange={(e) => setResponsiblePhone(e.target.value)}
+            placeholder="เบอร์โทรศัพท์ผู้รับผิดชอบ"
             fullWidth
           />
 

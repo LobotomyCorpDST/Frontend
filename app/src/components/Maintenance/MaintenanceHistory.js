@@ -104,7 +104,7 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
         id: item.id,
         label: `${ref} - ห้อง ${item.roomNumber} - ${item.description || 'ไม่มีคำอธิบาย'}`,
         value: item.id,
-        searchText: `${ref} ${item.roomNumber} ${item.id} ${item.description || ''} ${item.status || ''}`,
+        searchText: `${ref} ${item.roomNumber} ${item.id} ${item.description || ''} ${item.status || ''} ${item.responsiblePerson || ''} ${item.responsiblePhone || ''}`,
       };
     });
   }, [allMaintenance]);
@@ -240,8 +240,18 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">นาย ช่าง หัวมัน</Typography>
-                    <Typography variant="caption" color="text.secondary">0000000008</Typography>
+                    {item.responsiblePerson ? (
+                      <>
+                        <Typography variant="body2">{item.responsiblePerson}</Typography>
+                        {item.responsiblePhone && (
+                          <Typography variant="caption" color="text.secondary">
+                            {item.responsiblePhone}
+                          </Typography>
+                        )}
+                      </>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">-</Typography>
+                    )}
                   </TableCell>
                   <TableCell>{item.costBaht ? item.costBaht.toLocaleString() : '-'}</TableCell>
                   <TableCell>{formatDate(item.scheduledDate)}</TableCell>

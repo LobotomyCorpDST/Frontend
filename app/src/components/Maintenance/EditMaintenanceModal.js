@@ -40,6 +40,8 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
         status: maintenance.status,
         scheduledDate: maintenance.scheduledDate,
         costBaht: maintenance.costBaht,
+        responsiblePerson: maintenance.responsiblePerson,
+        responsiblePhone: maintenance.responsiblePhone,
       });
       onSaved?.();
       onClose?.();
@@ -92,6 +94,20 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
                   onChange={handleChange('costBaht')}
                   inputProps={{ step: '0.01', min: '0' }}
                   fullWidth
+                />
+                <TextField
+                  label="ผู้รับผิดชอบ"
+                  value={maintenance.responsiblePerson || ''}
+                  onChange={handleChange('responsiblePerson')}
+                  fullWidth
+                  placeholder="ชื่อผู้รับผิดชอบ"
+                />
+                <TextField
+                  label="เบอร์โทรศัพท์"
+                  value={maintenance.responsiblePhone || ''}
+                  onChange={handleChange('responsiblePhone')}
+                  fullWidth
+                  placeholder="เบอร์โทรศัพท์ผู้รับผิดชอบ"
                 />
 
                 {/* Document Upload Section */}
