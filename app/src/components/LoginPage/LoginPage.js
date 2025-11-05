@@ -40,7 +40,7 @@ export default function LoginPage() {
 
     // Prevent guest login via main login button
     if (u.toLowerCase() === 'guest') {
-      setError('Please use the "Guest Login" button for guest access');
+      setError('กรุณาใช้ปุ่ม "เข้าสู่ระบบแบบผู้เยี่ยมชม" สำหรับการเข้าถึงแบบผู้เยี่ยมชม');
       return;
     }
 
@@ -53,6 +53,9 @@ export default function LoginPage() {
       const data = res?.data ?? res;
       if (data?.token) {
         localStorage.setItem('token', data.token);
+
+        // Store username
+        localStorage.setItem('username', data.username || u);
 
         // Get role from response (backend should return it)
         const userRole = data.role || 'STAFF'; // Default to STAFF if not provided
@@ -73,10 +76,10 @@ export default function LoginPage() {
           navigate('/home');
         }
       } else {
-        throw new Error('Login response has no token');
+        throw new Error('การตอบกลับการเข้าสู่ระบบไม่มีโทเค็น');
       }
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'เข้าสู่ระบบล้มเหลว');
     } finally {
       setLoading(false);
     }
@@ -102,10 +105,10 @@ export default function LoginPage() {
         localStorage.setItem('role', 'guest');
         navigate('/home-guest');
       } else {
-        throw new Error('Guest login failed: no token returned');
+        throw new Error('เข้าสู่ระบบแบบผู้เยี่ยมชมล้มเหลว: ไม่ได้รับโทเค็น');
       }
     } catch (err) {
-      setError(err.message || 'Guest login failed');
+      setError(err.message || 'เข้าสู่ระบบแบบผู้เยี่ยมชมล้มเหลว');
     } finally {
       setLoading(false);
     }
@@ -178,7 +181,7 @@ export default function LoginPage() {
           {/* Inputs */}
           <TextField
             fullWidth
-            label="Username"
+            label="ชื่อผู้ใช้"
             variant="outlined"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -194,7 +197,7 @@ export default function LoginPage() {
           <TextField
             fullWidth
             type="password"
-            label="Password"
+            label="รหัสผ่าน"
             variant="outlined"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -231,7 +234,7 @@ export default function LoginPage() {
                 '&:hover': { backgroundColor: '#15305e' },
               }}
             >
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
             </Button>
 
             {/* Guest Login */}
@@ -249,7 +252,7 @@ export default function LoginPage() {
                 '&:hover': { backgroundColor: '#24a195ff' },
               }}
             >
-              {loading ? 'Logging in...' : 'Guest Login'}
+              {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบแบบผู้เยี่ยมชม'}
             </Button>
           </Stack>
 

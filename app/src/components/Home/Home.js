@@ -89,7 +89,9 @@ function HomePage() {
     >
       <Toolbar sx={{ p: '16px' }}>
         <AccountCircleIcon sx={{ mr: 2, fontSize: '2rem', color: "#13438B" }} />
-        <Typography variant="h6" noWrap>กิตติชาติ</Typography>
+        <Typography variant="h6" noWrap>
+          {localStorage.getItem('username') || 'ผู้ใช้'}
+        </Typography>
       </Toolbar>
       <Divider />
 

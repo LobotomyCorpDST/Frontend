@@ -5,8 +5,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
   Box,
   Button,
   Chip,
@@ -14,12 +12,14 @@ import {
   IconButton,
   Stack,
   Tooltip,
+  TableRow,
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import EditIcon from '@mui/icons-material/Edit';
 import { listMaintenanceByRoomNumber, completeMaintenance } from '../../api/maintenance';
 import EditMaintenanceModal from './EditMaintenanceModal';
+import StandardTableHeader from '../Common/StandardTableHeader';
 
 function statusChip(status) {
   const s = (status || '').toUpperCase();
@@ -40,6 +40,15 @@ function money(n) {
     maximumFractionDigits: 2,
   });
 }
+
+const headCells = [
+  { id: 'scheduledDate', label: 'วันที่นัด', disableSorting: true },
+  { id: 'description', label: 'รายละเอียด', disableSorting: true },
+  { id: 'status', label: 'สถานะ', disableSorting: true },
+  { id: 'costBaht', label: 'ค่าใช้จ่าย (บาท)', disableSorting: true, align: 'right' },
+  { id: 'completedDate', label: 'เสร็จเมื่อ', disableSorting: true, align: 'right' },
+  { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'right' },
+];
 
 export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
   const [rows, setRows] = useState([]);
@@ -103,16 +112,7 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
 
       <TableContainer component={Paper} variant="outlined">
         <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>วันที่นัด</TableCell>
-              <TableCell>รายละเอียด</TableCell>
-              <TableCell>สถานะ</TableCell>
-              <TableCell align="right">ค่าใช้จ่าย (บาท)</TableCell>
-              <TableCell align="right">เสร็จเมื่อ</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
+          <StandardTableHeader columns={headCells} sortConfig={null} onRequestSort={() => {}} />
           <TableBody>
             {loading ? (
               <TableRow>
