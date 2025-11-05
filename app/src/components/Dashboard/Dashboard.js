@@ -6,7 +6,8 @@ import {
   Box,
   Card,
   CardContent,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from "@mui/material";
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -43,30 +44,34 @@ const Dashboard = ({ isGuest = false }) => {
 
         // USER role: Only show their assigned room
         if (isUserRole && userRoomId) {
-          transformed = transformed.filter((room) => room.id === parseInt(userRoomId));
+          const parsedUserRoomId = parseInt(userRoomId, 10);
+          transformed = transformed.filter((room) => {
+            const roomId = typeof room.id === 'number' ? room.id : parseInt(room.id, 10);
+            return roomId === parsedUserRoomId;
+          });
         }
 
         setRooms(transformed);
       } catch (e) {
-        setError(e.message || 'Could not load dashboard data.');
-      } finally {
+        // Graceful handling for guest users who don't have permission
+        if (isGuest && (e.status === 403 || e.status === 401)) {
+          // Show empty rooms for guest - they can see the dashboard structure but not data
+          setRooms([]);
+          setError(''); // Don't show error for guests, just empty state
+        } else {
+          setError(e.message || 'Could not load dashboard data.');
+        }
+      } finally{
         setLoading(false);
       }
     })();
-  }, [location.pathname, isUserRole, userRoomId]);
+  }, [location.pathname, isUserRole, userRoomId, isGuest]);
 
   const handleRoomNumberClick = (roomNumber) => {
     if (isGuest) return;
 
-    // USER role: Only allow clicking their own room
-    if (isUserRole) {
-      const clickedRoom = rooms.find(r => r.roomNumber === roomNumber);
-      if (clickedRoom && clickedRoom.id === parseInt(userRoomId)) {
-        navigate(`/room-details/${roomNumber}`);
-      }
-      return;
-    }
-
+    // For USER role, filter already ensures rooms array only contains their room
+    // So we can navigate directly
     navigate(`/room-details/${roomNumber}`);
   };
 
@@ -79,7 +84,8 @@ const Dashboard = ({ isGuest = false }) => {
 
   const RoomCard = ({ room }) => {
     const isAvailable = room.roomStatus.toLowerCase() === 'room available';
-    const canClickRoom = !isGuest && (!isUserRole || room.id === parseInt(userRoomId));
+    // For USER role, filter already ensures this room is clickable
+    const canClickRoom = !isGuest;
 
     return (
       <Card
@@ -135,12 +141,19 @@ const Dashboard = ({ isGuest = false }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* แจ้งเตือนงานซ่อมถึงกำหนดวันนี้ */}
-      <MaintenanceToastPanel />
+      {/* แจ้งเตือนงานซ่อมถึงกำหนดวันนี้ - Hide for GUEST */}
+      {!isGuest && <MaintenanceToastPanel />}
 
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
         Dashboard
       </Typography>
+
+      {/* Guest welcome message */}
+      {isGuest && rooms.length === 0 && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          ยินดีต้อนรับ! คุณกำลังใช้งานในโหมดผู้เยี่ยมชม Dashboard แสดงภาพรวมการจัดการห้องเช่า
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }} gap={2}>

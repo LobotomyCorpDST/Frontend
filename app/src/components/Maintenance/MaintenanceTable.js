@@ -23,14 +23,26 @@ import StandardTableHeader from '../Common/StandardTableHeader';
 
 function statusChip(status) {
   const s = (status || '').toUpperCase();
-  const map = {
+
+  // Thai translation map
+  const statusMap = {
+    'PLANNED': 'วางแผน',
+    'IN_PROGRESS': 'กำลังดำเนินการ',
+    'COMPLETED': 'เสร็จสิ้น',
+    'DONE': 'เสร็จสิ้น',
+    'CANCELED': 'ยกเลิก',
+  };
+
+  const colorMap = {
     PLANNED: 'info',
     IN_PROGRESS: 'warning',
     COMPLETED: 'success',
     DONE: 'success',
     CANCELED: 'default',
   };
-  return <Chip label={status || '-'} color={map[s] || 'default'} size="small" />;
+
+  const label = statusMap[s] || status || '-';
+  return <Chip label={label} color={colorMap[s] || 'default'} size="small" />;
 }
 
 function money(n) {
@@ -42,11 +54,11 @@ function money(n) {
 }
 
 const headCells = [
-  { id: 'scheduledDate', label: 'วันที่นัด', disableSorting: true },
-  { id: 'description', label: 'รายละเอียด', disableSorting: true },
-  { id: 'status', label: 'สถานะ', disableSorting: true },
-  { id: 'costBaht', label: 'ค่าใช้จ่าย (บาท)', disableSorting: true, align: 'right' },
-  { id: 'completedDate', label: 'เสร็จเมื่อ', disableSorting: true, align: 'right' },
+  { id: 'scheduledDate', label: 'วันที่นัด' },
+  { id: 'description', label: 'รายละเอียด' },
+  { id: 'status', label: 'สถานะ' },
+  { id: 'costBaht', label: 'ค่าใช้จ่าย (บาท)', align: 'right' },
+  { id: 'completedDate', label: 'เสร็จเมื่อ', align: 'right' },
   { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'right' },
 ];
 
@@ -55,6 +67,7 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
   const [loading, setLoading] = useState(true);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'scheduledDate', direction: 'descending' });
 
   const canComplete = useMemo(
     () => (st) => {
@@ -82,6 +95,29 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomNumber, reloadSignal]);
+
+  const handleRequestSort = (property) => {
+    const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
+    setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!sortConfig.key) return rows;
+
+    return [...rows].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+
+      // Handle null/undefined
+      if (aVal == null) aVal = '';
+      if (bVal == null) bVal = '';
+
+      // Compare
+      if (aVal < bVal) return sortConfig.direction === 'ascending' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+  }, [rows, sortConfig]);
 
   async function doComplete(id) {
     const today = new Date().toISOString().slice(0, 10);
@@ -112,7 +148,7 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
 
       <TableContainer component={Paper} variant="outlined">
         <Table stickyHeader size="small">
-          <StandardTableHeader columns={headCells} sortConfig={null} onRequestSort={() => {}} />
+          <StandardTableHeader columns={headCells} sortConfig={sortConfig} onRequestSort={handleRequestSort} />
           <TableBody>
             {loading ? (
               <TableRow>
@@ -127,7 +163,7 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0 }) {
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((r) => (
+              sortedRows.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell>{r.scheduledDate || '-'}</TableCell>
                   <TableCell>{r.description || '-'}</TableCell>

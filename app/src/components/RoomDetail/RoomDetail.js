@@ -12,6 +12,7 @@ import {
   CircularProgress,
   IconButton,
   Alert,
+  Chip,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,6 +31,17 @@ import { getLatestInvoiceByRoom } from '../../api/invoice';
 
 const actionBtnSx = { borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 2 };
 const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '-');
+
+// Helper functions for invoice status
+const getStatusLabel = (status) => {
+  const map = { 'PAID': 'ชำระแล้ว', 'PENDING': 'รอชำระ', 'OVERDUE': 'เกินกำหนด' };
+  return map[status] || status || 'ไม่มีข้อมูล';
+};
+
+const getStatusColor = (status) => {
+  const map = { 'PAID': 'success', 'PENDING': 'warning', 'OVERDUE': 'error' };
+  return map[status] || 'default';
+};
 
 const RoomDetail = () => {
   const { roomNumber } = useParams();
@@ -98,6 +110,7 @@ const RoomDetail = () => {
           checkOutDate: fmt(active?.endDate),
           leaseStartDate: fmt(active?.startDate),
           leaseEndDate: fmt(active?.endDate),
+          latestInvoiceStatus: latestInvoice?.status || null, // Store invoice status
           latestUsage: latestInvoice ? {
             electricity: {
               units: latestInvoice.electricityUnits || '0',
@@ -211,9 +224,6 @@ const RoomDetail = () => {
             <Typography variant="h6" gutterBottom>
               รายละเอียดสัญญาเช่า
             </Typography>
-            <Typography>
-              <strong>สถานะ:</strong> {room.roomStatus}
-            </Typography>
             <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
               <Grid item xs={12} sm={6}>
                 <Typography textAlign="left">
@@ -238,6 +248,17 @@ const RoomDetail = () => {
             <Typography variant="h6" gutterBottom>
               ค่าใช้จ่ายล่าสุด
             </Typography>
+
+            {/* Invoice Payment Status */}
+            <Box sx={{ mb: 2 }}>
+              <Typography component="span" sx={{ fontWeight: 600, mr: 1 }}>สถานะการชำระ:</Typography>
+              <Chip
+                size="small"
+                label={getStatusLabel(room.latestInvoiceStatus)}
+                color={getStatusColor(room.latestInvoiceStatus)}
+              />
+            </Box>
+
             <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
               <Grid item xs={12} sm={6}>
                 <Typography textAlign="left">
@@ -296,27 +317,30 @@ const RoomDetail = () => {
         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
           {activeRightTab === 0 && (
             <Box>
-              {/* Invoice Tab - ADMIN only per user requirements */}
-              {!isAdmin ? (
+              {/* Invoice Tab - GUEST cannot see, USER can view only, ADMIN/STAFF full access */}
+              {userRole === 'GUEST' ? (
                 <Alert severity="info">
-                  เฉพาะ Admin เท่านั้นที่สามารถดูและจัดการใบแจ้งหนี้ได้
+                  เฉพาะผู้ใช้ที่ลงทะเบียนเท่านั้นที่สามารถดูใบแจ้งหนี้ได้
                 </Alert>
               ) : (
                 <>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      sx={actionBtnSx}
-                      onClick={() => setShowCreateInv(true)}
-                      disabled={!backendRoomId}
-                    >
-                      สร้างใบแจ้งหนี้
-                    </Button>
-                  </Box>
+                  {/* Create button - ADMIN/STAFF only */}
+                  {isAdmin && (
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        sx={actionBtnSx}
+                        onClick={() => setShowCreateInv(true)}
+                        disabled={!backendRoomId}
+                      >
+                        สร้างใบแจ้งหนี้
+                      </Button>
+                    </Box>
+                  )}
 
                   {backendRoomId && (
-                    <RoomInvoiceTable roomId={backendRoomId} showCreateButton={false} />
+                    <RoomInvoiceTable roomId={backendRoomId} showCreateButton={false} userRole={userRole} />
                   )}
                 </>
               )}

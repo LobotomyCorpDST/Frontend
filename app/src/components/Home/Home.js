@@ -31,7 +31,7 @@ function HomePage() {
   const userRole = (localStorage.getItem('role') || 'STAFF').toUpperCase();
   const isGuest = userRole === 'GUEST';
 
-  // Role-based navigation: ADMIN sees all pages, others see limited menu
+  // Role-based navigation: ADMIN sees all pages, STAFF sees Dashboard + Maintenance, USER/GUEST sees Dashboard only
   const navigationItems = userRole === 'ADMIN' ? [
     { label: "Dashboard", component: <Dashboard isGuest={false} /> },
     { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
@@ -41,11 +41,14 @@ function HomePage() {
     { label: "ผู้เช่าทั้งหมด", component: <TenantList /> },
     { label: "รายงานสรุป", component: <SummaryReport /> },
     { label: "คลังวัสดุ", component: <SupplyInventoryPage /> },
-    { label: "User Management", component: <UserManagement /> },
-  ] : [
-    // STAFF, USER, GUEST: Limited navigation (Dashboard + Maintenance)
-    { label: "Dashboard", component: <Dashboard isGuest={isGuest} /> },
+    { label: "จัดการ User", component: <UserManagement /> },
+  ] : userRole === 'STAFF' ? [
+    // STAFF: Dashboard + Maintenance
+    { label: "Dashboard", component: <Dashboard isGuest={false} /> },
     { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
+  ] : [
+    // USER, GUEST: Dashboard only
+    { label: "Dashboard", component: <Dashboard isGuest={isGuest} /> },
   ];
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);

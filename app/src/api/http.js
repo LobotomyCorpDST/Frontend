@@ -100,7 +100,12 @@ async function request(path, { method = 'GET', headers = {}, params, body } = {}
 
     if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
       try {
-        ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
+        const role = localStorage.getItem('role');
+        // Only clear tokens if it's 401 (unauthorized) OR if it's 403 but user is not GUEST
+        // GUEST users may legitimately get 403 for limited resources
+        if (res.status === 401 || (res.status === 403 && role && role.toUpperCase() !== 'GUEST')) {
+          ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
+        }
       } catch { /* noop */ }
     }
 
@@ -145,7 +150,12 @@ async function requestBlob(path, { method = 'GET', headers = {}, params, body } 
 
     if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
       try {
-        ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
+        const role = localStorage.getItem('role');
+        // Only clear tokens if it's 401 (unauthorized) OR if it's 403 but user is not GUEST
+        // GUEST users may legitimately get 403 for limited resources
+        if (res.status === 401 || (res.status === 403 && role && role.toUpperCase() !== 'GUEST')) {
+          ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
+        }
       } catch { /* noop */ }
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,8 +9,10 @@ import {
   MenuItem,
   Alert,
   Box,
+  Autocomplete,
 } from '@mui/material';
 import { createUser } from '../../api/user';
+import { listRooms } from '../../api/room';
 
 const CreateUserModal = ({ open, onClose, onCreated }) => {
   const [formData, setFormData] = useState({
@@ -18,10 +20,31 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
     password: '',
     confirmPassword: '',
     role: 'STAFF',
-    roomId: '',
+    roomNumber: null,
   });
+  const [rooms, setRooms] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+
+  // Fetch rooms when modal opens
+  useEffect(() => {
+    if (open) {
+      fetchRooms();
+    }
+  }, [open]);
+
+  const fetchRooms = async () => {
+    setLoadingRooms(true);
+    try {
+      const data = await listRooms();
+      setRooms(data || []);
+    } catch (err) {
+      console.error('Failed to load rooms:', err);
+    } finally {
+      setLoadingRooms(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,8 +69,8 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
       setError('Passwords do not match');
       return;
     }
-    if (formData.role === 'USER' && !formData.roomId) {
-      setError('Room ID is required for USER role');
+    if (formData.role === 'USER' && !formData.roomNumber) {
+      setError('Room Number is required for USER role');
       return;
     }
 
@@ -57,7 +80,7 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
         username: formData.username.trim(),
         password: formData.password,
         role: formData.role,
-        roomId: formData.role === 'USER' && formData.roomId ? Number(formData.roomId) : null,
+        roomNumber: formData.role === 'USER' && formData.roomNumber ? formData.roomNumber : null,
       };
 
       await createUser(payload);
@@ -77,7 +100,7 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
         password: '',
         confirmPassword: '',
         role: 'STAFF',
-        roomId: '',
+        roomNumber: null,
       });
       setError('');
       onClose();
@@ -147,17 +170,27 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
           {formData.role === 'USER' && (
             <Box sx={{ mt: 2 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
-                USER role requires a Room ID to link the account to a specific room
+                USER role requires a Room Number to link the account to a specific room
               </Alert>
-              <TextField
+              <Autocomplete
                 fullWidth
-                label="Room ID"
-                name="roomId"
-                type="number"
-                value={formData.roomId}
-                onChange={handleChange}
-                required={formData.role === 'USER'}
-                helperText="Enter the room number this user belongs to"
+                options={rooms}
+                getOptionLabel={(option) => `ห้อง ${option.number} - ${option.status === 'OCCUPIED' ? 'มีผู้เช่า' : 'ว่าง'}`}
+                value={rooms.find((r) => r.number === formData.roomNumber) || null}
+                onChange={(event, newValue) => {
+                  setFormData((prev) => ({ ...prev, roomNumber: newValue ? newValue.number : null }));
+                  setError('');
+                }}
+                loading={loadingRooms}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="เลขห้อง (Room Number)"
+                    required={formData.role === 'USER'}
+                    helperText="เลือกเลขห้องที่ผู้ใช้จะดูแล"
+                  />
+                )}
+                isOptionEqualToValue={(option, value) => option.number === value.number}
               />
             </Box>
           )}

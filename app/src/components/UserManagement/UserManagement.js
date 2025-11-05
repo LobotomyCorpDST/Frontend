@@ -141,9 +141,9 @@ const UserManagement = () => {
   const searchOptions = useMemo(() => {
     return sortedUsers.map((user) => ({
       id: user.id,
-      label: `${user.username} (${user.role})${user.room?.number ? ` - ห้อง ${user.room.number}` : ''}`,
+      label: `${user.username} (${user.role})${user.roomNumber ? ` - ห้อง ${user.roomNumber}` : ''}`,
       value: user.id,
-      searchText: `${user.id} ${user.username} ${user.role} ${user.room?.number || ''}`,
+      searchText: `${user.id} ${user.username} ${user.role} ${user.roomNumber || ''}`,
     }));
   }, [sortedUsers]);
 
@@ -164,7 +164,7 @@ const UserManagement = () => {
         const userId = String(user.id || '');
         const username = String(user.username || '');
         const role = String(user.role || '');
-        const roomNumber = String(user.room?.number || '');
+        const roomNumber = String(user.roomNumber || '');
         return (
           userId.includes(searchLower) ||
           username.toLowerCase().includes(searchLower) ||
@@ -262,8 +262,8 @@ const UserManagement = () => {
                     <Chip label={user.role} color={getRoleColor(user.role)} size="small" />
                   </TableCell>
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
-                    {user.room?.number ? (
-                      <Chip label={`ห้อง ${user.room.number}`} size="small" variant="outlined" />
+                    {user.roomNumber ? (
+                      <Chip label={`ห้อง ${user.roomNumber}`} size="small" variant="outlined" />
                     ) : (
                       <Typography variant="body2" color="text.secondary">
                         -

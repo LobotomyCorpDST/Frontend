@@ -102,7 +102,7 @@ export default function LoginPage() {
       const data = res?.data ?? res;
       if (data?.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', 'guest');
+        localStorage.setItem('role', data.role || 'GUEST'); // Store actual role from backend
         navigate('/home-guest');
       } else {
         throw new Error('เข้าสู่ระบบแบบผู้เยี่ยมชมล้มเหลว: ไม่ได้รับโทเค็น');

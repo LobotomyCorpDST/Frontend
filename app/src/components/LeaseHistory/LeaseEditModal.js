@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, Grid, Alert, Box, CircularProgress,
-  InputAdornment, IconButton, Typography, Paper, Stack, Divider
+  InputAdornment, IconButton, Typography, Paper, Stack, Divider,
+  MenuItem, FormControlLabel, Checkbox
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { getLeaseById, updateLease, deleteLease } from '../../api/lease';
@@ -284,6 +285,53 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved }) => {
                   multiline
                   rows={3}
                   disabled={saving || deleting}
+                />
+              </Grid>
+
+              {/* Manual Status and Settled Controls */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" gutterBottom>
+                  การจัดการสถานะและเงินมัดจำ
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="สถานะสัญญา"
+                  value={form.status || 'ACTIVE'}
+                  onChange={setField('status')}
+                  fullWidth size="small"
+                  disabled={saving || deleting}
+                >
+                  <MenuItem value="ACTIVE">อยู่ในระยะสัญญา</MenuItem>
+                  <MenuItem value="ENDED">ครบกำหนดสัญญา</MenuItem>
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!form.settled}
+                      onChange={(e) => setForm(prev => ({ ...prev, settled: e.target.checked }))}
+                      disabled={saving || deleting}
+                    />
+                  }
+                  label="คืนเงินมัดจำแล้ว"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="วันที่คืนเงิน"
+                  type="date"
+                  value={form.settledDate || ''}
+                  onChange={setField('settledDate')}
+                  fullWidth size="small"
+                  disabled={saving || deleting || !form.settled}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
 
