@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   TextField,
   Button,
@@ -14,6 +13,7 @@ import {
   Typography,
   Chip,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -21,24 +21,35 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { getAllSupplies, incrementSupply, decrementSupply, deleteSupply, updateSupply } from '../../api/supply';
 import AddSupplyModal from './AddSupplyModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
+import EnhancedSearchBar from '../Common/EnhancedSearchBar';
+import StandardTableHeader from '../Common/StandardTableHeader';
+import StandardPagination from '../Common/StandardPagination';
 
-const headerCellStyle = {
-  backgroundColor: '#13438B',
-  color: '#f8f9fa',
-  fontWeight: 'bold',
-  padding: '12px',
-};
+const headCells = [
+  { id: 'supplyName', label: 'ชื่อของ' },
+  { id: 'supplyAmount', label: 'จำนวน', align: 'center' },
+  { id: 'actions', label: 'การจัดการ', disableSorting: true, align: 'center' },
+];
 
 const SupplyInventoryPage = () => {
   const [allSupplies, setAllSupplies] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [openAddModal, setOpenAddModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editAmount, setEditAmount] = useState('');
+
+  // Unified search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('');
+
+  // Sorting state (default: ID descending)
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' });
+
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
 
   const loadSupplies = async () => {
     setLoading(true);
@@ -122,21 +133,79 @@ const SupplyInventoryPage = () => {
 
   const isLowStock = (amount) => amount < 3;
 
-  // Convert supplies to searchable options for SmartSearch
+  // Sorting logic
+  const handleRequestSort = (property) => {
+    const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
+    setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+    setPage(0); // Reset to first page when sorting changes
+  };
+
+  const sortedSupplies = useMemo(() => {
+    const list = [...allSupplies];
+    if (!sortConfig.key) return list;
+    const dir = sortConfig.direction === 'ascending' ? 1 : -1;
+
+    return list.sort((a, b) => {
+      const valA = a[sortConfig.key] || '';
+      const valB = b[sortConfig.key] || '';
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return dir * valA.localeCompare(valB);
+      }
+      if (valA < valB) return -1 * dir;
+      if (valA > valB) return 1 * dir;
+      return 0;
+    });
+  }, [allSupplies, sortConfig]);
+
+  // Convert supplies to searchable options for smart search
   const searchOptions = useMemo(() => {
-    return allSupplies.map((supply) => ({
+    return sortedSupplies.map((supply) => ({
       id: supply.id,
       label: `${supply.supplyName} (${supply.supplyAmount} ชิ้น)`,
       value: supply.id,
       searchText: `${supply.supplyName} ${supply.supplyAmount}`,
     }));
-  }, [allSupplies]);
+  }, [sortedSupplies]);
 
-  // Filter supplies based on selected search value
+  // Filter supplies based on unified search
   const filteredSupplies = useMemo(() => {
-    if (!searchTerm) return allSupplies;
-    return allSupplies.filter((supply) => supply.id === searchTerm);
-  }, [allSupplies, searchTerm]);
+    let result = sortedSupplies;
+
+    if (searchTerm) {
+      if (searchType === 'exact') {
+        // Exact match (from SmartSearch autocomplete)
+        result = result.filter((supply) => supply.id === searchTerm);
+      } else if (searchType === 'partial') {
+        // Partial match (from QuickSearch text input)
+        const searchLower = String(searchTerm).toLowerCase();
+        result = result.filter((supply) => {
+          const name = String(supply.supplyName || '');
+          const amount = String(supply.supplyAmount || '');
+          return (
+            name.toLowerCase().includes(searchLower) ||
+            amount.includes(searchLower)
+          );
+        });
+      }
+    }
+
+    return result;
+  }, [sortedSupplies, searchTerm, searchType]);
+
+  // Paginated supplies (apply after filtering and sorting)
+  const paginatedSupplies = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredSupplies.slice(start, start + rowsPerPage);
+  }, [filteredSupplies, page, rowsPerPage]);
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress /> <Typography sx={{ ml: 2 }}>กำลังโหลดคลังวัสดุ...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -151,13 +220,16 @@ const SupplyInventoryPage = () => {
       )}
 
       <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'flex-start' }}>
-        <Box sx={{ flex: 1, maxWidth: 400 }}>
-          <SmartSearchAutocomplete
-            options={searchOptions}
-            label="ค้นหาวัสดุ"
-            value={searchTerm}
-            onChange={(value) => setSearchTerm(value)}
-            placeholder="พิมพ์ชื่อวัสดุหรือจำนวน..."
+        <Box sx={{ flex: 1 }}>
+          <EnhancedSearchBar
+            onSearch={({ type, value }) => {
+              setSearchTerm(value);
+              setSearchType(type);
+              setPage(0);
+            }}
+            searchOptions={searchOptions}
+            searchLabel="ค้นหาวัสดุแบบเฉพาะเจาะจง"
+            searchPlaceholder="พิมพ์ชื่อวัสดุหรือจำนวน แล้วกด Enter..."
           />
         </Box>
         <Button
@@ -169,34 +241,23 @@ const SupplyInventoryPage = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={headerCellStyle}>ชื่อของ</TableCell>
-              <TableCell sx={headerCellStyle} align="center">
-                จำนวน
-              </TableCell>
-              <TableCell sx={headerCellStyle} align="center">
-                การจัดการ
-              </TableCell>
-            </TableRow>
-          </TableHead>
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+          overflowX: 'auto',
+        }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="supply inventory table">
+          <StandardTableHeader
+            columns={headCells}
+            sortConfig={sortConfig}
+            onRequestSort={handleRequestSort}
+          />
           <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={3} align="center">
-                  กำลังโหลด...
-                </TableCell>
-              </TableRow>
-            ) : filteredSupplies.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} align="center">
-                  ไม่พบข้อมูล
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredSupplies.map((supply) => (
+            {paginatedSupplies.length > 0 ? (
+              paginatedSupplies.map((supply) => (
                 <TableRow
                   key={supply.id}
                   sx={{
@@ -276,9 +337,29 @@ const SupplyInventoryPage = () => {
                   </TableCell>
                 </TableRow>
               ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                  ไม่พบข้อมูล
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {filteredSupplies.length > 0 && (
+          <StandardPagination
+            count={filteredSupplies.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+          />
+        )}
       </TableContainer>
 
       <AddSupplyModal

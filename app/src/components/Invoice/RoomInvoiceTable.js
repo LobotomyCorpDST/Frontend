@@ -7,7 +7,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   Chip,
   IconButton,
@@ -23,11 +22,11 @@ import UndoIcon from '@mui/icons-material/Undo';
 
 import {
   listInvoicesByRoom,
-  // openInvoice,   // ไม่ใช้แล้วสำหรับปุ่ม print/pd f — เปิด URL ตรง ๆ ชัวร์กว่า
   markPaid,
   markUnpaid,
   computeDisplayStatus,
 } from '../../api/invoice';
+import StandardTableHeader from '../Common/StandardTableHeader';
 
 function fmt(n) {
   if (n == null) return '-';
@@ -37,9 +36,15 @@ function fmt(n) {
   });
 }
 
+const headCells = [
+  { id: 'issueDate', label: 'วันที่ออกบิล', disableSorting: true },
+  { id: 'totalBaht', label: 'ยอดรวม (บาท)', disableSorting: true },
+  { id: 'status', label: 'สถานะ', disableSorting: true },
+  { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'right' },
+];
+
 // เปิดไฟล์ PDF ของใบแจ้งหนี้โดยตรง
 function openInvoicePdf(id) {
-  // ถ้า dev server มี proxy ไป :8080 อยู่แล้ว ใช้ path ตรงได้เลย
   window.open(`/api/invoices/${id}/pdf`, '_blank', 'noopener');
 }
 
@@ -115,14 +120,7 @@ export default function RoomInvoiceTable({
 
       <TableContainer component={Paper} variant="outlined">
         <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>วันที่ออกบิล</TableCell>
-              <TableCell>ยอดรวม (บาท)</TableCell>
-              <TableCell>สถานะ</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
+          <StandardTableHeader columns={headCells} sortConfig={null} onRequestSort={() => {}} />
 
           <TableBody>
             {loading ? (
@@ -167,7 +165,7 @@ export default function RoomInvoiceTable({
                             startIcon={<UndoIcon />}
                             onClick={() => doUnpaid(inv.id)}
                           >
-                            Mark Unpaid
+                            ยังไม่ชำระ
                           </Button>
                         </Tooltip>
                       ) : (
@@ -180,7 +178,7 @@ export default function RoomInvoiceTable({
                             startIcon={<TaskAltIcon />}
                             onClick={() => doMarkPaid(inv.id)}
                           >
-                            Mark Paid
+                            ชำระแล้ว
                           </Button>
                         </Tooltip>
                       )
