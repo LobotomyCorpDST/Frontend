@@ -13,14 +13,14 @@ export const getUserById = (id) => http.get(`/api/users/${id}`);
 
 /**
  * Create new user (ADMIN only)
- * @param {Object} payload - { username, password, role, roomId }
+ * @param {Object} payload - { username, password, role, roomNumber }
  */
 export const createUser = (payload) => http.post('/api/users', payload);
 
 /**
  * Update user (ADMIN only)
  * @param {number} id - User ID
- * @param {Object} payload - { username, role, roomId }
+ * @param {Object} payload - { username, role, roomNumber }
  */
 export const updateUser = (id, payload) => http.put(`/api/users/${id}`, payload);
 

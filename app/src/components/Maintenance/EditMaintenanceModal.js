@@ -12,6 +12,10 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Check user role - only STAFF and ADMIN can edit responsiblePerson/Phone
+  const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
+  const canEditResponsible = userRole === 'ADMIN' || userRole === 'STAFF';
+
   useEffect(() => {
     if (!open || !maintenanceId) return;
     setError('');
@@ -101,6 +105,8 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
                   onChange={handleChange('responsiblePerson')}
                   fullWidth
                   placeholder="ชื่อผู้รับผิดชอบ"
+                  disabled={!canEditResponsible}
+                  helperText={!canEditResponsible ? "เฉพาะ STAFF/ADMIN เท่านั้นที่สามารถแก้ไข" : ""}
                 />
                 <TextField
                   label="เบอร์โทรศัพท์"
@@ -108,6 +114,8 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
                   onChange={handleChange('responsiblePhone')}
                   fullWidth
                   placeholder="เบอร์โทรศัพท์ผู้รับผิดชอบ"
+                  disabled={!canEditResponsible}
+                  helperText={!canEditResponsible ? "เฉพาะ STAFF/ADMIN เท่านั้นที่สามารถแก้ไข" : ""}
                 />
 
                 {/* Document Upload Section */}

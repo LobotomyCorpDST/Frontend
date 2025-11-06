@@ -4,7 +4,7 @@ import {
   Box, Paper, Typography, Button, Table, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip, TableRow, TableCell
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
-import { getAllLeases, settleLease, openLease, bulkPrintLeases } from '../../api/lease';
+import { getAllLeases, settleLease, openLease, bulkPrintLeases, updateLease } from '../../api/lease';
 import CreateLeaseModal from '../Lease/CreateLeaseModal';
 import LeaseEditModal from './LeaseEditModal';
 import EnhancedSearchBar from '../Common/EnhancedSearchBar';
@@ -19,8 +19,8 @@ const fmt = (d) => {
 // Thai status translation
 const translateStatus = (status) => {
   const statusMap = {
-    'ACTIVE': 'ใช้งาน',
-    'ENDED': 'สิ้นสุด'
+    'ACTIVE': 'อยู่ในระยะสัญญา',
+    'ENDED': 'ครบกำหนดสัญญา'
   };
   return statusMap[status?.toUpperCase()] || status || '-';
 };
@@ -28,9 +28,9 @@ const translateStatus = (status) => {
 // Thai settled translation
 const translateSettled = (settled, settledDate) => {
   if (settled) {
-    return `ชำระแล้ว (${fmt(settledDate)})`;
+    return `คืนแล้ว (${fmt(settledDate)})`;
   }
-  return 'ยังไม่ชำระ';
+  return 'ยังไม่คืนเงิน';
 };
 
 const LeaseHistory = () => {
@@ -39,6 +39,7 @@ const LeaseHistory = () => {
   const [err, setErr] = useState('');
   const [markingId, setMarkingId] = useState(null);
   const [printingId, setPrintingId] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
 
   // Unified search state
   const [searchTerm, setSearchTerm] = useState('');
@@ -178,6 +179,20 @@ const LeaseHistory = () => {
   const openForEdit = (id) => {
     setEditLeaseId(id);
     setOpenEdit(true);
+  };
+
+  const handleToggleLeaseStatus = async (id, currentStatus, e) => {
+    if (e) e.stopPropagation();
+    try {
+      setTogglingId(id);
+      const newStatus = currentStatus === 'ACTIVE' ? 'ENDED' : 'ACTIVE';
+      await updateLease(id, { status: newStatus });
+      await loadAll();
+    } catch (e) {
+      setErr(e?.message || 'Toggle lease status failed');
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   // Bulk selection handlers
@@ -336,7 +351,7 @@ const LeaseHistory = () => {
                 { id: 'startDate', label: 'เริ่ม' },
                 { id: 'endDate', label: 'สิ้นสุด' },
                 { id: 'status', label: 'สถานะ' },
-                { id: 'settled', label: 'การชำระ' },
+                { id: 'settled', label: 'เงินมัดจำ' },
                 { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'right' },
               ]}
               sortConfig={sortConfig}
@@ -364,7 +379,11 @@ const LeaseHistory = () => {
                   <TableCell>{fmt(l.startDate)}</TableCell>
                   <TableCell>{fmt(l.endDate)}</TableCell>
                   <TableCell>{translateStatus(l.status)}</TableCell>
-                  <TableCell>{translateSettled(l.settled, l.settledDate)}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {translateSettled(l.settled, l.settledDate)}
+                    </Typography>
+                  </TableCell>
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                       <Button
@@ -385,15 +404,6 @@ const LeaseHistory = () => {
                         }}
                       >
                         แก้ไข
-                      </Button>
-
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={(e) => onMarkSettled(l.id, e)}
-                        disabled={!!l.settled || markingId === l.id}
-                      >
-                        {markingId === l.id ? 'กำลังบันทึก' : 'ตั้งค่าครบกำหนด'}
                       </Button>
                     </Stack>
                   </TableCell>

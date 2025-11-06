@@ -11,15 +11,18 @@ import {
   Box,
   Divider,
   Typography,
+  Autocomplete,
 } from '@mui/material';
 import { getUserById, updateUser, changePassword } from '../../api/user';
+import { listRooms } from '../../api/room';
 
 const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
   const [formData, setFormData] = useState({
     username: '',
     role: 'STAFF',
-    roomId: '',
+    roomNumber: null,
   });
+  const [rooms, setRooms] = useState([]);
   const [passwordData, setPasswordData] = useState({
     newPassword: '',
     confirmPassword: '',
@@ -28,13 +31,32 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
   const [loading, setLoading] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingRooms, setLoadingRooms] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      fetchRooms();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (userId) {
       loadUser();
     }
   }, [userId]);
+
+  const fetchRooms = async () => {
+    setLoadingRooms(true);
+    try {
+      const data = await listRooms();
+      setRooms(data || []);
+    } catch (err) {
+      console.error('Failed to load rooms:', err);
+    } finally {
+      setLoadingRooms(false);
+    }
+  };
 
   const loadUser = async () => {
     setLoadingUser(true);
@@ -45,7 +67,7 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
       setFormData({
         username: user.username || '',
         role: user.role || 'STAFF',
-        roomId: user.roomId || '',
+        roomNumbers: user.roomNumbers || '',
       });
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Failed to load user');
@@ -74,8 +96,8 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
       setError('Username is required');
       return;
     }
-    if (formData.role === 'USER' && !formData.roomId) {
-      setError('Room ID is required for USER role');
+    if (formData.role === 'USER' && !formData.roomNumbers) {
+      setError('Room Numbers are required for USER role');
       return;
     }
 
@@ -84,7 +106,7 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
       const payload = {
         username: formData.username.trim(),
         role: formData.role,
-        roomId: formData.role === 'USER' && formData.roomId ? Number(formData.roomId) : null,
+        roomNumbers: formData.role === 'USER' && formData.roomNumbers ? formData.roomNumbers.trim() : null,
       };
 
       await updateUser(userId, payload);
@@ -126,7 +148,7 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
 
   const handleClose = () => {
     if (!loading && !loadingPassword) {
-      setFormData({ username: '', role: 'STAFF', roomId: '' });
+      setFormData({ username: '', role: 'STAFF', roomNumber: null });
       setPasswordData({ newPassword: '', confirmPassword: '' });
       setError('');
       setShowPasswordSection(false);
@@ -180,17 +202,20 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
               {formData.role === 'USER' && (
                 <Box sx={{ mt: 2 }}>
                   <Alert severity="info" sx={{ mb: 2 }}>
-                    USER role requires a Room ID
+                    USER role requires Room Numbers (comma-separated for multiple rooms)
                   </Alert>
                   <TextField
                     fullWidth
-                    label="Room ID"
-                    name="roomId"
-                    type="number"
-                    value={formData.roomId}
-                    onChange={handleChange}
+                    label="เลขห้อง (Room Numbers)"
+                    name="roomNumbers"
+                    value={formData.roomNumbers || ''}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, roomNumbers: e.target.value }));
+                      setError('');
+                    }}
                     required={formData.role === 'USER'}
-                    helperText="Enter the room number this user belongs to"
+                    helperText="ใส่เลขห้องคั่นด้วยจุลภาค เช่น 201, 305, 412"
+                    placeholder="201, 305, 412"
                   />
                 </Box>
               )}

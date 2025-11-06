@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -25,6 +25,7 @@ import {
   markPaid,
   markUnpaid,
   computeDisplayStatus,
+  openInvoice,
 } from '../../api/invoice';
 import StandardTableHeader from '../Common/StandardTableHeader';
 
@@ -37,28 +38,27 @@ function fmt(n) {
 }
 
 const headCells = [
-  { id: 'issueDate', label: 'วันที่ออกบิล', disableSorting: true },
-  { id: 'totalBaht', label: 'ยอดรวม (บาท)', disableSorting: true },
-  { id: 'status', label: 'สถานะ', disableSorting: true },
+  { id: 'issueDate', label: 'วันที่ออกบิล' },
+  { id: 'totalBaht', label: 'ยอดรวม (บาท)' },
+  { id: 'status', label: 'สถานะ' },
   { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'right' },
 ];
-
-// เปิดไฟล์ PDF ของใบแจ้งหนี้โดยตรง
-function openInvoicePdf(id) {
-  window.open(`/api/invoices/${id}/pdf`, '_blank', 'noopener');
-}
 
 export default function RoomInvoiceTable({
   roomId,
   onCreateClick,
   showCreateButton = true,
+  userRole: propUserRole,
 }) {
-  // Get user role for permission checks
-  const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
+  // Get user role for permission checks (use prop if provided, otherwise get from localStorage)
+  const userRole = propUserRole || (localStorage.getItem('role') || 'GUEST').toUpperCase();
   const isAdmin = userRole === 'ADMIN';
+  const isStaff = userRole === 'STAFF';
+  const canTakeActions = isAdmin || isStaff;
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState({ key: 'issueDate', direction: 'descending' });
 
   async function load() {
     if (!roomId) return;
@@ -76,6 +76,35 @@ export default function RoomInvoiceTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
+  const handleRequestSort = (property) => {
+    const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
+    setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+  };
+
+  const sortedItems = useMemo(() => {
+    if (!sortConfig.key) return items;
+
+    return [...items].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+
+      // Handle status sorting with Thai labels
+      if (sortConfig.key === 'status') {
+        aVal = computeDisplayStatus(a);
+        bVal = computeDisplayStatus(b);
+      }
+
+      // Handle null/undefined
+      if (aVal == null) aVal = '';
+      if (bVal == null) bVal = '';
+
+      // Compare
+      if (aVal < bVal) return sortConfig.direction === 'ascending' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+  }, [items, sortConfig]);
+
   async function doMarkPaid(id) {
     const today = new Date().toISOString().slice(0, 10);
     await markPaid(id, today);
@@ -88,14 +117,13 @@ export default function RoomInvoiceTable({
   }
 
   function renderStatusChip(inv) {
-    const label = computeDisplayStatus(inv); // 'Paid' | 'Overdue' | 'Not yet paid'
+    const label = computeDisplayStatus(inv); // 'ชำระแล้ว' | 'ค้างชำระ' | 'ยังไม่ชำระ'
     const colorMap = {
-      paid: 'success',
-      overdue: 'error',
-      'not yet paid': 'warning',
+      'ชำระแล้ว': 'success',
+      'ค้างชำระ': 'error',
+      'ยังไม่ชำระ': 'warning',
     };
-    const key = (label || '').toLowerCase();
-    return <Chip size="small" label={label} color={colorMap[key] || 'default'} />;
+    return <Chip size="small" label={label} color={colorMap[label] || 'default'} />;
   }
 
   const actionBtnSx = { borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 2 };
@@ -120,7 +148,7 @@ export default function RoomInvoiceTable({
 
       <TableContainer component={Paper} variant="outlined">
         <Table stickyHeader size="small">
-          <StandardTableHeader columns={headCells} sortConfig={null} onRequestSort={() => {}} />
+          <StandardTableHeader columns={headCells} sortConfig={sortConfig} onRequestSort={handleRequestSort} />
 
           <TableBody>
             {loading ? (
@@ -136,22 +164,27 @@ export default function RoomInvoiceTable({
                 </TableCell>
               </TableRow>
             ) : (
-              items.map((inv) => (
+              sortedItems.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell>{inv.issueDate}</TableCell>
                   <TableCell>{fmt(inv.totalBaht)}</TableCell>
                   <TableCell>{renderStatusChip(inv)}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title="เปิดหน้าพิมพ์ (PDF)">
-                      <IconButton size="small" onClick={() => openInvoicePdf(inv.id)}>
-                        <PrintIcon fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="เปิดไฟล์ PDF">
-                      <IconButton size="small" sx={{ ml: 0.5 }} onClick={() => openInvoicePdf(inv.id)}>
-                        <PictureAsPdfIcon fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
+                    {/* Print/PDF buttons - ADMIN/STAFF only, hidden for USER */}
+                    {canTakeActions && (
+                      <>
+                        <Tooltip title="เปิดหน้าพิมพ์ (PDF)">
+                          <IconButton size="small" onClick={() => openInvoice(inv.id, 'print')}>
+                            <PrintIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="เปิดไฟล์ PDF">
+                          <IconButton size="small" sx={{ ml: 0.5 }} onClick={() => openInvoice(inv.id, 'pdf')}>
+                            <PictureAsPdfIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
 
                     {/* Mark Paid/Unpaid buttons - ADMIN only */}
                     {isAdmin && (

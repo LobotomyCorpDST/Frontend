@@ -61,9 +61,12 @@ export default function LoginPage() {
         const userRole = data.role || 'STAFF'; // Default to STAFF if not provided
         localStorage.setItem('role', userRole.toLowerCase());
 
-        // Store room_id if provided (for USER role)
-        if (data.roomId) {
-          localStorage.setItem('room_id', data.roomId);
+        // Store room_ids (comma-separated) if provided (for USER role)
+        if (data.roomNumbers) {
+          localStorage.setItem('room_ids', data.roomNumbers);
+        } else if (data.roomId) {
+          // Fallback for old single roomId (backward compatibility)
+          localStorage.setItem('room_ids', data.roomId.toString());
         }
 
         // Route based on actual role
@@ -102,7 +105,7 @@ export default function LoginPage() {
       const data = res?.data ?? res;
       if (data?.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', 'guest');
+        localStorage.setItem('role', data.role || 'GUEST'); // Store actual role from backend
         navigate('/home-guest');
       } else {
         throw new Error('เข้าสู่ระบบแบบผู้เยี่ยมชมล้มเหลว: ไม่ได้รับโทเค็น');
