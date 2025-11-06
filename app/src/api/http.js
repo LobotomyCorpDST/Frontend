@@ -31,7 +31,17 @@ function getToken() {
 
 // ---------- URL BUILDER ----------
 function buildUrl(base, path, params) {
-  let url = `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+  const normalizedBase = base === '/' ? '' : base.replace(/\/+$/, '');
+  let normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  // Avoid issuing `/api/api/...` when both base and path already include the prefix
+  if (normalizedBase.endsWith('/api') && normalizedPath.startsWith('/api')) {
+    normalizedPath = normalizedPath.replace(/^\/api/, '') || '/';
+  }
+
+  const joined = `${normalizedBase}${normalizedPath}`;
+  let url = joined || normalizedPath || '/';
+
   if (params && typeof params === 'object') {
     const qs = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
