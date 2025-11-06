@@ -262,8 +262,8 @@ const UserManagement = () => {
                     <Chip label={user.role} color={getRoleColor(user.role)} size="small" />
                   </TableCell>
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
-                    {user.roomNumber ? (
-                      <Chip label={`ห้อง ${user.roomNumber}`} size="small" variant="outlined" />
+                    {user.roomNumbers ? (
+                      <Chip label={`ห้อง ${user.roomNumbers}`} size="small" variant="outlined" />
                     ) : (
                       <Typography variant="body2" color="text.secondary">
                         -

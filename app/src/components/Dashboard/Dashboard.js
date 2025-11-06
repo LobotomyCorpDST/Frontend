@@ -21,9 +21,9 @@ const Dashboard = ({ isGuest = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Get user role and room for USER role restrictions
+  // Get user role and room(s) for USER role restrictions
   const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
-  const userRoomId = localStorage.getItem('room_id');
+  const userRoomIds = localStorage.getItem('room_ids'); // Comma-separated room numbers (e.g., "201,305,412")
   const isUserRole = userRole === 'USER';
 
   useEffect(() => {
@@ -42,30 +42,26 @@ const Dashboard = ({ isGuest = false }) => {
           tenantInfo: { name: room.tenant?.name || '' },
         }));
 
-        // USER role: Only show their assigned room
-        if (isUserRole && userRoomId) {
-          const parsedUserRoomId = parseInt(userRoomId, 10);
+        // USER role: Only show their assigned rooms (comma-separated)
+        if (isUserRole && userRoomIds) {
+          const roomNumbersArray = userRoomIds.split(',').map(num => parseInt(num.trim(), 10));
           transformed = transformed.filter((room) => {
-            const roomId = typeof room.id === 'number' ? room.id : parseInt(room.id, 10);
-            return roomId === parsedUserRoomId;
+            const roomNum = typeof room.roomNumber === 'number' ? room.roomNumber : parseInt(room.roomNumber, 10);
+            return roomNumbersArray.includes(roomNum);
           });
         }
 
         setRooms(transformed);
       } catch (e) {
-        // Graceful handling for guest users who don't have permission
-        if (isGuest && (e.status === 403 || e.status === 401)) {
-          // Show empty rooms for guest - they can see the dashboard structure but not data
-          setRooms([]);
-          setError(''); // Don't show error for guests, just empty state
-        } else {
-          setError(e.message || 'Could not load dashboard data.');
-        }
+        // Log error for debugging
+        console.error('Dashboard load error:', e);
+        setError(e.message || 'Could not load dashboard data.');
+        setRooms([]); // Set to empty on any error
       } finally{
         setLoading(false);
       }
     })();
-  }, [location.pathname, isUserRole, userRoomId, isGuest]);
+  }, [location.pathname, isUserRole, userRoomIds, isGuest]);
 
   const handleRoomNumberClick = (roomNumber) => {
     if (isGuest) return;

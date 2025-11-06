@@ -405,30 +405,6 @@ const LeaseHistory = () => {
                       >
                         แก้ไข
                       </Button>
-
-                      {/* คืนเงิน button - only show if not settled */}
-                      {!l.settled && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="success"
-                          onClick={(e) => { e.stopPropagation(); onMarkSettled(l.id, e); }}
-                          disabled={markingId === l.id}
-                        >
-                          {markingId === l.id ? 'กำลังบันทึก...' : 'คืนเงิน'}
-                        </Button>
-                      )}
-
-                      {/* Toggle lease status button */}
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color={l.status === 'ACTIVE' ? 'warning' : 'primary'}
-                        onClick={(e) => { e.stopPropagation(); handleToggleLeaseStatus(l.id, l.status, e); }}
-                        disabled={togglingId === l.id}
-                      >
-                        {togglingId === l.id ? 'กำลังบันทึก...' : (l.status === 'ACTIVE' ? 'ตั้งค่าครบกำหนด' : 'กลับมาใช้งาน')}
-                      </Button>
                     </Stack>
                   </TableCell>
                 </TableRow>

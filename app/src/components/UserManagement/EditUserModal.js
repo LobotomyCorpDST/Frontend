@@ -67,7 +67,7 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
       setFormData({
         username: user.username || '',
         role: user.role || 'STAFF',
-        roomNumber: user.roomNumber || null,
+        roomNumbers: user.roomNumbers || '',
       });
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Failed to load user');
@@ -96,8 +96,8 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
       setError('Username is required');
       return;
     }
-    if (formData.role === 'USER' && !formData.roomNumber) {
-      setError('Room Number is required for USER role');
+    if (formData.role === 'USER' && !formData.roomNumbers) {
+      setError('Room Numbers are required for USER role');
       return;
     }
 
@@ -106,7 +106,7 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
       const payload = {
         username: formData.username.trim(),
         role: formData.role,
-        roomNumber: formData.role === 'USER' && formData.roomNumber ? formData.roomNumber : null,
+        roomNumbers: formData.role === 'USER' && formData.roomNumbers ? formData.roomNumbers.trim() : null,
       };
 
       await updateUser(userId, payload);
@@ -202,27 +202,20 @@ const EditUserModal = ({ open, userId, onClose, onUpdated }) => {
               {formData.role === 'USER' && (
                 <Box sx={{ mt: 2 }}>
                   <Alert severity="info" sx={{ mb: 2 }}>
-                    USER role requires a Room Number
+                    USER role requires Room Numbers (comma-separated for multiple rooms)
                   </Alert>
-                  <Autocomplete
+                  <TextField
                     fullWidth
-                    options={rooms}
-                    getOptionLabel={(option) => `ห้อง ${option.number} - ${option.status === 'OCCUPIED' ? 'มีผู้เช่า' : 'ว่าง'}`}
-                    value={rooms.find((r) => r.number === formData.roomNumber) || null}
-                    onChange={(event, newValue) => {
-                      setFormData((prev) => ({ ...prev, roomNumber: newValue ? newValue.number : null }));
+                    label="เลขห้อง (Room Numbers)"
+                    name="roomNumbers"
+                    value={formData.roomNumbers || ''}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, roomNumbers: e.target.value }));
                       setError('');
                     }}
-                    loading={loadingRooms}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="เลขห้อง (Room Number)"
-                        required={formData.role === 'USER'}
-                        helperText="เลือกเลขห้องที่ผู้ใช้จะดูแล"
-                      />
-                    )}
-                    isOptionEqualToValue={(option, value) => option.number === value.number}
+                    required={formData.role === 'USER'}
+                    helperText="ใส่เลขห้องคั่นด้วยจุลภาค เช่น 201, 305, 412"
+                    placeholder="201, 305, 412"
                   />
                 </Box>
               )}

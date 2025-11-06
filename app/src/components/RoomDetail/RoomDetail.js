@@ -317,10 +317,10 @@ const RoomDetail = () => {
         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
           {activeRightTab === 0 && (
             <Box>
-              {/* Invoice Tab - GUEST cannot see, USER can view only, ADMIN/STAFF full access */}
-              {userRole === 'GUEST' ? (
+              {/* Invoice Tab - Only ADMIN and USER can see, GUEST and STAFF cannot */}
+              {(userRole === 'GUEST' || userRole === 'STAFF') ? (
                 <Alert severity="info">
-                  เฉพาะผู้ใช้ที่ลงทะเบียนเท่านั้นที่สามารถดูใบแจ้งหนี้ได้
+                  เฉพาะผู้ดูแลระบบและผู้ใช้ที่ลงทะเบียนเท่านั้นที่สามารถดูใบแจ้งหนี้ได้
                 </Alert>
               ) : (
                 <>
