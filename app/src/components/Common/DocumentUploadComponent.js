@@ -124,7 +124,9 @@ const DocumentUploadComponent = ({
     setUploading(true);
     setError('');
     try {
-      await uploadDocument(file, entityType, entityId);
+      // Ensure entityType matches backend enum and entityId is passed as number/string id
+      const normalizedType = String(entityType || '').toUpperCase();
+      await uploadDocument(file, normalizedType, entityId);
       await loadDocuments();
       if (onUploadSuccess) onUploadSuccess();
     } catch (err) {
