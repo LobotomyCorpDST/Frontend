@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Typography, Chip, Box, TableSortLabel, Button
+  Table, TableBody, TableCell, TableContainer, TableRow,
+  Paper, Typography, Chip, Box, Button, CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
-import { visuallyHidden } from '@mui/utils';
 import { useNavigate } from 'react-router-dom';
 import { listMaintenance } from '../../api/maintenance';
 import { getRoomByNumber } from '../../api/room';
 import EditMaintenanceModal from '../Maintenance/EditMaintenanceModal';
 import CreateMaintenanceModal from '../Maintenance/CreateMaintenanceModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
+import EnhancedSearchBar from '../Common/EnhancedSearchBar';
+import StandardTableHeader from '../Common/StandardTableHeader';
+import StandardPagination from '../Common/StandardPagination';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -32,17 +32,6 @@ const renderStatus = (status) => {
   }
 };
 
-const headerCellStyle = {
-  backgroundColor: '#1d3e7d',
-  fontWeight: 600,
-  color: '#f8f9fa',
-  padding: '12px',
-  textAlign: 'left',
-  borderBottom: '1px solid #e0e6eb',
-  cursor: 'pointer',
-  '&:hover': { backgroundColor: '#173262' },
-};
-
 const headCells = [
   { id: 'id', label: 'หมายเลขอ้างอิง' },
   { id: 'responsiblePerson', label: 'ผู้รับผิดชอบ', disableSorting: true },
@@ -50,7 +39,7 @@ const headCells = [
   { id: 'scheduledDate', label: 'กำหนดการ' },
   { id: 'status', label: 'สถานะบำรุง' },
   { id: 'description', label: 'รายละเอียด' },
-  { id: 'actions', label: 'Actions', disableSorting: true },
+  { id: 'actions', label: 'การดำเนินการ', disableSorting: true },
 ];
 
 export default function MaintenanceHistory({ searchTerm: externalSearchTerm, addMaintenanceSignal, userRole }) {
@@ -60,7 +49,15 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [openCreate, setOpenCreate] = useState(false);
+
+  // Unified search state
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('');
+
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
+
   const navigate = useNavigate();
 
   // Get user role and room (for USER role filtering)
@@ -104,7 +101,7 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
         id: item.id,
         label: `${ref} - ห้อง ${item.roomNumber} - ${item.description || 'ไม่มีคำอธิบาย'}`,
         value: item.id,
-        searchText: `${ref} ${item.roomNumber} ${item.id} ${item.description || ''} ${item.status || ''}`,
+        searchText: `${ref} ${item.roomNumber} ${item.id} ${item.description || ''} ${item.status || ''} ${item.responsiblePerson || ''} ${item.responsiblePhone || ''}`,
       };
     });
   }, [allMaintenance]);
@@ -118,18 +115,42 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
       filtered = filtered.filter((item) => item.roomId === parseInt(currentUserRoomId));
     }
 
-    // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter((item) => item.id === searchTerm);
+      if (searchType === 'exact') {
+        // Exact match (from SmartSearch autocomplete)
+        filtered = filtered.filter((item) => item.id === searchTerm);
+      } else if (searchType === 'partial') {
+        // Partial match (from QuickSearch text input)
+        const searchLower = String(searchTerm).toLowerCase();
+        filtered = filtered.filter((item) => {
+          const ref = `C${item.roomNumber}0${item.id}`;
+          const itemId = String(item.id || '');
+          const roomNum = String(item.roomNumber || '');
+          const desc = String(item.description || '');
+          const person = String(item.responsiblePerson || '');
+          const phone = String(item.responsiblePhone || '');
+          const status = String(item.status || '');
+          return (
+            ref.toLowerCase().includes(searchLower) ||
+            itemId.includes(searchLower) ||
+            roomNum.includes(searchLower) ||
+            desc.toLowerCase().includes(searchLower) ||
+            person.toLowerCase().includes(searchLower) ||
+            phone.includes(searchLower) ||
+            status.toLowerCase().includes(searchLower)
+          );
+        });
+      }
     }
 
     return filtered;
-  }, [allMaintenance, searchTerm, currentUserRole, currentUserRoomId]);
+  }, [allMaintenance, searchTerm, searchType, currentUserRole, currentUserRoomId]);
 
   // --- Sorting ---
   const handleRequestSort = (property) => {
     const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+    setPage(0); // Reset to first page when sorting changes
   };
 
   const sortedItems = useMemo(() => {
@@ -150,6 +171,12 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
     return sortableItems;
   }, [filteredMaintenance, sortConfig]);
 
+  // Paginated maintenance (apply after filtering and sorting)
+  const paginatedItems = useMemo(() => {
+    const start = page * rowsPerPage;
+    return sortedItems.slice(start, start + rowsPerPage);
+  }, [sortedItems, page, rowsPerPage]);
+
   // --- Handlers ---
   const handleEdit = (id) => {
     setSelectedId(id);
@@ -165,68 +192,45 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
     }
   };
 
-  if (loading) return <Typography align="center">Loading...</Typography>;
+  if (loading) return (
+    <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <CircularProgress /> <Typography sx={{ ml: 2 }}>กำลังโหลดข้อมูลบำรุงรักษา...</Typography>
+    </Box>
+  );
 
   return (
-    <>
-      {/* Smart Search */}
-      <Box sx={{ mb: 3, maxWidth: 600 }}>
-        <SmartSearchAutocomplete
-          options={searchOptions}
-          label="ค้นหาบำรุงรักษา"
-          value={searchTerm}
-          onChange={(value) => setSearchTerm(value)}
-          placeholder="พิมพ์หมายเลขอ้างอิง, ห้อง, หรือคำอธิบาย..."
-        />
-      </Box>
+    <Box sx={{ p: 3 }}>
+      {/* Enhanced Search (Unified Quick + Smart) */}
+      <EnhancedSearchBar
+        onSearch={({ type, value }) => {
+          setSearchTerm(value);
+          setSearchType(type);
+          setPage(0);
+        }}
+        searchOptions={searchOptions}
+        searchLabel="ค้นหาบำรุงรักษาแบบเฉพาะเจาะจง"
+        searchPlaceholder="พิมพ์หมายเลขอ้างอิง, ห้อง, หรือคำอธิบาย แล้วกด Enter..."
+      />
 
       <TableContainer
         component={Paper}
         sx={{
+          marginTop: '20px',
           borderRadius: '8px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
           overflowX: 'auto',
         }}
       >
-        <Table sx={{ minWidth: 650, maxWidth: '96%', mx: 'auto', mb: 2 }}>
-          <TableHead>
-            <TableRow>
-              {headCells.map((h) => (
-                <TableCell
-                  key={h.id}
-                  sx={headerCellStyle}
-                  sortDirection={sortConfig.key === h.id ? sortConfig.direction : false}
-                  onClick={() => !h.disableSorting && handleRequestSort(h.id)}
-                >
-                  <TableSortLabel
-                    active={sortConfig.key === h.id}
-                    direction={sortConfig.key === h.id ? sortConfig.direction : 'asc'}
-                    sx={{
-                      color: '#f8f9fa',
-                      '&:hover': { color: '#f0f4fa' },
-                      '&.Mui-active': {
-                        color: '#f8f9fa',
-                        '& .MuiTableSortLabel-icon': { color: 'inherit !important' },
-                      },
-                    }}
-                  >
-                    {h.label}
-                    {sortConfig.key === h.id && (
-                      <Box component="span" sx={visuallyHidden}>
-                        {sortConfig.direction === 'descending'
-                          ? 'sorted descending'
-                          : 'sorted ascending'}
-                      </Box>
-                    )}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
+        <Table sx={{ minWidth: 650 }} aria-label="maintenance history table">
+          <StandardTableHeader
+            columns={headCells}
+            sortConfig={sortConfig}
+            onRequestSort={handleRequestSort}
+          />
 
           <TableBody>
-            {sortedItems.length > 0 ? (
-              sortedItems.map((item) => (
+            {paginatedItems.length > 0 ? (
+              paginatedItems.map((item) => (
                 <TableRow
                   key={item.id}
                   sx={{
@@ -240,8 +244,18 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">นาย ช่าง หัวมัน</Typography>
-                    <Typography variant="caption" color="text.secondary">0000000008</Typography>
+                    {item.responsiblePerson ? (
+                      <>
+                        <Typography variant="body2">{item.responsiblePerson}</Typography>
+                        {item.responsiblePhone && (
+                          <Typography variant="caption" color="text.secondary">
+                            {item.responsiblePhone}
+                          </Typography>
+                        )}
+                      </>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">-</Typography>
+                    )}
                   </TableCell>
                   <TableCell>{item.costBaht ? item.costBaht.toLocaleString() : '-'}</TableCell>
                   <TableCell>{formatDate(item.scheduledDate)}</TableCell>
@@ -275,6 +289,20 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
             )}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {sortedItems.length > 0 && (
+          <StandardPagination
+            count={sortedItems.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+          />
+        )}
       </TableContainer>
 
       {/* Edit Modal */}
@@ -301,6 +329,6 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
           }}
         />
       )}
-    </>
+    </Box>
   );
 }

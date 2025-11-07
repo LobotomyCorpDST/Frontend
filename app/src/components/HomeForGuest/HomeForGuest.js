@@ -62,7 +62,7 @@ function HomePageForGuest() {
         >
             <Toolbar sx={{ p: '16px' }}>
                 <AccountCircleIcon sx={{ mr: 2, fontSize: '2rem', color: "#13438B" }} />
-                <Typography variant="h6" noWrap>กิตติชาติ</Typography>
+                <Typography variant="h6" noWrap>เช็คสถานะห้อง</Typography>
             </Toolbar>
             <Divider />
 

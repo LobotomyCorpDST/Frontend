@@ -14,7 +14,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EditInvoiceModal from '../Invoice/EditInvoiceModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
+import EnhancedSearchBar from '../Common/EnhancedSearchBar';
+import StandardPagination from '../Common/StandardPagination';
 
 import { listInvoices, openInvoice, computeDisplayStatus, bulkPrintInvoices, getCurrentMonthInvoices } from '../../api/invoice';
 import GenerateInvoiceModal from '../Invoice/GenerateInvoiceModal';
@@ -37,7 +38,7 @@ const headCells = [
   { id: 'dueDate', label: 'วันกำหนดชำระ' },
   { id: 'totalBaht', label: 'จำนวน (บาท)' },
   { id: 'status', label: 'สถานะ' },
-  { id: 'actions', label: 'Actions', disableSorting: true },
+  { id: 'actions', label: 'การดำเนินการ', disableSorting: true },
 ];
 
 // ---------- helpers ----------
@@ -50,25 +51,37 @@ function formatCurrency(n) {
 }
 
 function renderStatusChip(inv) {
-  const label = computeDisplayStatus(inv); // 'Paid' | 'Overdue' | 'Not yet paid'
-  const colorMap = { paid: 'success', overdue: 'error', 'not yet paid': 'warning' };
-  const key = (label || '').toLowerCase();
-  return <Chip size="small" label={label} color={colorMap[key] || 'default'} />;
+  const statusEn = computeDisplayStatus(inv); // 'Paid' | 'Overdue' | 'Not yet paid'
+  const statusMap = {
+    'paid': { label: 'ชำระแล้ว', color: 'success' },
+    'overdue': { label: 'เกินกำหนด', color: 'error' },
+    'not yet paid': { label: 'รอชำระ', color: 'warning' }
+  };
+  const key = (statusEn || '').toLowerCase();
+  const status = statusMap[key] || { label: statusEn, color: 'default' };
+  return <Chip size="small" label={status.label} color={status.color} />;
 }
 
 // ---------- component ----------
-const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) => {
+const InvoiceHistory = ({ addInvoiceSignal }) => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: 'issueDate', direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'descending' }); // Default: newest first
   const [invoiceToPrint, setInvoiceToPrint] = useState(null);
   const [openCreate, setOpenCreate] = useState(false);
   const prevSignal = useRef(addInvoiceSignal);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  // Unified search state
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('');
+
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -112,6 +125,7 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
   const handleRequestSort = (property) => {
     const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+    setPage(0); // Reset to first page when sorting changes
   };
 
   const sortedInvoices = useMemo(() => {
@@ -149,17 +163,46 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
   const searchOptions = useMemo(() => {
     return sortedInvoices.map((inv) => ({
       id: inv.id,
-      label: `Invoice #${inv.id} - ห้อง ${inv.room?.number ?? '-'} - ${formatCurrency(inv.totalBaht)} บาท`,
+      label: `ใบแจ้งหนี้ #${inv.id} - ห้อง ${inv.room?.number ?? '-'} - ${formatCurrency(inv.totalBaht)} บาท`,
       value: inv.id,
       searchText: `${inv.id} ${inv.room?.number ?? ''} ${inv.totalBaht ?? ''}`,
     }));
   }, [sortedInvoices]);
 
-  // Filter invoices based on selected search value
+  // Filter invoices based on unified search
   const filteredInvoices = useMemo(() => {
-    if (!searchTerm) return sortedInvoices;
-    return sortedInvoices.filter((inv) => inv.id === searchTerm);
-  }, [sortedInvoices, searchTerm]);
+    let result = sortedInvoices;
+
+    if (searchTerm) {
+      if (searchType === 'exact') {
+        // Exact match (from SmartSearch autocomplete)
+        result = result.filter((inv) => inv.id === searchTerm);
+      } else if (searchType === 'partial') {
+        // Partial match (from QuickSearch text input)
+        const searchLower = String(searchTerm).toLowerCase();
+        result = result.filter((inv) => {
+          const roomNum = String(inv.room?.number || '');
+          const invId = String(inv.id || '');
+          const total = String(inv.totalBaht || '');
+          const tenantName = String(inv.tenant?.name || '');
+          return (
+            roomNum.includes(searchLower) ||
+            invId.includes(searchLower) ||
+            total.includes(searchLower) ||
+            tenantName.toLowerCase().includes(searchLower)
+          );
+        });
+      }
+    }
+
+    return result;
+  }, [sortedInvoices, searchTerm, searchType]);
+
+  // Paginated invoices (apply after filtering and sorting)
+  const paginatedInvoices = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredInvoices.slice(start, start + rowsPerPage);
+  }, [filteredInvoices, page, rowsPerPage]);
 
   const handleRoomClick = (roomNumber) => {
     if (roomNumber) navigate(`/room-details/${roomNumber}`);
@@ -188,11 +231,28 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.size === filteredInvoices.length) {
-      setSelectedIds(new Set());
+    // Select all on current page only
+    if (selectedIds.size === paginatedInvoices.length && paginatedInvoices.every(inv => selectedIds.has(inv.id))) {
+      // Deselect all on current page
+      setSelectedIds((prev) => {
+        const newSet = new Set(prev);
+        paginatedInvoices.forEach(inv => newSet.delete(inv.id));
+        return newSet;
+      });
     } else {
-      setSelectedIds(new Set(filteredInvoices.map((inv) => inv.id)));
+      // Select all on current page
+      setSelectedIds((prev) => {
+        const newSet = new Set(prev);
+        paginatedInvoices.forEach(inv => newSet.add(inv.id));
+        return newSet;
+      });
     }
+  };
+
+  const handleSelectAllFiltered = () => {
+    // Select all filtered results (across all pages)
+    setSelectedIds(new Set(filteredInvoices.map((inv) => inv.id)));
+    setBulkError('');
   };
 
   const handleClearSelection = () => {
@@ -229,7 +289,7 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
-        <CircularProgress /> <Typography sx={{ ml: 2 }}>Loading Invoices...</Typography>
+        <CircularProgress /> <Typography sx={{ ml: 2 }}>กำลังโหลดใบแจ้งหนี้...</Typography>
       </Box>
     );
   }
@@ -237,13 +297,13 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
   if (error) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error">Error: {error}</Typography>
+        <Typography color="error">เกิดข้อผิดพลาด: {error}</Typography>
       </Box>
     );
   }
 
   return (
-    <>
+    <Box sx={{ p: 3 }}>
       {/* Main action toolbar */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 2 }}>
         <Button
@@ -275,9 +335,9 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
           }}
         >
           <Typography sx={{ flex: '1 1 100%' }} variant="subtitle1" component="div">
-            {selectedIds.size} selected
+            เลือกแล้ว {selectedIds.size} รายการ
           </Typography>
-          <Tooltip title="Print Selected">
+          <Tooltip title="พิมพ์ที่เลือก">
             <Button
               variant="contained"
               color="secondary"
@@ -286,15 +346,20 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
               disabled={bulkPrinting}
               sx={{ mr: 1 }}
             >
-              {bulkPrinting ? 'Printing...' : `Print (${selectedIds.size})`}
+              {bulkPrinting ? 'กำลังพิมพ์...' : `พิมพ์ (${selectedIds.size})`}
             </Button>
           </Tooltip>
           <Button variant="outlined" color="inherit" onClick={handleClearSelection} sx={{ mr: 1 }}>
-            Clear
+            ล้างการเลือก
           </Button>
           <Button variant="outlined" color="inherit" onClick={handleSelectCurrentMonth}>
-            เลือกเฉพาะเดือนปัจจุบัน
+            เลือกเดือนปัจจุบัน
           </Button>
+          {filteredInvoices.length > selectedIds.size && (
+            <Button variant="outlined" color="inherit" onClick={handleSelectAllFiltered} sx={{ ml: 1 }}>
+              เลือกทั้งหมด ({filteredInvoices.length})
+            </Button>
+          )}
         </Toolbar>
       )}
 
@@ -305,16 +370,17 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
         </Alert>
       )}
 
-      {/* Smart Search */}
-      <Box sx={{ mb: 3, maxWidth: 600 }}>
-        <SmartSearchAutocomplete
-          options={searchOptions}
-          label="ค้นหาใบแจ้งหนี้"
-          value={searchTerm}
-          onChange={(value) => setSearchTerm(value)}
-          placeholder="พิมพ์เลขห้อง, เลข Invoice, หรือจำนวนเงิน..."
-        />
-      </Box>
+      {/* Enhanced Search (Unified Quick + Smart) */}
+      <EnhancedSearchBar
+        onSearch={({ type, value }) => {
+          setSearchTerm(value);
+          setSearchType(type);
+          setPage(0);
+        }}
+        searchOptions={searchOptions}
+        searchLabel="ค้นหาใบแจ้งหนี้แบบเฉพาะเจาะจง"
+        searchPlaceholder="พิมพ์เลขห้อง, เลข Invoice, หรือจำนวนเงิน แล้วกด Enter..."
+      />
 
       <TableContainer
         component={Paper}
@@ -335,8 +401,8 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
                 >
                   {headCell.id === 'select' ? (
                     <Checkbox
-                      indeterminate={selectedIds.size > 0 && selectedIds.size < filteredInvoices.length}
-                      checked={filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length}
+                      indeterminate={selectedIds.size > 0 && !paginatedInvoices.every(inv => selectedIds.has(inv.id))}
+                      checked={paginatedInvoices.length > 0 && paginatedInvoices.every(inv => selectedIds.has(inv.id))}
                       onChange={handleSelectAll}
                       sx={{ color: '#f8f9fa', '&.Mui-checked': { color: '#f8f9fa' } }}
                     />
@@ -369,8 +435,8 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredInvoices.length > 0 ? (
-              filteredInvoices.map((invoice) => (
+            {paginatedInvoices.length > 0 ? (
+              paginatedInvoices.map((invoice) => (
                 <TableRow
                   key={invoice.id}
                   sx={{
@@ -401,15 +467,15 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>{renderStatusChip(invoice)}</TableCell>
                   <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
-                      <Tooltip title="Edit Invoice">
+                      <Tooltip title="แก้ไขใบแจ้งหนี้">
                         <IconButton onClick={() => handleEdit(invoice)} size="small">
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Print Preview">
+                      <Tooltip title="พิมพ์">
                         <IconButton onClick={() => setInvoiceToPrint(invoice)} size="small"><PrintIcon /></IconButton>
                       </Tooltip>
-                      <Tooltip title="Download PDF">
+                      <Tooltip title="ดาวน์โหลด PDF">
                          <IconButton onClick={() => openInvoice(invoice.id, 'pdf')} size="small"><PictureAsPdfIcon /></IconButton>
                       </Tooltip>
                     </Box>
@@ -419,39 +485,53 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
             ) : (
               <TableRow>
                 <TableCell colSpan={headCells.length} sx={{ textAlign: 'center', py: 3 }}>
-                  No invoices found.
+                  ไม่พบใบแจ้งหนี้
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {filteredInvoices.length > 0 && (
+          <StandardPagination
+            count={filteredInvoices.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+          />
+        )}
       </TableContainer>
 
       <Dialog open={Boolean(invoiceToPrint)} onClose={() => setInvoiceToPrint(null)} maxWidth="xs" fullWidth>
         {invoiceToPrint && (
           <>
             <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>
-              Invoice Details
+              รายละเอียดใบแจ้งหนี้
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={1}>
-                <Grid item xs={6}><Typography><strong>Room No.:</strong></Typography></Grid>
+                <Grid item xs={6}><Typography><strong>เลขห้อง:</strong></Typography></Grid>
                 <Grid item xs={6}><Typography>{invoiceToPrint.room?.number}</Typography></Grid>
-                <Grid item xs={6}><Typography><strong>Invoice ID:</strong></Typography></Grid>
+                <Grid item xs={6}><Typography><strong>ID ใบแจ้งหนี้:</strong></Typography></Grid>
                 <Grid item xs={6}><Typography>{invoiceToPrint.id}</Typography></Grid>
-                <Grid item xs={6}><Typography><strong>Issue Date:</strong></Typography></Grid>
+                <Grid item xs={6}><Typography><strong>วันออกใบ:</strong></Typography></Grid>
                 <Grid item xs={6}><Typography>{invoiceToPrint.issueDate}</Typography></Grid>
-                <Grid item xs={6}><Typography><strong>Due Date:</strong></Typography></Grid>
+                <Grid item xs={6}><Typography><strong>วันกำหนดชำระ:</strong></Typography></Grid>
                 <Grid item xs={6}><Typography>{invoiceToPrint.dueDate}</Typography></Grid>
-                <Grid item xs={6}><Typography><strong>Amount:</strong></Typography></Grid>
-                <Grid item xs={6}><Typography>{formatCurrency(invoiceToPrint.totalBaht)}</Typography></Grid>
-                <Grid item xs={6}><Typography><strong>Status:</strong></Typography></Grid>
+                <Grid item xs={6}><Typography><strong>จำนวนเงิน:</strong></Typography></Grid>
+                <Grid item xs={6}><Typography>{formatCurrency(invoiceToPrint.totalBaht)} บาท</Typography></Grid>
+                <Grid item xs={6}><Typography><strong>สถานะ:</strong></Typography></Grid>
                 <Grid item xs={6}>{renderStatusChip(invoiceToPrint)}</Grid>
               </Grid>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setInvoiceToPrint(null)}>Cancel</Button>
-              <Button onClick={handlePrint} variant="contained">Print</Button>
+              <Button onClick={() => setInvoiceToPrint(null)}>ยกเลิก</Button>
+              <Button onClick={handlePrint} variant="contained">พิมพ์</Button>
             </DialogActions>
           </>
         )}
@@ -491,8 +571,7 @@ const InvoiceHistory = ({ searchTerm: externalSearchTerm, addInvoiceSignal }) =>
           setOpenSettings(false);
         }}
       />
-
-    </>
+    </Box>
   );
 };
 

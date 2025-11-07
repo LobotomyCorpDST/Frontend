@@ -1,39 +1,43 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel,
-  Box, Link, Typography,
+  Table, TableBody, TableCell, TableContainer, TableRow, Paper,
+  Box, Link
 } from '@mui/material';
-import { visuallyHidden } from '@mui/utils';
 import CreateRoomModal from './CreateRoomModal';
-import SmartSearchAutocomplete from '../Common/SmartSearchAutocomplete';
+import EnhancedSearchBar from '../Common/EnhancedSearchBar';
+import StandardTableHeader from '../Common/StandardTableHeader';
+import StandardPagination from '../Common/StandardPagination';
 
 import http from '../../api/http';
 import { listMaintenanceByRoomNumber } from '../../api/maintenance';
 
-const headCells = [
-  { id: 'roomNumber',        label: 'เลขห้อง' },
-  { id: 'occupantName',      label: 'ผู้เช่าอาศัย' },
-  { id: 'leaseEndDate',      label: 'วันสิ้นสุดสัญญา' },
-  { id: 'roomStatus',        label: 'สถานะห้อง' },
-  { id: 'maintenanceStatus', label: 'สถานะบำรุงรักษา' },
-];
-
-const headerCellStyle = {
-  backgroundColor: '#13438B',
-  color: '#f8f9fa',
-  fontWeight: 'bold',
-  padding: '12px',
+// Thai maintenance status translation
+const translateMaintenanceStatus = (status) => {
+  const statusMap = {
+    'PLANNED': 'วางแผน',
+    'IN_PROGRESS': 'กำลังดำเนินการ',
+    'COMPLETED': 'เสร็จสิ้น',
+    'CANCELED': 'ยกเลิก'
+  };
+  return statusMap[status?.toUpperCase()] || status || '-';
 };
 
-const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
+const RoomList = ({ addRoomSignal }) => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
-  const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'descending' }); // Changed default
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openCreate, setOpenCreate] = useState(false);
+
+  // Unified search state
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('');
+
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
 
   const prevSignal = useRef(addRoomSignal);
   useEffect(() => {
@@ -85,9 +89,9 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
                 return dateB - dateA;
               });
               const latest = sortedByDate[0];
-              
-              // Show status and scheduled date
-              maintenanceStatus = `${latest.status} ในวันที่ ${latest.scheduledDate || '-'}`;
+
+              // Show status and scheduled date (with Thai translation)
+              maintenanceStatus = `${translateMaintenanceStatus(latest.status)} ในวันที่ ${latest.scheduledDate || '-'}`;
             }
           } catch {
             // If no maintenance found, keep as '-'
@@ -145,9 +149,10 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
   const handleRequestSort = (property) => {
     const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
     setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
+    setPage(0); // Reset to first page when sorting changes
   };
 
-  // Convert rooms to searchable options for SmartSearch
+  // Convert rooms to searchable options for smart search
   const searchOptions = useMemo(() => {
     return sortedRooms.map((room) => ({
       id: room.roomId,
@@ -157,30 +162,58 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
     }));
   }, [sortedRooms]);
 
-  // Filter rooms based on selected search value
+  // Filter rooms based on unified search
   const filteredRooms = useMemo(() => {
-    if (!searchTerm) return sortedRooms;
-    return sortedRooms.filter((room) => room.roomNumber === searchTerm);
-  }, [sortedRooms, searchTerm]);
+    let result = sortedRooms;
+
+    if (searchTerm) {
+      if (searchType === 'exact') {
+        // Exact match (from SmartSearch autocomplete)
+        result = result.filter((room) => room.roomNumber === searchTerm);
+      } else if (searchType === 'partial') {
+        // Partial match (from QuickSearch text input)
+        const searchLower = String(searchTerm).toLowerCase();
+        result = result.filter((room) => {
+          const roomNum = String(room.roomNumber || '');
+          const tenantName = String(room.tenantInfo.name || '');
+          return (
+            roomNum.includes(searchLower) ||
+            tenantName.toLowerCase().includes(searchLower)
+          );
+        });
+      }
+    }
+
+    return result;
+  }, [sortedRooms, searchTerm, searchType]);
+
+  // Paginated rooms (apply after filtering and sorting)
+  const paginatedRooms = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredRooms.slice(start, start + rowsPerPage);
+  }, [filteredRooms, page, rowsPerPage]);
 
   const handleRowClick = (roomNumber) => {
     navigate(`/room-details/${roomNumber}`);
   };
 
-  if (loading) return <div className="room-table">Loading rooms…</div>;
-  if (error) return <div className="room-table">Error: {error}</div>;
+  if (loading) return <Box sx={{ p: 3, textAlign: 'center' }}>กำลังโหลดห้อง…</Box>;
+  if (error) return <Box sx={{ p: 3, textAlign: 'center', color: 'error.main' }}>เกิดข้อผิดพลาด: {error}</Box>;
 
   return (
-    <>
-      <Box sx={{ mb: 3, maxWidth: 400 }}>
-        <SmartSearchAutocomplete
-          options={searchOptions}
-          label="ค้นหาห้อง"
-          value={searchTerm}
-          onChange={(value) => setSearchTerm(value)}
-          placeholder="พิมพ์เลขห้องหรือชื่อผู้เช่า..."
-        />
-      </Box>
+    <Box sx={{ p: 3 }}>
+      {/* Enhanced Search (Unified Quick + Smart) */}
+      <EnhancedSearchBar
+        onSearch={({ type, value }) => {
+          setSearchTerm(value);
+          setSearchType(type);
+          setPage(0);
+        }}
+        searchOptions={searchOptions}
+        searchLabel="ค้นหาห้องแบบเฉพาะเจาะจง"
+        searchPlaceholder="พิมพ์เลขห้องหรือชื่อผู้เช่า แล้วกด Enter..."
+      />
+
       <TableContainer
         component={Paper}
         sx={{
@@ -188,43 +221,21 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)', overflowX: 'auto',
         }}
       >
-        <Table sx={{ minWidth: 650, maxWidth: '96%', mx: 'auto', mb: 2 }} aria-label="room list table">
-          <TableHead>
-            <TableRow>
-              {headCells.map((headCell) => (
-                <TableCell
-                  key={headCell.id}
-                  sx={headerCellStyle}
-                  sortDirection={sortConfig.key === headCell.id ? sortConfig.direction : false}
-                  onClick={() => handleRequestSort(headCell.id)}
-                >
-                  <TableSortLabel
-                    active={sortConfig.key === headCell.id}
-                    direction={sortConfig.key === headCell.id ? sortConfig.direction : 'asc'}
-                    sx={{
-                      color: '#f8f9fa', '&:hover': { color: '#f0f4fa' }, '&.Mui-active': {
-                        color: '#f8f9fa',
-                        '& .MuiTableSortLabel-icon': {
-                          transform: sortConfig.direction === 'ascending' ? 'rotate(180deg)' : 'rotate(0deg)',
-                        }
-                      },
-                      '& .MuiTableSortLabel-icon': { color: 'inherit !important' },
-                    }}
-                  >
-                    {headCell.label}
-                    {sortConfig.key === headCell.id ? (
-                      <Box component="span" sx={visuallyHidden}>
-                        {sortConfig.direction === 'descending' ? 'sorted descending' : 'sorted ascending'}
-                      </Box>
-                    ) : null}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
+        <Table sx={{ minWidth: 650 }} aria-label="room list table">
+          <StandardTableHeader
+            columns={[
+              { id: 'roomNumber', label: 'เลขห้อง' },
+              { id: 'occupantName', label: 'ผู้เช่าอาศัย' },
+              { id: 'leaseEndDate', label: 'วันสิ้นสุดสัญญา' },
+              { id: 'roomStatus', label: 'สถานะห้อง' },
+              { id: 'maintenanceStatus', label: 'สถานะบำรุงรักษา' },
+            ]}
+            sortConfig={sortConfig}
+            onRequestSort={handleRequestSort}
+          />
           <TableBody>
-            {filteredRooms.length > 0 ? (
-              filteredRooms.map((room) => (
+            {paginatedRooms.length > 0 ? (
+              paginatedRooms.map((room) => (
                 <TableRow
                   key={room.roomId}
                   onClick={() => handleRowClick(room.roomNumber)}
@@ -245,13 +256,27 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={headCells.length} sx={{ textAlign: 'center', py: 3 }}>
+                <TableCell colSpan={5} sx={{ textAlign: 'center', py: 3 }}>
                   ไม่พบห้อง
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {filteredRooms.length > 0 && (
+          <StandardPagination
+            count={filteredRooms.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+          />
+        )}
       </TableContainer>
 
       {openCreate && (
@@ -261,7 +286,7 @@ const RoomList = ({ searchTerm: externalSearchTerm, addRoomSignal }) => {
           onCreated={loadRooms}
         />
       )}
-    </>
+    </Box>
   );
 };
 
