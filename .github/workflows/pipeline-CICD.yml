@@ -1,0 +1,61 @@
+name: Frontend CI/CD to GKE
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    
+env:
+  GKE_CLUSTER: doomapt-project-cluster
+  GKE_ZONE: asia-southeast1-a
+  K8S_PATH: app/k8s 
+  DOCKER_IMAGE_NAME: mmmmnl/lobotomy_but_front
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+       contents: 'read'
+       id-token: 'write'
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build the Docker image
+      run: docker build --file app/Dockerfile -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} app
+      
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+      
+    - name: Push Docker Image
+      run: docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+      
+    - name: 🔐 Authenticate to GCP (SA Key)
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        
+    - name: ⚙️ Get GKE Credentials
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        
+    - name: Install Kustomize
+      run: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+      
+    - name: 📝 Update K8s Image Tag
+      run: |
+        cd ${{ env.K8S_PATH }}
+        ../../kustomize edit set image ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+        
+    - name: 🚀 Deploy Frontend to GKE
+      run: |
+        kubectl apply -k ${{ env.K8S_PATH }} --namespace=doomed-apt
+        
+    - name: ⏳ Wait for Deployment Rollout
+      run: kubectl rollout status deployment/frontend-deployment --namespace=doomed-apt --timeout=5m
