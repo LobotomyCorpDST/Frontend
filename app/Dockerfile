@@ -11,9 +11,9 @@ COPY . .
 
 # Set API URL for builds (pre-deploy uses localhost)
 # These can be overridden at build time with --build-arg
-ARG REACT_APP_API=http://localhost:8080
+ARG REACT_APP_API=http://34.87.82.168:8080
 ENV REACT_APP_API=${REACT_APP_API}
-ARG REACT_APP_API_BASE=http://localhost:8080
+ARG REACT_APP_API_BASE=http://34.87.82.168:8080
 ENV REACT_APP_API_BASE=${REACT_APP_API_BASE}
 
 # Build production bundle

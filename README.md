@@ -78,7 +78,7 @@ kubectl port-forward -n doomed-apt svc/frontend 3000:80
 
 Then access:
 - Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend API: [http://localhost:8080](http://localhost:8080)
+- Backend API: [http://34.87.82.168:8080](http://34.87.82.168:8080)
 
 #### 5. Login Credentials
 
@@ -252,14 +252,14 @@ Visit [http://localhost:32080](http://localhost:32080) and login with admin cred
 cd Backend
 # Make sure MySQL is running on localhost:3306
 ./gradlew bootRun
-# Backend will start on http://localhost:8080
+# Backend will start on http://34.87.82.168:8080
 ```
 
 #### Frontend:
 ```bash
 cd Frontend/app
 # Create .env file with:
-# REACT_APP_API=http://localhost:8080
+# REACT_APP_API=http://34.87.82.168:8080
 npm start
 # Frontend will start on http://localhost:3000
 ```
@@ -331,7 +331,7 @@ docker-compose up -d
 
 # Access:
 # - Frontend: http://localhost:3000
-# - Backend: http://localhost:8080
+# - Backend: http://34.87.82.168:8080
 # - MySQL: localhost:3307
 
 # View logs
@@ -618,7 +618,7 @@ kubectl get pvc -n doomed-apt
 
 ### Base URL
 - Production: `http://localhost:32081`
-- Development: `http://localhost:8080`
+- Development: `http://34.87.82.168:8080`
 
 ### Authentication
 
@@ -826,7 +826,7 @@ For issues or questions:
    if you’re running backend on local docker, just keep this:
 
    ```
-   REACT_APP_API=http://localhost:8080
+   REACT_APP_API=http://34.87.82.168:8080
    ```
 3. run it
 
@@ -884,7 +884,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_BASE=http://localhost:8080
+      - REACT_APP_API_BASE=http://34.87.82.168:8080
       - CHOKIDAR_USEPOLLING=true
     volumes:
       # Mounts local source code into the container's /app directory

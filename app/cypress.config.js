@@ -8,7 +8,7 @@ module.exports = defineConfig({
       // implement node event listeners here
     },
     env: {
-      API_BASE_URL: 'http://34.87.82.168:8080/'
+      API_BASE_URL: 'http://34.87.82.168:8080'
     },
     viewportWidth: 1280,
     viewportHeight: 720,

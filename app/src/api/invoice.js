@@ -120,7 +120,7 @@ export async function importInvoicesFromCsv(file) {
     process.env.REACT_APP_API ||
     process.env.REACT_APP_API_BASE ||
     process.env.REACT_APP_API_BASE_URL ||
-    'http://34.87.82.168:8080/';
+    'http://34.87.82.168:8080';
 
   const url = `${BASE}/api/invoices/import-csv`;
 
