@@ -13,7 +13,7 @@ Cypress.Commands.add('bypassLogin', () => {
 
 // Command to wait for API to be ready
 Cypress.Commands.add('waitForApi', () => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   cy.request({
     method: 'GET',
     url: `${apiBaseUrl}/api/rooms/ping`,
@@ -38,7 +38,7 @@ Cypress.Commands.add('waitForApi', () => {
 
 // Command to clean up test data by type
 Cypress.Commands.add('cleanupData', (dataType, ids) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   const apiEndpoints = {
     invoices: '/api/invoices',
     maintenance: '/api/maintenance',
@@ -154,7 +154,7 @@ Cypress.Commands.add('selectMuiDropdown', (label, value) => {
 
 // API helper commands with better error handling
 Cypress.Commands.add('createTestRoom', (roomData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   const defaultData = {
     number: Math.floor(Math.random() * 9000) + 1000,
     status: 'FREE'
@@ -168,7 +168,7 @@ Cypress.Commands.add('createTestRoom', (roomData) => {
 });
 
 Cypress.Commands.add('createTestTenant', (tenantData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   const defaultData = {
     name: 'Test Tenant ' + Date.now(),
     phone: '000-000-0000',
@@ -181,7 +181,7 @@ Cypress.Commands.add('createTestTenant', (tenantData) => {
 });
 
 Cypress.Commands.add('createTestLease', (leaseData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   const defaultData = {
     startDate: new Date().toISOString().split('T')[0],
     monthlyRent: 7000,
@@ -194,7 +194,7 @@ Cypress.Commands.add('createTestLease', (leaseData) => {
 });
 
 Cypress.Commands.add('createTestInvoice', (invoiceData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   const today = new Date();
   const dueDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   const defaultData = {
@@ -212,7 +212,7 @@ Cypress.Commands.add('createTestInvoice', (invoiceData) => {
 });
 
 Cypress.Commands.add('createTestMaintenance', (maintenanceData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://34.87.82.168:8080';
   const defaultData = {
     description: 'Test maintenance task ' + Date.now(),
     scheduledDate: new Date().toISOString().split('T')[0],

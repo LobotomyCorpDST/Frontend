@@ -200,7 +200,7 @@ const InvoiceSettingsModal = ({ open, onClose, onSuccess }) => {
                 {qrFile ? 'QR Code ใหม่ (ยังไม่ได้บันทึก)' : 'QR Code ปัจจุบัน'}
               </Typography>
               <img
-                src={qrPreview || `${process.env.REACT_APP_API || 'http://localhost:8080'}/uploads/${currentQrPath}`}
+                src={qrPreview || `${process.env.REACT_APP_API || 'http://34.87.82.168:8080'}/uploads/${currentQrPath}`}
                 alt="QR Code Preview"
                 style={{ maxWidth: '200px', maxHeight: '200px', border: '1px solid #ddd' }}
               />
