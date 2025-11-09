@@ -67,6 +67,8 @@ kubectl get pods -n doomed-apt
 - Frontend: [http://localhost:32080](http://localhost:32080)
 - Backend API: [http://localhost:32081](http://localhost:32081)
 
+> Important: In production builds keep `REACT_APP_API=/api` (default) so the frontend calls its own origin and lets the nginx proxy forward `/api/*` traffic to the `backend` service. Pointing it directly at the backend LoadBalancer/IP will bypass the proxy and the browser will block requests because the backend does not emit `Access-Control-Allow-Origin`.
+
 **Option B: Using Port-Forward (Alternative Ports)**
 ```bash
 # Terminal 1 - Backend on port 8080
