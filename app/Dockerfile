@@ -11,9 +11,9 @@ COPY . .
 
 # Set API URL for builds (default to the nginx proxy to avoid CORS)
 # These can be overridden at build time with --build-arg
-ARG REACT_APP_API=/api
+ARG REACT_APP_API=/
 ENV REACT_APP_API=${REACT_APP_API}
-ARG REACT_APP_API_BASE=/api
+ARG REACT_APP_API_BASE=/
 ENV REACT_APP_API_BASE=${REACT_APP_API_BASE}
 
 # Build production bundle
