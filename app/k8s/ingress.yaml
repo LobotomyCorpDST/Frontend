@@ -6,6 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "gce"
     networking.gke.io/pre-shared-cert: "apt-cert"
+    kubernetes.io/ingress.global-static-ip-name: "apartment-project"
 spec:
   rules:
   - http:
