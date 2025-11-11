@@ -4,6 +4,7 @@ namespace: doomed-apt
 resources:
   - deployment.yaml
   - service-nodeport.yaml
+  - ingress.yaml
 images:
   - name: mmmmnl/lobotomy_but_front
     newTag: v.1.0
