@@ -8,7 +8,7 @@ on:
     
 env:
   GKE_CLUSTER: doomapt-project-cluster
-  GKE_ZONE: asia-southeast1-a
+  GKE_ZONE: asia-southeast1
   K8S_PATH: app/k8s 
   DOCKER_IMAGE_NAME: mmmmnl/lobotomy_but_front
 
