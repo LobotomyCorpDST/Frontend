@@ -6,7 +6,7 @@ metadata:
   annotations:
     networking.gke.io/pre-shared-cert: "apartment-certificate-https"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
-    kubernetes.io/ingress.allow-http: "false"
+
 spec:
   ingressClassName: "gce"
   rules:
