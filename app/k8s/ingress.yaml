@@ -4,8 +4,9 @@ metadata:
   name: apt-ingress-rules
   namespace: doomed-apt
   annotations:
-    networking.gke.io/pre-shared-cert: "apartment-certificate-https"
+    networking.gke.io/pre-shared-certs: "apartment-certificate-https"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
+    kubernetes.io/ingress.allow-http: "false"
 spec:
   ingressClassName: "gce"
   rules:
