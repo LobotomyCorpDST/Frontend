@@ -4,11 +4,12 @@ metadata:
   name: apt-ingress-rules
   namespace: doomed-apt
   annotations:
-    kubernetes.io/ingress.class: "gce"
+    # kubernetes.io/ingress.class: "gce"
     networking.gke.io/pre-shared-cert: "apartment-certificate-https"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
 
 spec:
+  ingressClassName: "gce"
   rules:
     - host: "apt.krentiz.dev"
       http:
