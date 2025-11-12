@@ -5,12 +5,12 @@ metadata:
   namespace: doomed-apt
   annotations:
     kubernetes.io/ingress.class: "gce"
-    networking.gke.io/pre-shared-certs: "apartment-certificate-https"
+    networking.gke.io/pre-shared-cert: "apartment-certificate-https"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
 
 spec:
   rules:
-  - host: "apt.krerentz.dev"
+  - host: "apt.krentiz.dev"
     http:
       paths:
       - path: /api
