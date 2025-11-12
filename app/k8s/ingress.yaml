@@ -5,7 +5,7 @@ metadata:
   namespace: doomed-apt
   annotations:
     kubernetes.io/ingress.class: "gce"
-    networking.gke.io/pre-shared-cert: "apt-cert"
+    networking.gke.io/managed-certificates: "apt-cert"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
 spec:
   rules:
@@ -25,4 +25,4 @@ spec:
           service:
             name: frontend  
             port:
-              number: 80    
+              number: 80
