@@ -6,9 +6,10 @@ metadata:
   annotations:
     networking.gke.io/pre-shared-cert: "//certificatemanager.googleapis.com/projects/81558488107/locations/global/certificates/apartment-certificate-https"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
+    kubernetes.io/ingress.class: "gce"
     
 spec:
-  ingressClassName: "gce"
+  # ingressClassName: "gce"
   rules:
     - host: "apt.krentiz.dev"
       http:
