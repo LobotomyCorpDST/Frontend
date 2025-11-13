@@ -5,8 +5,10 @@ metadata:
   namespace: doomed-apt
   labels:
     app: frontend
+  annotations:
+    cloud.google.com/backend-config: '{"default": "frontend-backendconfig"}'
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: frontend
   ports:
