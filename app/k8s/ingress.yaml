@@ -4,10 +4,9 @@ metadata:
   name: apt-ingress-rules
   namespace: doomed-apt
   annotations:
-    # kubernetes.io/ingress.class: "gce"
-    networking.gke.io/pre-shared-cert: "apartment-certificate-https"
+    networking.gke.io/pre-shared-cert: "//certificatemanager.googleapis.com/projects/81558488107/locations/global/certificates/apartment-certificate-https"
     kubernetes.io/ingress.global-static-ip-name: "apartment-project"
-
+    
 spec:
   ingressClassName: "gce"
   rules:
@@ -18,14 +17,14 @@ spec:
           pathType: Prefix
           backend:
             service:
-              name: backend   
+              name: backend
               port:
-                number: 8080  
+                number: 8080
         
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: frontend  
+              name: frontend
               port:
                 number: 80
