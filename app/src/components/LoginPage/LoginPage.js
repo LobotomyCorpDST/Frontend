@@ -259,10 +259,6 @@ export default function LoginPage() {
             </Button>
           </Stack>
 
-          {/* API Info */}
-          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#1d3e7da8' }}>
-            API: {API_BASE}
-          </Typography>
         </Paper>
       </Box>
 
