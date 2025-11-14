@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: apt-managed-certificate
+  namespace: doomed-apt
+spec:
+  domains:
+    - apt.krentiz.dev

@@ -6,6 +6,7 @@ resources:
   - service-nodeport.yaml
   - ingress.yaml
   - backend-config.yaml
+  - managed-cert.yaml
 images:
   - name: mmmmnl/lobotomy_but_front
     newTag: v.1.0

@@ -4,28 +4,26 @@ metadata:
   name: apt-ingress-rules
   namespace: doomed-apt
   annotations:
-    networking.gke.io/pre-shared-cert: "//certificatemanager.googleapis.com/projects/81558488107/locations/global/certificates/apartment-certificate-https"
-    kubernetes.io/ingress.global-static-ip-name: "apartment-project"
     kubernetes.io/ingress.class: "gce"
-    
+    networking.gke.io/managed-certificates: "apt-managed-certificate"
+    kubernetes.io/ingress.global-static-ip-name: "apartment-project"
 spec:
-  # ingressClassName: "gce"
   rules:
-    - host: "apt.krentiz.dev"
-      http:
-        paths:
-        - path: /api
-          pathType: Prefix
-          backend:
-            service:
-              name: backend
-              port:
-                number: 8080
-        
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: frontend
-              port:
-                number: 80
+  - host: apt.krentiz.dev
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend   
+            port:
+              number: 8080  
+      
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend  
+            port:
+              number: 80
