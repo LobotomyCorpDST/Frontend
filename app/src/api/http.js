@@ -3,7 +3,7 @@ const RAW_BASE =
   process.env.REACT_APP_API ||
   process.env.REACT_APP_API_BASE ||
   process.env.REACT_APP_API_BASE_URL ||
-  'http://34.87.82.168:8080';
+  'https://apt.krentiz.dev';
 
 const BASE = String(RAW_BASE).replace(/\/+$/, '');
 
