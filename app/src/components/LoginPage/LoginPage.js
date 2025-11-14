@@ -118,16 +118,23 @@ export default function LoginPage() {
   };
 
   const buildingConfig = [
-    { height: 250, width: '6%', minWidth: '40px' },
+    { height: 325, width: '15%', minWidth: '45px' },
     { height: 180, width: '2%', minWidth: '10px', transparent: true },
-    { height: 140, width: '5%', minWidth: '35px' },
-    { height: 230, width: '7%', minWidth: '45px' },
+    { height: 150, width: '13%', minWidth: '50px' },
+    { height: 250, width: '8%', minWidth: '45px' },
     { height: 180, width: '2%', minWidth: '10px', transparent: true },
-    { height: 140, width: '5%', minWidth: '35px' },
-    { height: 160, width: '6%', minWidth: '40px' },
-    { height: 120, width: '5%', minWidth: '35px' },
-    { height: 230, width: '7%', minWidth: '45px' },
-    { height: 250, width: '8%', minWidth: '50px' },
+    { height: 140, width: '15%', minWidth: '45px' },
+    { height: 180, width: '2%', minWidth: '10px', transparent: true },
+    { height: 160, width: '15%', minWidth: '40px' },
+    { height: 120, width: '20%', minWidth: '35px' },
+    { height: 180, width: '2%', minWidth: '10px', transparent: true },
+    { height: 230, width: '15%', minWidth: '45px' },
+    { height: 140, width: '10%', minWidth: '35px' },
+    { height: 250, width: '10%', minWidth: '25px' },
+    { height: 180, width: '2%', minWidth: '10px', transparent: true },
+    { height: 150, width: '13%', minWidth: '50px' },
+    { height: 250, width: '8%', minWidth: '45px' },
+    { height: 325, width: '15%', minWidth: '45px' },
   ];
 
   return (
@@ -141,7 +148,7 @@ export default function LoginPage() {
         fontFamily: theme.typography.fontFamily,
       }}
     >
-      {/* Main Form */}
+      {/* Main Form from snippet 1 (with state logic) */}
       <Box
         component="form"
         noValidate
@@ -181,7 +188,7 @@ export default function LoginPage() {
             Doomed Apt.
           </Typography>
 
-          {/* Inputs */}
+          {/* Controlled Inputs from snippet 1 */}
           <TextField
             fullWidth
             label="ชื่อผู้ใช้"
@@ -214,14 +221,14 @@ export default function LoginPage() {
             }}
           />
 
-          {/* Error Message */}
+          {/* Error Message from snippet 1 */}
           {error && (
             <Typography variant="body2" color="error" sx={{ mb: 1 }}>
               {error}
             </Typography>
           )}
 
-          {/* Buttons Section */}
+          {/* Buttons Section from snippet 1 */}
           <Stack spacing={2} alignItems="center">
             {/* Main Login */}
             <Button
@@ -262,7 +269,7 @@ export default function LoginPage() {
         </Paper>
       </Box>
 
-      {/* Footer Buildings */}
+      {/* Footer Buildings from snippet 1 (data-driven) */}
       <Box
         component="footer"
         sx={{
@@ -283,9 +290,9 @@ export default function LoginPage() {
             key={i}
             elevation={0}
             sx={{
-              height: getBuildingHeight(b.height),
+              height: getBuildingHeight(b.height), // Uses function from snippet 2
               width: b.width,
-              minWidth: isVerySmallScreen
+              minWidth: isVerySmallScreen // Uses variable from snippet 2
                 ? b.minWidth.replace(/\d+/g, m => Math.floor(parseInt(m) * 0.5))
                 : b.minWidth,
               backgroundColor: b.transparent ? 'transparent' : '#9AB4DD',
