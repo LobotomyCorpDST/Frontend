@@ -9,4 +9,4 @@ resources:
   - managed-cert.yaml
 images:
   - name: mmmmnl/lobotomy_but_front
-    newTag: v.1.0
+    newTag: v.1.1
