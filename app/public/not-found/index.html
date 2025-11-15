@@ -19,13 +19,47 @@
   <section class="page_404">
     <div class="content">
       <div class="four_zero_four_bg">
-        <h1>404</h1>
+        <h1 id="statusCodeDisplay">404</h1>
       </div>
       <div class="content_box_404">
-        <h2>Looks Like You're Lost</h2>
-        <p>The page you are looking for is not available.</p>
-        <a href="/">Go to Home</a>
+        <h2 id="statusTitle">Looks Like You're Lost</h2>
+        <p id="statusMessage">The page you are looking for is not available.</p>
+        <a href="/">กลับหน้าหลัก</a>
       </div>
     </div>
   </section>
+
+  <script>
+    (function () {
+      var STORAGE_KEY = 'not-found-status';
+      var statusCode = '404';
+      try {
+        if (window.sessionStorage) {
+          var stored = sessionStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            statusCode = stored;
+            sessionStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      } catch (err) {
+        statusCode = '404';
+      }
+
+      var heading = document.getElementById('statusCodeDisplay');
+      var title = document.getElementById('statusTitle');
+      var message = document.getElementById('statusMessage');
+
+      if (statusCode === '403') {
+        heading.textContent = '403';
+        title.textContent = 'ดูเหมือนว่าคุณจะไม่มีสิทธิ์เข้าถึงหน้านี้';
+        message.textContent = 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบหรือเจ้าหน้าที่ที่เกี่ยวข้องหากคิดว่านี่เป็นความผิดพลาด';
+        document.title = '403 - Forbidden';
+      } else {
+        heading.textContent = '404';
+        title.textContent = "ดูเหมือนว่าคุณจะหลงทาง";
+        message.textContent = "ไม่พบหน้าที่คุณต้องการเข้าถึง กรุณาตรวจสอบ URL หรือติดต่อผู้ดูแลระบบหากคิดว่านี่เป็นความผิดพลาด";
+        document.title = "404 - Not Found";
+      }
+    })();
+  </script>
 </body>
