@@ -4,11 +4,15 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
-const Header = ({ onMenuClick }) => {
+const Header = ({ onMenuClick, ...props }) => {
 
     return (
         <>
-            <AppBar position="fixed">
+            <AppBar
+                position="fixed"
+                data-cy="header-app-bar"
+                {...props}
+            >
                 <Toolbar>
                     <IconButton
                         size="large"
@@ -17,11 +21,17 @@ const Header = ({ onMenuClick }) => {
                         aria-label="open drawer"
                         sx={{ mr: 2 }}
                         onClick={onMenuClick}
+                        data-cy="header-menu-button"
                     >
                         <MenuIcon />
                     </IconButton>
 
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{ flexGrow: 1 }}
+                        data-cy="header-title"
+                    >
                         Apartment Management
                     </Typography>
 

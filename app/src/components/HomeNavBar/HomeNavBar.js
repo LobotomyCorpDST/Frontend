@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
-  Box,
-  Button,
-  Paper,
+    Box,
+    Button,
+    Paper,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
+const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => {
     const [addRoomSignal, setAddRoomSignal] = useState(0);
     const [addInvoiceSignal, setAddInvoiceSignal] = useState(0);
     const [addTenantSignal, setAddTenantSignal] = useState(0);
@@ -60,8 +60,14 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
     };
 
     return (
-        <Box sx={{ maxWidth: "1800px", margin: "40px auto", px: 3 }}>
-            <Paper sx={{ borderRadius: "8px", overflow: "hidden" }}>
+        <Box
+            sx={{ maxWidth: "1800px", margin: "40px auto", px: 3 }}
+            {...props}
+        >
+            <Paper
+                sx={{ borderRadius: "8px", overflow: "hidden" }}
+                data-cy="home-nav-bar-paper-container" 
+            >
                 <Box
                     sx={{
                         p: 3,
@@ -69,6 +75,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                         alignItems: "center",
                         justifyContent: "end",
                     }}
+                    data-cy="home-nav-bar-actions-toolbar" 
                 >
                     {showAdd && (
                         <Button
@@ -81,18 +88,22 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange }) => {
                                 borderRadius: "8px",
                                 boxShadow: "none",
                             }}
+                            data-cy="home-nav-bar-add-button" 
                         >
                             {getButtonLabel()}
                         </Button>
                     )}
                 </Box>
 
-                {React.cloneElement(CurrentComponent, {
-                    addRoomSignal,
-                    addInvoiceSignal,
-                    addTenantSignal,
-                    addMaintenanceSignal,
-                })}
+                {/* This box will wrap the currently active component */}
+                <Box data-cy="home-nav-bar-active-component-container">
+                    {React.cloneElement(CurrentComponent, {
+                        addRoomSignal,
+                        addInvoiceSignal,
+                        addTenantSignal,
+                        addMaintenanceSignal,
+                    })}
+                </Box>
             </Paper>
         </Box>
     );

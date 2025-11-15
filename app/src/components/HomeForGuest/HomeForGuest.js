@@ -1,18 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import Header from '../Header/Header';
-import HomeNavBar from '../HomeNavBar/HomeNavBar';
-// import './Home.css';
-
+import { useNavigate } from 'react-router-dom';
 import {
     Drawer, Box, List, ListItem, ListItemButton,
     ListItemText, Divider, Toolbar, Typography
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useNavigate } from 'react-router-dom';
-
+import Header from '../Header/Header';
+import HomeNavBar from '../HomeNavBar/HomeNavBar';
 import Dashboard from '../Dashboard/Dashboard';
-
-import http from '../../api/http'; // ใช้ยิง logout ถ้ามี
+import http from '../../api/http';
 
 const navigationItems = [
     { label: "Dashboard", component: <Dashboard isGuest={true}/> },
@@ -59,10 +55,17 @@ function HomePageForGuest() {
                 height: '100%'
             }}
             role="presentation"
+            data-cy="guest-home-page-drawer-content" 
         >
             <Toolbar sx={{ p: '16px' }}>
                 <AccountCircleIcon sx={{ mr: 2, fontSize: '2rem', color: "#13438B" }} />
-                <Typography variant="h6" noWrap>เช็คสถานะห้อง</Typography>
+                <Typography
+                    variant="h6"
+                    noWrap
+                    data-cy="guest-home-page-drawer-username" 
+                >
+                    เช็คสถานะห้อง
+                </Typography>
             </Toolbar>
             <Divider />
 
@@ -75,6 +78,7 @@ function HomePageForGuest() {
                                 handleNavigationChange(index);
                                 setDrawerOpen(false);
                             }}
+                            data-cy={`guest-home-page-drawer-nav-item-${index}`} 
                         >
                             <ListItemText primary={item.label} />
                         </ListItemButton>
@@ -88,7 +92,10 @@ function HomePageForGuest() {
             {/* ---- NEW: ปุ่มออกจากระบบ ---- */}
             <List>
                 <ListItem disablePadding>
-                    <ListItemButton onClick={handleLogout}>
+                    <ListItemButton
+                        onClick={handleLogout}
+                        data-cy="guest-home-page-drawer-logout-button" 
+                    >
                         <ListItemText primary="ออกจากระบบ" />
                     </ListItemButton>
                 </ListItem>
@@ -98,9 +105,17 @@ function HomePageForGuest() {
 
     return (
         <>
-            <Header onMenuClick={handleDrawerToggle} />
+            <Header
+                onMenuClick={handleDrawerToggle}
+                data-cy="guest-home-page-header" 
+            />
 
-            <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
+            <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={handleDrawerToggle}
+                data-cy="guest-home-page-drawer" 
+            >
                 {drawerContent}
             </Drawer>
 
@@ -108,6 +123,7 @@ function HomePageForGuest() {
                 navigationItems={navigationItems}
                 activeIndex={activeIndex}
                 onTabChange={handleNavigationChange}
+                data-cy="guest-home-page-nav-bar" 
             />
         </>
     );

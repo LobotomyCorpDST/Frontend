@@ -14,38 +14,41 @@ import SmartSearchAutocomplete from './SmartSearchAutocomplete';
  * @param {string} searchPlaceholder - Placeholder text
  */
 const EnhancedSearchBar = ({
-  onSearch,
-  searchOptions = [],
-  searchLabel = 'ค้นหา',
-  searchPlaceholder = 'พิมพ์เพื่อค้นหา หรือเลือกจากรายการ...',
-}) => {
-  const [searchValue, setSearchValue] = useState('');
+                               onSearch,
+                               searchOptions = [],
+                               searchLabel = 'ค้นหา',
+                               searchPlaceholder = 'พิมพ์เพื่อค้นหา หรือเลือกจากรายการ...',
+                               ...props
+                           }) => {
+    const [searchValue, setSearchValue] = useState('');
 
-  const handleExactMatch = (value) => {
-    setSearchValue(value);
-    if (onSearch) {
-      onSearch({ type: 'exact', value });
-    }
-  };
+    const handleExactMatch = (value) => {
+        setSearchValue(value);
+        if (onSearch) {
+            onSearch({ type: 'exact', value });
+        }
+    };
 
-  const handlePartialMatch = (text) => {
-    if (onSearch) {
-      onSearch({ type: 'partial', value: text });
-    }
-  };
+    const handlePartialMatch = (text) => {
+        if (onSearch) {
+            onSearch({ type: 'partial', value: text });
+        }
+    };
 
-  return (
-    <Box sx={{ mb: 3 }}>
-      <SmartSearchAutocomplete
-        options={searchOptions}
-        label={searchLabel}
-        value={searchValue}
-        onChange={handleExactMatch}
-        onPartialMatch={handlePartialMatch}
-        placeholder={searchPlaceholder}
-      />
-    </Box>
-  );
+    return (
+        // <-- 2. Pass props to root Box
+        <Box sx={{ mb: 3 }} {...props}>
+            <SmartSearchAutocomplete
+                options={searchOptions}
+                label={searchLabel}
+                value={searchValue}
+                onChange={handleExactMatch}
+                onPartialMatch={handlePartialMatch}
+                placeholder={searchPlaceholder}
+                data-cy="enhanced-search-autocomplete"
+            />
+        </Box>
+    );
 };
 
 export default EnhancedSearchBar;

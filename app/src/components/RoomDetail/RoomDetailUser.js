@@ -3,16 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Paper,
-  Grid,
-  Typography,
-  Button,
-  Tabs,
-  Tab,
-  Box,
-  CircularProgress,
-  IconButton,
-  Alert,
+    Paper,
+    Grid,
+    Typography,
+    Button,
+    Tabs,
+    Tab,
+    Box,
+    CircularProgress,
+    IconButton,
+    Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -29,308 +29,403 @@ import http from '../../api/http';
 const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '-');
 
 const RoomDetailUser = () => {
-  const navigate = useNavigate();
-  const [room, setRoom] = useState(null);
-  const [roomNumber, setRoomNumber] = useState(null);
-  const [backendRoomId, setBackendRoomId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [activeRightTab, setActiveRightTab] = useState(0);
-  const [openCreateMaint, setOpenCreateMaint] = useState(false);
-  const [maintTick, setMaintTick] = useState(0);
+    const navigate = useNavigate();
+    const [room, setRoom] = useState(null);
+    const [roomNumber, setRoomNumber] = useState(null);
+    const [backendRoomId, setBackendRoomId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [activeRightTab, setActiveRightTab] = useState(0);
+    const [openCreateMaint, setOpenCreateMaint] = useState(false);
+    const [maintTick, setMaintTick] = useState(0);
 
-  const handleRightTabChange = (_e, v) => setActiveRightTab(v);
+    const handleRightTabChange = (_e, v) => setActiveRightTab(v);
 
-  useEffect(() => {
-    loadUserRoom();
-  }, []);
+    useEffect(() => {
+        loadUserRoom();
+    }, []);
 
-  const loadUserRoom = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      // Get current user info to find their roomId
-      const token = localStorage.getItem('token') || localStorage.getItem('access_token');
-      if (!token) {
-        setError('No authentication token found');
-        return;
-      }
-
-      // Decode JWT to get username (simple base64 decode - for production use proper JWT library)
-      const payload = token.split('.')[1];
-      const decoded = JSON.parse(atob(payload));
-      const username = decoded.sub;
-
-      // Fetch user account to get roomId
-      const userResponse = await http.get(`/api/users?username=${username}`);
-      const users = userResponse?.data || userResponse || [];
-      const currentUser = Array.isArray(users)
-        ? users.find(u => u.username === username)
-        : null;
-
-      if (!currentUser || !currentUser.roomId) {
-        setError('Your account is not linked to a room. Please contact administrator.');
-        return;
-      }
-
-      // Get room info by roomId
-      const roomRes = await getRoomByNumber(currentUser.roomId);
-      setBackendRoomId(roomRes?.id ?? null);
-      setRoomNumber(currentUser.roomId);
-
-      // Load lease info
-      const active = await getActiveLease(Number(currentUser.roomId));
-
-      // Load latest invoice
-      let latestInvoice = null;
-      try {
-        if (roomRes?.id) {
-          const invoiceRes = await getLatestInvoiceByRoom(roomRes.id);
-          latestInvoice = invoiceRes?.data || invoiceRes || null;
-        }
-      } catch (e) {
-        console.warn('No latest invoice found:', e);
-      }
-
-      // Format room data
-      const tenant = active?.tenant || null;
-      const nameToShow = tenant?.name || 'N/A';
-      const formattedRoom = {
-        roomNumber: currentUser.roomId,
-        roomStatus: active ? 'rent paid' : 'room available',
-        tenantInfo: {
-          name: nameToShow,
-          lineId: tenant?.lineId || '-',
-          phoneNumber: tenant?.phone || '-',
-        },
-        checkInDate: fmt(active?.startDate),
-        checkOutDate: fmt(active?.endDate),
-        leaseStartDate: fmt(active?.startDate),
-        leaseEndDate: fmt(active?.endDate),
-        latestUsage: latestInvoice
-          ? {
-              electricity: {
-                units: latestInvoice.electricityUnits || '0',
-                baht: latestInvoice.electricityBaht || '0',
-              },
-              water: {
-                units: latestInvoice.waterUnits || '0',
-                baht: latestInvoice.waterBaht || '0',
-              },
-              totalBaht: latestInvoice.totalBaht || '0',
+    const loadUserRoom = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            // Get current user info to find their roomId
+            const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+            if (!token) {
+                setError('No authentication token found');
+                return;
             }
-          : {
-              electricity: { units: 'ไม่มีข้อมูล', baht: 'ไม่มีข้อมูล' },
-              water: { units: 'ไม่มีข้อมูล', baht: 'ไม่มีข้อมูล' },
-              totalBaht: 'ไม่มีข้อมูล',
-            },
-      };
-      setRoom(formattedRoom);
-    } catch (e) {
-      setError(e?.message || 'Failed to load room details');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  if (loading)
+            // Decode JWT to get username (simple base64 decode - for production use proper JWT library)
+            const payload = token.split('.')[1];
+            const decoded = JSON.parse(atob(payload));
+            const username = decoded.sub;
+
+            // Fetch user account to get roomId
+            const userResponse = await http.get(`/api/users?username=${username}`);
+            const users = userResponse?.data || userResponse || [];
+            const currentUser = Array.isArray(users)
+                ? users.find(u => u.username === username)
+                : null;
+
+            if (!currentUser || !currentUser.roomId) {
+                setError('Your account is not linked to a room. Please contact administrator.');
+                return;
+            }
+
+            // Get room info by roomId
+            const roomRes = await getRoomByNumber(currentUser.roomId);
+            setBackendRoomId(roomRes?.id ?? null);
+            setRoomNumber(currentUser.roomId);
+
+            // Load lease info
+            const active = await getActiveLease(Number(currentUser.roomId));
+
+            // Load latest invoice
+            let latestInvoice = null;
+            try {
+                if (roomRes?.id) {
+                    const invoiceRes = await getLatestInvoiceByRoom(roomRes.id);
+                    latestInvoice = invoiceRes?.data || invoiceRes || null;
+                }
+            } catch (e) {
+                console.warn('No latest invoice found:', e);
+            }
+
+            // Format room data
+            const tenant = active?.tenant || null;
+            const nameToShow = tenant?.name || 'N/A';
+            const formattedRoom = {
+                roomNumber: currentUser.roomId,
+                roomStatus: active ? 'rent paid' : 'room available',
+                tenantInfo: {
+                    name: nameToShow,
+                    lineId: tenant?.lineId || '-',
+                    phoneNumber: tenant?.phone || '-',
+                },
+                checkInDate: fmt(active?.startDate),
+                checkOutDate: fmt(active?.endDate),
+                leaseStartDate: fmt(active?.startDate),
+                leaseEndDate: fmt(active?.endDate),
+                latestUsage: latestInvoice
+                    ? {
+                        electricity: {
+                            units: latestInvoice.electricityUnits || '0',
+                            baht: latestInvoice.electricityBaht || '0',
+                        },
+                        water: {
+                            units: latestInvoice.waterUnits || '0',
+                            baht: latestInvoice.waterBaht || '0',
+                        },
+                        totalBaht: latestInvoice.totalBaht || '0',
+                    }
+                    : {
+                        electricity: { units: 'ไม่มีข้อมูล', baht: 'ไม่มีข้อมูล' },
+                        water: { units: 'ไม่มีข้อมูล', baht: 'ไม่มีข้อมูล' },
+                        totalBaht: 'ไม่มีข้อมูล',
+                    },
+            };
+            setRoom(formattedRoom);
+        } catch (e) {
+            setError(e?.message || 'Failed to load room details');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading)
+        return (
+            <Box
+                sx={{ display: 'flex', justifyContent: 'center', my: 5 }}
+                data-cy="room-detail-user-loading-state"
+            >
+                <CircularProgress />
+            </Box>
+        );
+    if (error)
+        return (
+            <Box sx={{ p: 3 }} data-cy="room-detail-user-error-state">
+                <Alert severity="error" data-cy="room-detail-user-error-message">{error}</Alert>
+            </Box>
+        );
+    if (!room) return null;
+
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
-        <CircularProgress />
-      </Box>
-    );
-  if (error)
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  if (!room) return null;
-
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        gap: 3,
-        maxWidth: '1600px',
-        mx: 'auto',
-        my: 4,
-        px: 2,
-        alignItems: 'flex-start',
-      }}
-    >
-      {/* Left Paper - Room Details */}
-      <Paper
-        elevation={3}
-        sx={{ flex: '1 1 40%', p: 3, height: '85vh', display: 'flex', flexDirection: 'column' }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <IconButton onClick={() => navigate('/home-user')}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" component="h1" sx={{ ml: 1 }}>
-            ห้อง {room.roomNumber}
-          </Typography>
-        </Box>
-
-        <Typography
-          variant="h6"
-          color="primary"
-          sx={{ borderBottom: 2, borderColor: 'primary.main', pb: 1, mb: 2 }}
+        <Box
+            sx={{
+                display: 'flex',
+                gap: 3,
+                maxWidth: '1600px',
+                mx: 'auto',
+                my: 4,
+                px: 2,
+                alignItems: 'flex-start',
+            }}
+            data-cy="room-detail-user-page-container"
         >
-          รายละเอียด
-        </Typography>
+            {/* Left Paper - Room Details */}
+            <Paper
+                elevation={3}
+                sx={{ flex: '1 1 40%', p: 3, height: '85vh', display: 'flex', flexDirection: 'column' }}
+                data-cy="room-detail-user-left-panel"
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <IconButton
+                        onClick={() => navigate('/home-user')}
+                        data-cy="room-detail-user-back-button"
+                    >
+                        <ArrowBackIcon />
+                    </IconButton>
+                    <Typography
+                        variant="h4"
+                        component="h1"
+                        sx={{ ml: 1 }}
+                        data-cy="room-detail-user-title-room-number"
+                    >
+                        ห้อง {room.roomNumber}
+                    </Typography>
+                </Box>
 
-        <Box sx={{ flexGrow: 1, overflow: 'auto', pr: 1 }}>
-          <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              ข้อมูลผู้เช่า
-            </Typography>
-            <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
-              <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary" display="block" textAlign="left">
-                  ชื่อ
+                <Typography
+                    variant="h6"
+                    color="primary"
+                    sx={{ borderBottom: 2, borderColor: 'primary.main', pb: 1, mb: 2 }}
+                >
+                    รายละเอียด
                 </Typography>
-                <Typography variant="body1" textAlign="left">
-                  {room.tenantInfo.name}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="text.secondary" display="block" textAlign="left">
-                  ช่องทางติดต่อ
-                </Typography>
-                <Typography textAlign="left">
-                  <strong>LINE:</strong>
-                  <span style={{ paddingLeft: '10px' }}>{room.tenantInfo.lineId}</span>
-                </Typography>
-                <Typography variant="body1" textAlign="left">
-                  <strong>เบอร์โทร:</strong> {room.tenantInfo.phoneNumber}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Paper>
 
-          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              รายละเอียดสัญญาเช่า
-            </Typography>
-            <Typography>
-              <strong>สถานะ:</strong> {room.roomStatus}
-            </Typography>
-            <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
-              <Grid item xs={12} sm={6}>
-                <Typography textAlign="left">
-                  <strong>วันที่เข้า:</strong> {room.checkInDate}
-                </Typography>
-                <Typography textAlign="left">
-                  <strong>วันที่ออก:</strong> {room.checkOutDate}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography textAlign="left">
-                  <strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}
-                </Typography>
-                <Typography textAlign="left">
-                  <strong>สัญญาจบ:</strong> {room.leaseEndDate}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Paper>
+                <Box sx={{ flexGrow: 1, overflow: 'auto', pr: 1 }}>
+                    <Paper
+                        variant="outlined"
+                        sx={{ p: 3, mb: 2 }}
+                        data-cy="room-detail-user-tenant-info-card"
+                    >
+                        <Typography variant="h6" gutterBottom>
+                            ข้อมูลผู้เช่า
+                        </Typography>
+                        <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="caption" color="text.secondary" display="block" textAlign="left">
+                                    ชื่อ
+                                </Typography>
+                                <Typography
+                                    variant="body1"
+                                    textAlign="left"
+                                    data-cy="room-detail-user-tenant-name"
+                                >
+                                    {room.tenantInfo.name}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="caption" color="text.secondary" display="block" textAlign="left">
+                                    ช่องทางติดต่อ
+                                </Typography>
+                                <Typography textAlign="left">
+                                    <strong>LINE:</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                        data-cy="room-detail-user-tenant-line"
+                                    >
+                    {room.tenantInfo.lineId}
+                  </span>
+                                </Typography>
+                                <Typography
+                                    variant="body1"
+                                    textAlign="left"
+                                    data-cy="room-detail-user-tenant-phone"
+                                >
+                                    <strong>เบอร์โทร:</strong> {room.tenantInfo.phoneNumber}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                    </Paper>
 
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              ค่าใช้จ่ายล่าสุด
-            </Typography>
-            <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
-              <Grid item xs={12} sm={6}>
-                <Typography textAlign="left">
-                  <strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}
-                </Typography>
-                <Typography textAlign="left">
-                  <strong>ค่าไฟ (บาท):</strong> {room.latestUsage.electricity.baht}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography textAlign="left">
-                  <strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}
-                </Typography>
-                <Typography textAlign="left">
-                  <strong>ค่าน้ำ (บาท):</strong> {room.latestUsage.water.baht}
-                </Typography>
-              </Grid>
-            </Grid>
-            <Typography>
-              <strong>รวม:</strong> {room.latestUsage.totalBaht}
-            </Typography>
-          </Paper>
-        </Box>
+                    <Paper
+                        variant="outlined"
+                        sx={{ p: 2, mb: 2 }}
+                        data-cy="room-detail-user-lease-info-card"
+                    >
+                        <Typography variant="h6" gutterBottom>
+                            รายละเอียดสัญญาเช่า
+                        </Typography>
+                        <Typography>
+                            <strong>สถานะ:</strong> {room.roomStatus}
+                        </Typography>
+                        <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
+                            <Grid item xs={12} sm={6}>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-lease-check-in"
+                                >
+                                    <strong>วันที่เข้า:</strong> {room.checkInDate}
+                                </Typography>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-lease-check-out"
+                                >
+                                    <strong>วันที่ออก:</strong> {room.checkOutDate}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-lease-start"
+                                >
+                                    <strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}
+                                </Typography>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-lease-end"
+                                >
+                                    <strong>สัญญาจบ:</strong> {room.leaseEndDate}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                    </Paper>
 
-        <Alert severity="info" sx={{ mt: 2 }}>
-          คุณสามารถดูข้อมูลห้องและสร้างรายงานการซ่อมบำรุงเท่านั้น
-        </Alert>
-      </Paper>
+                    <Paper
+                        variant="outlined"
+                        sx={{ p: 2 }}
+                        data-cy="room-detail-user-usage-card"
+                    >
+                        <Typography variant="h6" gutterBottom>
+                            ค่าใช้จ่ายล่าสุด
+                        </Typography>
+                        <Grid container spacing={6} alignItems="flex-start" justifyContent="center">
+                            <Grid item xs={12} sm={6}>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-latest-elec-units"
+                                >
+                                    <strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}
+                                </Typography>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-latest-elec-baht"
+                                >
+                                    <strong>ค่าไฟ (บาท):</strong> {room.latestUsage.electricity.baht}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-latest-water-units"
+                                >
+                                    <strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}
+                                </Typography>
+                                <Typography
+                                    textAlign="left"
+                                    data-cy="room-detail-user-latest-water-baht"
+                                >
+                                    <strong>ค่าน้ำ (บาท):</strong> {room.latestUsage.water.baht}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                        <Typography data-cy="room-detail-user-latest-total-baht">
+                            <strong>รวม:</strong> {room.latestUsage.totalBaht}
+                        </Typography>
+                    </Paper>
+                </Box>
 
-      {/* Right Paper - Tabs */}
-      <Paper elevation={3} sx={{ flex: '1 1 60%', p: 3, height: '85vh' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs value={activeRightTab} onChange={handleRightTabChange}>
-            <Tab label="Invoices (ดูอย่างเดียว)" />
-            <Tab label="Maintenance" />
-          </Tabs>
-        </Box>
+                <Alert
+                    severity="info"
+                    sx={{ mt: 2 }}
+                    data-cy="room-detail-user-info-alert"
+                >
+                    คุณสามารถดูข้อมูลห้องและสร้างรายงานการซ่อมบำรุงเท่านั้น
+                </Alert>
+            </Paper>
 
-        {activeRightTab === 0 && (
-          <Box sx={{ height: 'calc(100% - 100px)', overflow: 'auto' }}>
-            {backendRoomId ? (
-              <RoomInvoiceTable roomId={backendRoomId} readOnly />
-            ) : (
-              <Typography>No room data available</Typography>
-            )}
-          </Box>
-        )}
+            {/* Right Paper - Tabs */}
+            <Paper
+                elevation={3}
+                sx={{ flex: '1 1 60%', p: 3, height: '85vh' }}
+                data-cy="room-detail-user-right-panel"
+            >
+                <Box
+                    sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+                    data-cy="room-detail-user-tabs"
+                >
+                    <Tabs value={activeRightTab} onChange={handleRightTabChange}>
+                        <Tab label="Invoices (ดูอย่างเดียว)" data-cy="room-detail-user-tab-invoice" />
+                        <Tab label="Maintenance" data-cy="room-detail-user-tab-maintenance" />
+                    </Tabs>
+                </Box>
 
-        {activeRightTab === 1 && (
-          <Box sx={{ height: 'calc(100% - 100px)', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ mb: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setOpenCreateMaint(true)}
-                disabled={!backendRoomId}
-                sx={{ borderRadius: 2 }}
-              >
-                สร้างรายงานซ่อมบำรุง
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-              {backendRoomId ? (
-                <MaintenanceTable
-                  roomId={backendRoomId}
-                  refreshTrigger={maintTick}
-                  readOnly
+                {activeRightTab === 0 && (
+                    <Box
+                        sx={{ height: 'calc(100% - 100px)', overflow: 'auto' }}
+                        data-cy="room-detail-user-invoice-tab-content"
+                    >
+                        {backendRoomId ? (
+                            <RoomInvoiceTable
+                                roomId={backendRoomId}
+                                readOnly
+                                data-cy="room-detail-user-invoice-table"
+                            />
+                        ) : (
+                            <Typography data-cy="room-detail-user-invoice-no-data">
+                                No room data available
+                            </Typography>
+                        )}
+                    </Box>
+                )}
+
+                {activeRightTab === 1 && (
+                    <Box
+                        sx={{ height: 'calc(100% - 100px)', display: 'flex', flexDirection: 'column' }}
+                        data-cy="room-detail-user-maintenance-tab-content"
+                    >
+                        <Box sx={{ mb: 2 }}>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => setOpenCreateMaint(true)}
+                                disabled={!backendRoomId}
+                                sx={{ borderRadius: 2 }}
+                                data-cy="room-detail-user-add-maintenance-button"
+                            >
+                                สร้างรายงานซ่อมบำรุง
+                            </Button>
+                        </Box>
+                        <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+                            {backendRoomId ? (
+                                <MaintenanceTable
+                                    roomId={backendRoomId}
+                                    refreshTrigger={maintTick}
+                                    readOnly
+                                    data-cy="room-detail-user-maintenance-table"
+                                />
+                            ) : (
+                                <Typography data-cy="room-detail-user-maintenance-no-data">
+                                    No room data available
+                                </Typography>
+                            )}
+                        </Box>
+                    </Box>
+                )}
+            </Paper>
+
+            {/* Create Maintenance Modal */}
+            {openCreateMaint && (
+                <CreateMaintenanceModal
+                    open={openCreateMaint}
+                    onClose={() => setOpenCreateMaint(false)}
+                    roomId={backendRoomId}
+                    onCreated={() => { // Note: prop is onSuccess, not onCreated
+                        setMaintTick((t) => t + 1);
+                        setOpenCreateMaint(false);
+                    }}
+                    // Correcting the prop name based on the modal's definition
+                    onSuccess={() => {
+                        setMaintTick((t) => t + 1);
+                        setOpenCreateMaint(false);
+                    }}
+                    data-cy="room-detail-user-create-maintenance-modal"
                 />
-              ) : (
-                <Typography>No room data available</Typography>
-              )}
-            </Box>
-          </Box>
-        )}
-      </Paper>
-
-      {/* Create Maintenance Modal */}
-      {openCreateMaint && (
-        <CreateMaintenanceModal
-          open={openCreateMaint}
-          onClose={() => setOpenCreateMaint(false)}
-          roomId={backendRoomId}
-          onCreated={() => {
-            setMaintTick((t) => t + 1);
-            setOpenCreateMaint(false);
-          }}
-        />
-      )}
-    </Box>
-  );
+            )}
+        </Box>
+    );
 };
 
 export default RoomDetailUser;
