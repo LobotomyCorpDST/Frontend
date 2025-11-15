@@ -10,6 +10,7 @@ import LeaseHistory from './components/LeaseHistory/LeaseHistory';
 import TenantDetail from "./components/TenantDetail/TenantDetail";
 import PrivateRoute from './components/RouteGuard/PrivateRoute';
 import RedirectIfAuthed from './components/RouteGuard/RedirectIfAuthed';
+import NotFound from "./components/NotFound/NotFound";
 import './App.css';
 
 function App() {
@@ -98,7 +99,7 @@ function App() {
           />
 
           {/* ===== CATCH-ALL ===== */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>

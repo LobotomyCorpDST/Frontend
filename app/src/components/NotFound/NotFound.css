@@ -1,0 +1,16 @@
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fb;
+  padding: 2rem;
+  text-align: center;
+  font-family: inherit;
+}
+
+.not-found__loading {
+  font-size: 1rem;
+  color: #5c6370;
+  margin: 0;
+}
