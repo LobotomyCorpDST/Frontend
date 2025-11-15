@@ -98,7 +98,8 @@ function App() {
             }
           />
 
-          {/* ===== CATCH-ALL ===== */}
+          {/* ===== ERROR / NOT FOUND ===== */}
+          <Route path="/error" element={<NotFound statusCode={403} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
