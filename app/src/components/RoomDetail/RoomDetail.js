@@ -271,7 +271,7 @@ const RoomDetail = () => {
                                 >
                                     <strong>วันที่เข้า:</strong>
                                     <span
-                                        style={{ paddingLeft: '10.75px' }}
+                                        style={{ paddingLeft: '16.5px' }}
                                     >
                                         {room.checkInDate}
                                     </span>
@@ -280,7 +280,12 @@ const RoomDetail = () => {
                                     textAlign="left"
                                     data-cy="room-detail-lease-check-out"
                                 >
-                                    <strong>วันที่ออก:</strong> {room.checkOutDate}
+                                    <strong>วันที่ออก:</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.checkOutDate}
+                                    </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
@@ -288,7 +293,12 @@ const RoomDetail = () => {
                                     textAlign="left"
                                     data-cy="room-detail-lease-start"
                                 >
-                                    <strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}
+                                    <strong>สัญญาเริ่ม:</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.leaseStartDate}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
@@ -296,7 +306,7 @@ const RoomDetail = () => {
                                 >
                                     <strong>สัญญาจบ:</strong>
                                     <span
-                                        style={{ paddingLeft: '7.45px' }}
+                                        style={{ paddingLeft: '13.40px' }}
                                     >
                                         {room.leaseEndDate}
                                     </span>
@@ -331,13 +341,23 @@ const RoomDetail = () => {
                                     textAlign="left"
                                     data-cy="room-detail-latest-elec-units"
                                 >
-                                    <strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}
+                                    <strong>ค่าไฟ (หน่วย):</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.latestUsage.electricity.units}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
                                     data-cy="room-detail-latest-elec-baht"
                                 >
-                                    <strong>ค่าไฟ (บาท):</strong> {room.latestUsage.electricity.baht}
+                                    <strong>ค่าไฟ (บาท):</strong>
+                                    <span
+                                        style={{ paddingLeft: '20px' }}
+                                    >
+                                        {room.latestUsage.electricity.baht}
+                                    </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
@@ -345,18 +365,33 @@ const RoomDetail = () => {
                                     textAlign="left"
                                     data-cy="room-detail-latest-water-units"
                                 >
-                                    <strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}
+                                    <strong>ค่าน้ำ (หน่วย):</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.latestUsage.water.units}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
                                     data-cy="room-detail-latest-water-baht"
                                 >
-                                    <strong>ค่าน้ำ (บาท):</strong> {room.latestUsage.water.baht}
+                                    <strong>ค่าน้ำ (บาท):</strong>
+                                    <span
+                                        style={{ paddingLeft: '20px' }}
+                                    >
+                                        {room.latestUsage.water.baht}
+                                    </span>
                                 </Typography>
                             </Grid>
                         </Grid>
                         <Typography data-cy="room-detail-latest-total-baht">
-                            <strong>รวม:</strong> {room.latestUsage.totalBaht}
+                            <strong>รวม:</strong>
+                            <span
+                                style={{ paddingLeft: '10px' }}
+                            >
+                                {room.latestUsage.totalBaht}
+                            </span>
                         </Typography>
                     </Paper>
                 </Box>

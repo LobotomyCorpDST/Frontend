@@ -223,18 +223,23 @@ const RoomDetailUser = () => {
                                 <Typography textAlign="left">
                                     <strong>LINE:</strong>
                                     <span
-                                        style={{ paddingLeft: '10px' }}
+                                        style={{ paddingLeft: '31px' }}
                                         data-cy="room-detail-user-tenant-line"
                                     >
-                    {room.tenantInfo.lineId}
-                  </span>
+                                        {room.tenantInfo.lineId}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     variant="body1"
                                     textAlign="left"
                                     data-cy="room-detail-user-tenant-phone"
                                 >
-                                    <strong>เบอร์โทร:</strong> {room.tenantInfo.phoneNumber}
+                                    <strong>เบอร์โทร:</strong>
+                                    <span
+                                        style={{ paddingLeft: '7px' }}
+                                    >
+                                        {room.tenantInfo.phoneNumber}
+                                    </span>
                                 </Typography>
                             </Grid>
                         </Grid>
@@ -257,13 +262,23 @@ const RoomDetailUser = () => {
                                     textAlign="left"
                                     data-cy="room-detail-user-lease-check-in"
                                 >
-                                    <strong>วันที่เข้า:</strong> {room.checkInDate}
+                                    <strong>วันที่เข้า:</strong>
+                                    <span
+                                        style={{ paddingLeft: '16.5px' }}
+                                    >
+                                        {room.checkInDate}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
                                     data-cy="room-detail-user-lease-check-out"
                                 >
-                                    <strong>วันที่ออก:</strong> {room.checkOutDate}
+                                    <strong>วันที่ออก:</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.checkOutDate}
+                                    </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
@@ -271,13 +286,23 @@ const RoomDetailUser = () => {
                                     textAlign="left"
                                     data-cy="room-detail-user-lease-start"
                                 >
-                                    <strong>สัญญาเริ่ม:</strong> {room.leaseStartDate}
+                                    <strong>สัญญาเริ่ม:</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.leaseStartDate}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
                                     data-cy="room-detail-user-lease-end"
                                 >
-                                    <strong>สัญญาจบ:</strong> {room.leaseEndDate}
+                                    <strong>สัญญาจบ:</strong>
+                                    <span
+                                        style={{ paddingLeft: '13.40px' }}
+                                    >
+                                        {room.leaseEndDate}
+                                    </span>
                                 </Typography>
                             </Grid>
                         </Grid>
@@ -295,34 +320,59 @@ const RoomDetailUser = () => {
                             <Grid item xs={12} sm={6}>
                                 <Typography
                                     textAlign="left"
-                                    data-cy="room-detail-user-latest-elec-units"
+                                    data-cy="room-detail-latest-elec-units"
                                 >
-                                    <strong>ค่าไฟ (หน่วย):</strong> {room.latestUsage.electricity.units}
+                                    <strong>ค่าไฟ (หน่วย):</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.latestUsage.electricity.units}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
-                                    data-cy="room-detail-user-latest-elec-baht"
+                                    data-cy="room-detail-latest-elec-baht"
                                 >
-                                    <strong>ค่าไฟ (บาท):</strong> {room.latestUsage.electricity.baht}
+                                    <strong>ค่าไฟ (บาท):</strong>
+                                    <span
+                                        style={{ paddingLeft: '20px' }}
+                                    >
+                                        {room.latestUsage.electricity.baht}
+                                    </span>
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography
                                     textAlign="left"
-                                    data-cy="room-detail-user-latest-water-units"
+                                    data-cy="room-detail-latest-water-units"
                                 >
-                                    <strong>ค่าน้ำ (หน่วย):</strong> {room.latestUsage.water.units}
+                                    <strong>ค่าน้ำ (หน่วย):</strong>
+                                    <span
+                                        style={{ paddingLeft: '10px' }}
+                                    >
+                                        {room.latestUsage.water.units}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
-                                    data-cy="room-detail-user-latest-water-baht"
+                                    data-cy="room-detail-latest-water-baht"
                                 >
-                                    <strong>ค่าน้ำ (บาท):</strong> {room.latestUsage.water.baht}
+                                    <strong>ค่าน้ำ (บาท):</strong>
+                                    <span
+                                        style={{ paddingLeft: '20px' }}
+                                    >
+                                        {room.latestUsage.water.baht}
+                                    </span>
                                 </Typography>
                             </Grid>
                         </Grid>
                         <Typography data-cy="room-detail-user-latest-total-baht">
-                            <strong>รวม:</strong> {room.latestUsage.totalBaht}
+                            <strong>รวม:</strong>
+                            <span
+                                style={{ paddingLeft: '10px' }}
+                            >
+                                {room.latestUsage.totalBaht}
+                            </span>
                         </Typography>
                     </Paper>
                 </Box>
