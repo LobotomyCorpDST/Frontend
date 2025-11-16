@@ -33,22 +33,22 @@ function HomePage() {
 
     // Role-based navigation: ADMIN sees all pages, STAFF sees Dashboard + Maintenance, USER/GUEST sees Dashboard only
     const navigationItems = userRole === 'ADMIN' ? [
-        { label: "Dashboard", component: <Dashboard isGuest={false} /> },
-        { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
-        { label: "ห้องทั้งหมด", component: <RoomList /> },
-        { label: "ใบแจ้งหนี้", component: <InvoiceHistory /> },
+        { label: "สรุปภาพรวม", component: <Dashboard isGuest={false} /> },
+        { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} />, signalKeys: ['addMaintenanceSignal'] },
+        { label: "ห้องทั้งหมด", component: <RoomList />, signalKeys: ['addRoomSignal'] },
+        { label: "ใบแจ้งหนี้", component: <InvoiceHistory />, signalKeys: ['addInvoiceSignal'] },
         { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
-        { label: "ผู้เช่าทั้งหมด", component: <TenantList /> },
+        { label: "ผู้เช่าทั้งหมด", component: <TenantList />, signalKeys: ['addTenantSignal'] },
         { label: "รายงานสรุป", component: <SummaryReport /> },
         { label: "คลังวัสดุ", component: <SupplyInventoryPage /> },
-        { label: "จัดการ User", component: <UserManagement /> },
+        { label: "จัดการบัญชีผู้ใช้", component: <UserManagement /> },
     ] : userRole === 'STAFF' ? [
         // STAFF: Dashboard + Maintenance
-        { label: "Dashboard", component: <Dashboard isGuest={false} /> },
-        { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} /> },
+        { label: "สรุปภาพรวม", component: <Dashboard isGuest={false} /> },
+        { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} />, signalKeys: ['addMaintenanceSignal'] },
     ] : [
         // USER, GUEST: Dashboard only
-        { label: "Dashboard", component: <Dashboard isGuest={isGuest} /> },
+        { label: "สรุปภาพรวม", component: <Dashboard isGuest={isGuest} /> },
     ];
 
     const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);

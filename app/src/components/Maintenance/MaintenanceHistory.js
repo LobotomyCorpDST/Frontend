@@ -186,10 +186,9 @@ export default function MaintenanceHistory({ searchTerm: externalSearchTerm, add
 
     const handleNavigateToRoom = async (roomNumber) => {
         try {
-            const room = await getRoomByNumber(roomNumber);
-            if (room?.id) navigate(`/rooms/${room.id}`);
+            navigate(`/room-details/${roomNumber}`);
         } catch (err) {
-            console.error('Failed to navigate to room:', err);
+            navigate('/error');
         }
     };
 

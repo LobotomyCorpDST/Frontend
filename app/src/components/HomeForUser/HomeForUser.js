@@ -22,7 +22,7 @@ import RoomDetailUser from '../RoomDetail/RoomDetailUser';
 import http from '../../api/http';
 
 const navigationItems = [
-    { label: 'Dashboard', component: <Dashboard isGuest={true} /> },
+    { label: 'สรุปภาพรวม', component: <Dashboard isGuest={true} /> },
     { label: 'ห้องของฉัน', component: <RoomDetailUser /> },
 ];
 

@@ -48,6 +48,7 @@ const StandardTableHeader = ({ columns, sortConfig, onRequestSort, ...props }) =
                         sx={{
                             ...headerCellStyle,
                             ...(column.disableSorting && { cursor: 'default' }),
+                            ...(sortConfig?.key === column.id && { backgroundColor: '#173262' }),
                         }}
                         sortDirection={sortConfig?.key === column.id ? sortConfig.direction : false}
                         onClick={() => !column.disableSorting && handleSortClick(column.id)}
@@ -65,7 +66,7 @@ const StandardTableHeader = ({ columns, sortConfig, onRequestSort, ...props }) =
                                 sx={{
                                     color: '#f8f9fa',
                                     '&:hover': { color: '#f0f4fa' },
-                                    '&.MUi-active': {
+                                    '&.Mui-active': {
                                         color: '#f8f9fa',
                                         '& .MuiTableSortLabel-icon': {
                                             transform: sortConfig.direction === 'ascending' ? 'rotate(180deg)' : 'rotate(0deg)',
