@@ -14,6 +14,7 @@ import {
     Tooltip,
     TableRow,
 } from '@mui/material';
+// นำเข้าไอคอนใหม่
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import EditIcon from '@mui/icons-material/Edit';
@@ -64,9 +65,12 @@ const headCells = [
     { id: 'scheduledDate', label: 'วันที่นัด' },
     { id: 'description', label: 'รายละเอียด' },
     { id: 'status', label: 'สถานะ' },
+    // จัดชิดขวา
     { id: 'costBaht', label: 'ค่าใช้จ่าย (บาท)', align: 'right' },
-    { id: 'completedDate', label: 'เสร็จเมื่อ', align: 'right' },
-    { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'right' },
+    // เปลี่ยนจาก right เป็น left
+    { id: 'completedDate', label: 'เสร็จเมื่อ', align: 'left' },
+    // เอา align: 'right' ออก เพราะจะใช้ Stack จัดชิดขวาใน Cell
+    { id: 'actions', label: 'การดำเนินการ', disableSorting: true },
 ];
 
 export default function MaintenanceTable({ roomNumber, reloadSignal = 0, ...props }) {
@@ -190,32 +194,36 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0, ...prop
                                     <TableCell data-cy={`maintenance-table-cell-date-${r.id}`}>{r.scheduledDate || '-'}</TableCell>
                                     <TableCell data-cy={`maintenance-table-cell-desc-${r.id}`}>{r.description || '-'}</TableCell>
                                     <TableCell data-cy={`maintenance-table-cell-status-${r.id}`}>
-                                        {statusChip(r.status, r.id)} {/* Updated call */}
+                                        {statusChip(r.status, r.id)}
                                     </TableCell>
+                                    {/* จัดชิดขวา */}
                                     <TableCell align="right" data-cy={`maintenance-table-cell-cost-${r.id}`}>{money(r.costBaht)}</TableCell>
-                                    <TableCell align="right" data-cy={`maintenance-table-cell-completed-date-${r.id}`}>{r.completedDate || '-'}</TableCell>
+                                    {/* จัดชิดซ้าย */}
+                                    <TableCell align="left" data-cy={`maintenance-table-cell-completed-date-${r.id}`}>{r.completedDate || '-'}</TableCell>
+                                    {/* การดำเนินการ จัดชิดขวา */}
                                     <TableCell align="right" data-cy={`maintenance-table-cell-actions-${r.id}`}>
-                                        <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                                        {/* ใช้ Stack จัดกลุ่มปุ่มให้อยู่ชิดขวา (flex-end) */}
+                                        <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
                                             {canComplete(r.status) && (
-                                                <Button
-                                                    size="small"
-                                                    variant="outlined"
-                                                    startIcon={<CheckCircleOutlineIcon />}
-                                                    onClick={() => doComplete(r.id)}
-                                                    data-cy={`maintenance-table-complete-button-${r.id}`}
-                                                >
-                                                    ทำเสร็จ
-                                                </Button>
+                                                <Tooltip title="ทำเสร็จ">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => doComplete(r.id)}
+                                                        data-cy={`maintenance-table-complete-button-${r.id}`}
+                                                    >
+                                                        <CheckCircleOutlineIcon color="primary" fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
                                             )}
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                startIcon={<EditIcon />}
-                                                onClick={() => handleEdit(r.id)}
-                                                data-cy={`maintenance-table-edit-button-${r.id}`}
-                                            >
-                                                แก้ไข
-                                            </Button>
+                                            <Tooltip title="แก้ไข">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => handleEdit(r.id)}
+                                                    data-cy={`maintenance-table-edit-button-${r.id}`}
+                                                >
+                                                    <EditIcon color="action" fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
                                         </Stack>
                                     </TableCell>
                                 </TableRow>

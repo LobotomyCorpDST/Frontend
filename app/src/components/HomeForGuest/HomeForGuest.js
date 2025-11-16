@@ -11,7 +11,7 @@ import Dashboard from '../Dashboard/Dashboard';
 import http from '../../api/http';
 
 const navigationItems = [
-    { label: "Dashboard", component: <Dashboard isGuest={true}/> },
+    { label: "สรุปภาพรวม", component: <Dashboard isGuest={true}/> },
 ];
 function HomePageForGuest() {
     const [drawerOpen, setDrawerOpen] = useState(false);

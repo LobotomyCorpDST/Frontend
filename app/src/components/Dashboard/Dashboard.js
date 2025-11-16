@@ -54,8 +54,8 @@ const Dashboard = ({ isGuest = false, ...props }) => {
                 setRooms(transformed);
             } catch (e) {
                 // Log error for debugging
-                console.error('Dashboard load error:', e);
-                setError(e.message || 'Could not load dashboard data.');
+                console.error('ข้อผิดพลาดในการแสดงผลหน้าสรุปภาพรวม:', e);
+                setError(e.message || 'ไม่สามารถโหลดข้อมูลได้');
                 setRooms([]); // Set to empty on any error
             } finally{
                 setLoading(false);
@@ -141,7 +141,7 @@ const Dashboard = ({ isGuest = false, ...props }) => {
                     sx={{ ml: 2 }}
                     data-cy="dashboard-loading-text"
                 >
-                    กำลังโหลด Dashboard...
+                    กำลังโหลด หน้าสรุปภาพรวม...
                 </Typography>
             </Box>
         );
@@ -177,7 +177,7 @@ const Dashboard = ({ isGuest = false, ...props }) => {
                 sx={{ fontWeight: 'bold', color: 'primary.main' }}
                 data-cy="dashboard-title"
             >
-                Dashboard
+                สรุปภาพรวม
             </Typography>
 
             {/* Guest welcome message */}
@@ -187,7 +187,7 @@ const Dashboard = ({ isGuest = false, ...props }) => {
                     sx={{ mb: 3 }}
                     data-cy="dashboard-guest-welcome-alert"
                 >
-                    ยินดีต้อนรับ! คุณกำลังใช้งานในโหมดผู้เยี่ยมชม Dashboard แสดงภาพรวมการจัดการห้องเช่า
+                    ยินดีต้อนรับ! คุณกำลังใช้งานในโหมดผู้เยี่ยมชม แสดงภาพรวมการจัดการห้องเช่า
                 </Alert>
             )}
 
