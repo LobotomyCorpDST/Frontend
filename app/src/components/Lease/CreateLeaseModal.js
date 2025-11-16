@@ -88,8 +88,6 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
             customRules: form.customRules || undefined,
         };
 
-        console.log('Submitting lease payload:', payload); // 🧪 Debug
-
         try {
             setSaving(true);
             const lease = await createLease(payload);

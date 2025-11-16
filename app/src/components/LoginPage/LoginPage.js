@@ -183,7 +183,7 @@ export default function LoginPage(props) {
                         }}
                         data-cy="login-title"
                     >
-                        Doomed Apt.
+                        ระบบบริหารจัดการอพาร์ตเมนต์
                     </Typography>
 
                     {/* Inputs */}
