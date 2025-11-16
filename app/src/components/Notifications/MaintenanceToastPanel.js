@@ -12,7 +12,6 @@ export default function MaintenanceToastPanel(props) {
                 timeZone: 'Asia/Bangkok',
             });
             const data = await fetchMaintenanceNotifications(todayISO);
-            console.log('🔔 notifications fetched:', data);  // <— ดูใน Console
             setAlerts(Array.isArray(data) ? data : []);
             setDismissed(false);
         })();

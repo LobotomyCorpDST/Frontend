@@ -10,11 +10,8 @@ export async function fetchMaintenanceNotifications(date) {
       params: { date: todayISO },
     });
 
-    console.log('✅ fetched notifications:', list);
-
     return Array.isArray(list) ? list : [];
   } catch (error) {
-    console.error('❌ Error fetching maintenance notifications:', error?.message || error);
     return [];
   }
 }
