@@ -1,4 +1,4 @@
-describe('Krentiz App Login and Navigation', () => {
+describe('App Login and Dashboard test', () => {
 
     beforeEach(() => {
         cy.visit('/');

@@ -36,7 +36,6 @@ const EnhancedSearchBar = ({
     };
 
     return (
-        // <-- 2. Pass props to root Box
         <Box sx={{ mb: 3 }} {...props}>
             <SmartSearchAutocomplete
                 options={searchOptions}

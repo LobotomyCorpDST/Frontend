@@ -116,7 +116,6 @@ export default function MaintenanceTable({ roomNumber, reloadSignal = 0, ...prop
             let bVal = b[sortConfig.key];
 
             // Handle null/undefined
-            if (aVal == null) aVal = '';
             if (bVal == null) bVal = '';
 
             // Compare
