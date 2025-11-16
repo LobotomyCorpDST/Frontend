@@ -12,8 +12,22 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
     const [addTenantSignal, setAddTenantSignal] = useState(0);
     const [addMaintenanceSignal, setAddMaintenanceSignal] = useState(0);
 
-    const CurrentComponent = navigationItems[activeIndex].component;
-    const currentPageLabel = navigationItems[activeIndex].label;
+    const currentItem = navigationItems[activeIndex] || navigationItems[0] || {};
+    const CurrentComponent = currentItem.component;
+    const currentPageLabel = currentItem.label || '';
+    const signalMap = {
+        addRoomSignal,
+        addInvoiceSignal,
+        addTenantSignal,
+        addMaintenanceSignal,
+    };
+    const signalKeys = currentItem.signalKeys || [];
+    const injectedProps = signalKeys.reduce((acc, key) => {
+        if (Object.prototype.hasOwnProperty.call(signalMap, key)) {
+            acc[key] = signalMap[key];
+        }
+        return acc;
+    }, {});
 
     // Get user role for permission checks
     const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
@@ -97,12 +111,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
 
                 {/* This box will wrap the currently active component */}
                 <Box data-cy="home-nav-bar-active-component-container">
-                    {React.cloneElement(CurrentComponent, {
-                        addRoomSignal,
-                        addInvoiceSignal,
-                        addTenantSignal,
-                        addMaintenanceSignal,
-                    })}
+                    {CurrentComponent ? React.cloneElement(CurrentComponent, injectedProps) : null}
                 </Box>
             </Paper>
         </Box>

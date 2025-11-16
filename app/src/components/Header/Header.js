@@ -29,10 +29,10 @@ const Header = ({ onMenuClick, ...props }) => {
                     <Typography
                         variant="h6"
                         component="div"
-                        sx={{ flexGrow: 1 }}
+                        sx={{ flexGrow: 1, ml: -6.75 }}
                         data-cy="header-title"
                     >
-                        Apartment Management
+                        ระบบบริหารจัดการอพาร์ตเมนต์
                     </Typography>
 
                 </Toolbar>

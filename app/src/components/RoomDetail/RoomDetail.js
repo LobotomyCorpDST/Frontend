@@ -233,18 +233,23 @@ const RoomDetail = () => {
                                 <Typography textAlign="left">
                                     <strong>LINE:</strong>
                                     <span
-                                        style={{ paddingLeft: '10px' }}
+                                        style={{ paddingLeft: '31px' }}
                                         data-cy="room-detail-tenant-line"
                                     >
-                    {room.tenantInfo.lineId}
-                  </span>
+                                        {room.tenantInfo.lineId}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     variant="body1"
                                     textAlign="left"
                                     data-cy="room-detail-tenant-phone"
                                 >
-                                    <strong>เบอร์โทร:</strong> {room.tenantInfo.phoneNumber}
+                                    <strong>เบอร์โทร:</strong>
+                                    <span
+                                        style={{ paddingLeft: '7px' }}
+                                    >
+                                        {room.tenantInfo.phoneNumber}
+                                    </span>
                                 </Typography>
                             </Grid>
                         </Grid>
@@ -264,7 +269,12 @@ const RoomDetail = () => {
                                     textAlign="left"
                                     data-cy="room-detail-lease-check-in"
                                 >
-                                    <strong>วันที่เข้า:</strong> {room.checkInDate}
+                                    <strong>วันที่เข้า:</strong>
+                                    <span
+                                        style={{ paddingLeft: '10.75px' }}
+                                    >
+                                        {room.checkInDate}
+                                    </span>
                                 </Typography>
                                 <Typography
                                     textAlign="left"
@@ -284,7 +294,12 @@ const RoomDetail = () => {
                                     textAlign="left"
                                     data-cy="room-detail-lease-end"
                                 >
-                                    <strong>สัญญาจบ:</strong> {room.leaseEndDate}
+                                    <strong>สัญญาจบ:</strong>
+                                    <span
+                                        style={{ paddingLeft: '7.45px' }}
+                                    >
+                                        {room.leaseEndDate}
+                                    </span>
                                 </Typography>
                             </Grid>
                         </Grid>
