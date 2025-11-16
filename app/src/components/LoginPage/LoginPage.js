@@ -273,14 +273,6 @@ export default function LoginPage(props) {
                         </Button>
                     </Stack>
 
-                    {/* API Info */}
-                    <Typography
-                        variant="caption"
-                        sx={{ display: 'block', mt: 2, color: '#1d3e7da8' }}
-                        data-cy="login-api-info"
-                    >
-                        API: {API_BASE}
-                    </Typography>
                 </Paper>
             </Box>
 

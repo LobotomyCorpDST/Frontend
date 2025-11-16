@@ -21,10 +21,15 @@ export default function PrivateRoute({ allowedRoles = null, children }) {
 
   // if allowedRoles provided and current role not in list -> redirect appropriately
   if (allowedRoles && !allowedRoles.map(r => r.toUpperCase()).includes(role)) {
-    // if the current user is a guest, send to guest home
     if (role === 'GUEST') return <Navigate to="/home-guest" replace />;
-    // otherwise send to admin home
-    return <Navigate to="/home" replace />;
+    
+    return (
+      <Navigate
+        to="/error"
+        replace
+        state={{ statusCode: 403, from: typeof window !== 'undefined' ? window.location.pathname : undefined }}
+      />
+    );
   }
 
   // authorized -> render children
