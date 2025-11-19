@@ -23,6 +23,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
     const currentPageLabel = currentItem.label || '';
     const isLeaseHistoryPage = currentPageLabel === "ประวัติสัญญาเช่า";
     const isDashboardPage = currentPageLabel === "สรุปภาพรวม";
+    const isSummaryPage = currentPageLabel === "รายงานสรุป";
     const signalMap = {
         addRoomSignal,
         addInvoiceSignal,
@@ -139,20 +140,21 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
         >
 
             <Paper
+                elevation={8}
                 sx={{ borderRadius: "8px", overflow: "hidden" }}
                 data-cy="home-nav-bar-paper-container"
             >
                 <Typography
                     variant="h4"
                     gutterBottom
-                    sx={{ fontWeight: 'bold', color: 'primary.main', mt: 2 }}
+                    sx={{ fontWeight: 'bold', color: 'primary.main', mt: 5 }}
                     data-cy={getTitleDataCy()}
                 >
                     {currentPageLabel}
                 </Typography>
                 <Box
                     sx={{
-                        p: 3,
+                        p: isDashboardPage | isSummaryPage ? 0 : 3,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: isLeaseHistoryPage ? "space-between" : "flex-end",
@@ -161,7 +163,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
                     }}
                     data-cy="home-nav-bar-actions-toolbar"
                 >
-                    {!isDashboardPage && (
+                    {!isDashboardPage && !isSummaryPage && (
                         <>
                             {isLeaseHistoryPage && (
                                 <>

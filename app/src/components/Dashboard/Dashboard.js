@@ -138,7 +138,7 @@ const Dashboard = ({ isGuest = false, ...props }) => {
             >
                 <CircularProgress />
                 <Typography
-                    sx={{ ml: 2 }}
+                    sx={{ mt: 0, ml: 2 }}
                     data-cy="dashboard-loading-text"
                 >
                     กำลังโหลด หน้าสรุปภาพรวม...
