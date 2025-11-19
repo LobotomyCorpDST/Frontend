@@ -44,7 +44,7 @@ function HomePage() {
         },
         { label: "ผู้เช่าทั้งหมด", component: <TenantList />, signalKeys: ['addTenantSignal'] },
         { label: "รายงานสรุป", component: <SummaryReport /> },
-        { label: "คลังวัสดุ", component: <SupplyInventoryPage /> },
+        { label: "คลังวัสดุ", component: <SupplyInventoryPage />, signalKeys: ['supplyInventoryAddSignal'] },
         {
             label: "จัดการบัญชีผู้ใช้",
             component: <UserManagement />,

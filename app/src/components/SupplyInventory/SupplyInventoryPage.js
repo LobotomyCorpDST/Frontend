@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
     Box,
     Paper,
@@ -31,7 +31,7 @@ const headCells = [
     { id: 'actions', label: 'การจัดการ', disableSorting: true, align: 'center' },
 ];
 
-const SupplyInventoryPage = (props) => {
+const SupplyInventoryPage = ({ supplyInventoryAddSignal, ...props }) => {
     const [allSupplies, setAllSupplies] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -67,6 +67,15 @@ const SupplyInventoryPage = (props) => {
     useEffect(() => {
         loadSupplies();
     }, []);
+
+    const addSignalRef = useRef(supplyInventoryAddSignal);
+    useEffect(() => {
+        if (supplyInventoryAddSignal == null) return;
+        if (addSignalRef.current !== supplyInventoryAddSignal) {
+            addSignalRef.current = supplyInventoryAddSignal;
+            setOpenAddModal(true);
+        }
+    }, [supplyInventoryAddSignal]);
 
     const handleIncrement = async (id) => {
         try {
@@ -231,28 +240,18 @@ const SupplyInventoryPage = (props) => {
                 </Alert>
             )}
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'flex-start' }}>
-                <Box sx={{ flex: 1 }}>
-                    <EnhancedSearchBar
-                        onSearch={({ type, value }) => {
-                            setSearchTerm(value);
-                            setSearchType(type);
-                            setPage(0);
-                        }}
-                        searchOptions={searchOptions}
-                        searchLabel="ค้นหาวัสดุแบบเฉพาะเจาะจง"
-                        searchPlaceholder="พิมพ์ชื่อวัสดุหรือจำนวน แล้วกด Enter..."
-                        data-cy="supply-inventory-search-bar"
-                    />
-                </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpenAddModal(true)}
-                    data-cy="supply-inventory-add-button"
-                >
-                    เพิ่มของ
-                </Button>
+            <Box sx={{ mb: 3 }}>
+                <EnhancedSearchBar
+                    onSearch={({ type, value }) => {
+                        setSearchTerm(value);
+                        setSearchType(type);
+                        setPage(0);
+                    }}
+                    searchOptions={searchOptions}
+                    searchLabel="ค้นหาวัสดุแบบเฉพาะเจาะจง"
+                    searchPlaceholder="พิมพ์ชื่อวัสดุหรือจำนวน แล้วกด Enter..."
+                    data-cy="supply-inventory-search-bar"
+                />
             </Box>
 
             <TableContainer

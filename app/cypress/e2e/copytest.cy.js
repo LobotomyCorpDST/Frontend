@@ -1,7 +1,7 @@
 // cypress/e2e/apartment-management.cy.js
 
 describe('Apartment Management System - E2E Tests', () => {
-  const API_BASE = 'http://34.87.82.168:8080';
+  const API_BASE = 'https://apt.krentiz.dev/api';
   const createdTestData = {
     rooms: [],
     leases: [],
