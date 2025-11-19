@@ -175,49 +175,6 @@ async function requestBlob(path, { method = 'GET', headers = {}, params, body } 
   return res.blob();
 }
 
-// ---------- CORE REQUEST (FORM DATA) ----------
-async function requestFormData(path, { method = 'POST', headers = {}, params, formData } = {}) {
-  const url = buildUrl(BASE, path, params);
-  const token = getToken();
-  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
-
-  // Don't set Content-Type for FormData - browser will set it with boundary
-  const baseHeaders = {
-    Accept: 'application/json',
-    ...authHeader,
-    ...headers,
-  };
-
-  const res = await fetch(url, {
-    method,
-    headers: baseHeaders,
-    body: formData,
-    mode: 'cors',
-    credentials: CREDENTIALS,
-  });
-
-  if (!res.ok) {
-    let parsed = null;
-    try {
-      parsed = await parseResponse(res);
-      if (typeof parsed === 'string') parsed = { message: parsed };
-    } catch { /* ignore */ }
-
-    if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
-      try {
-        const role = localStorage.getItem('role');
-        if (res.status === 401 || (res.status === 403 && role && role.toUpperCase() !== 'GUEST')) {
-          ['token', 'access_token', 'jwt', 'role'].forEach((k) => localStorage.removeItem(k));
-        }
-      } catch { /* noop */ }
-    }
-
-    throw makeHttpError(res, parsed, `${method} ${path} failed`);
-  }
-
-  return parseResponse(res);
-}
-
 // ---------- EXPORT ----------
 export const http = {
   get: (path, opts) => request(path, { ...opts, method: 'GET' }),
@@ -229,9 +186,6 @@ export const http = {
   // ✅ สำหรับดึงไฟล์ (เช่น PDF) พร้อมแนบ token
   getBlob: (path, opts) => requestBlob(path, { ...opts, method: 'GET' }),
   postBlob: (path, body, opts) => requestBlob(path, { ...opts, method: 'POST', body }),
-
-  // ✅ สำหรับส่ง FormData (file uploads, CSV import, etc.)
-  postFormData: (path, formData, opts) => requestFormData(path, { ...opts, method: 'POST', formData }),
 };
 
 export default http;

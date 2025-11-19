@@ -111,7 +111,31 @@ export async function importInvoicesFromCsv(file) {
   const formData = new FormData();
   formData.append('file', file);
 
-  return http.postFormData('/api/invoices/import-csv', formData);
+  const token =
+    localStorage.getItem('token') ||
+    localStorage.getItem('access_token') ||
+    localStorage.getItem('jwt');
+
+  const BASE =
+    process.env.REACT_APP_API ||
+    process.env.REACT_APP_API_BASE ||
+    process.env.REACT_APP_API_BASE_URL ||
+    'https://apt.krentiz.dev/api';
+
+  const url = `${BASE}/api/invoices/import-csv`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || 'Failed to import CSV');
+  }
+
+  return response.json();
 }
 
 // ---------- Get Current Month Invoices ----------
