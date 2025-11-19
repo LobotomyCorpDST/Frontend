@@ -3,12 +3,12 @@ const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://35.185.182.150',
+    baseUrl: 'https://apt.krentiz.dev',
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
     env: {
-      API_BASE_URL: 'http://34.87.82.168:8080'
+      API_BASE_URL: 'https://apt.krentiz.dev/api'
     },
     viewportWidth: 1280,
     viewportHeight: 720,

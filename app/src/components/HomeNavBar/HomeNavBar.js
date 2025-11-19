@@ -16,6 +16,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
     const [leaseHistoryCreateSignal, setLeaseHistoryCreateSignal] = useState(0);
     const [leaseHistoryLoading, setLeaseHistoryLoading] = useState(false);
     const [userManagementCreateSignal, setUserManagementCreateSignal] = useState(0);
+    const [supplyInventoryAddSignal, setSupplyInventoryAddSignal] = useState(0);
 
     const currentItem = navigationItems[activeIndex] || navigationItems[0] || {};
     const CurrentComponent = currentItem.component;
@@ -31,6 +32,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
         leaseHistoryCreateSignal,
         onLeaseHistoryLoadingChange: setLeaseHistoryLoading,
         userManagementCreateSignal,
+        supplyInventoryAddSignal,
     };
     const signalKeys = currentItem.signalKeys || [];
     const injectedProps = signalKeys.reduce((acc, key) => {
@@ -52,7 +54,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
         if (currentPageLabel === "ห้องทั้งหมด" ||
             currentPageLabel === "ใบแจ้งหนี้" ||
             currentPageLabel === "ผู้เช่าทั้งหมด" ||
-            currentPageLabel === "จัดการบัญชีผู้ใช้") {
+            currentPageLabel === "จัดการบัญชีผู้ใช้" ||
+            currentPageLabel === "คลังวัสดุ") {
             return userRole === 'ADMIN'; // Only ADMIN for these pages
         }
         return false;
@@ -69,6 +72,8 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
             setAddMaintenanceSignal((s) => s + 1);
         } else if (currentPageLabel === "จัดการบัญชีผู้ใช้") {
             setUserManagementCreateSignal((s) => s + 1);
+        } else if (currentPageLabel === "คลังวัสดุ") {
+            setSupplyInventoryAddSignal((s) => s + 1);
         }
     };
 
@@ -93,11 +98,22 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
             case "ประวัติสัญญาเช่า":
                 return "เพิ่มสัญญาเช่า";
             case "คลังวัสดุ":
-                return "เพิ่มวัสดุ";
+                return "เพิ่มของ";
             case "จัดการบัญชีผู้ใช้":
                 return "สร้างผู้ใช้ใหม่";
             default:
                 return "เพิ่มใหม่";
+        }
+    };
+
+    const getAddButtonDataCy = () => {
+        switch (currentPageLabel) {
+            case "คลังวัสดุ":
+                return "supply-inventory-add-button";
+            case "จัดการบัญชีผู้ใช้":
+                return "user-management-create-user-button";
+            default:
+                return "home-nav-bar-add-button";
         }
     };
 
@@ -161,7 +177,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
                                     borderRadius: "8px",
                                     boxShadow: "none",
                                 }}
-                                data-cy="home-nav-bar-add-button"
+                                data-cy={getAddButtonDataCy()}
                             >
                                 {getButtonLabel()}
                             </Button>
