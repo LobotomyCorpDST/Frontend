@@ -117,6 +117,21 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
         }
     };
 
+    const getTitleDataCy = () => {
+        switch (currentPageLabel) {
+            case "คลังวัสดุ":
+                return "supply-inventory-title";
+            case "จัดการบัญชีผู้ใช้":
+                return "user-management-title";
+            case "รายงานสรุป":
+                return "summary-report-title"
+            case "สรุปภาพรวม":
+                return "dashboard-title";
+            default:
+                return "lease-history-title";
+        }
+    };
+
     return (
         <Box
             sx={{ maxWidth: "1800px", margin: "40px auto", px: 3 }}
@@ -129,61 +144,64 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
             >
                 <Typography
                     variant="h4"
-                    sx={{ mb: 2 }}
-                    data-cy="lease-history-title"
+                    gutterBottom
+                    sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                    data-cy={getTitleDataCy()}
                 >
                     {currentPageLabel}
                 </Typography>
-                {!isDashboardPage && (
-                    <Box
-                        sx={{
-                            p: 3,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: isLeaseHistoryPage ? "space-between" : "flex-end",
-                            flexWrap: isLeaseHistoryPage ? "wrap" : "nowrap",
-                            gap: isLeaseHistoryPage ? 2 : 0,
-                        }}
-                        data-cy="home-nav-bar-actions-toolbar"
-                    >
-                        {isLeaseHistoryPage && (
-                            <>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleLeaseHistoryReload}
-                                    disabled={leaseHistoryLoading}
-                                    data-cy="lease-history-reload-button"
-                                >
-                                    โหลดทั้งหมด
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleLeaseHistoryCreate}
-                                    data-cy="lease-history-create-lease-button"
-                                >
-                                    + เพิ่มสัญญาเช่า
-                                </Button>
-                            </>
-                        )}
+                <Box
+                    sx={{
+                        p: 3,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: isLeaseHistoryPage ? "space-between" : "flex-end",
+                        flexWrap: isLeaseHistoryPage ? "wrap" : "nowrap",
+                        gap: isLeaseHistoryPage ? 2 : 0,
+                    }}
+                    data-cy="home-nav-bar-actions-toolbar"
+                >
+                    {!isDashboardPage && (
+                        <>
+                            {isLeaseHistoryPage && (
+                                <>
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleLeaseHistoryReload}
+                                        disabled={leaseHistoryLoading}
+                                        data-cy="lease-history-reload-button"
+                                    >
+                                        โหลดทั้งหมด
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleLeaseHistoryCreate}
+                                        data-cy="lease-history-create-lease-button"
+                                    >
+                                        + เพิ่มสัญญาเช่า
+                                    </Button>
+                                </>
+                            )}
 
-                        {!isLeaseHistoryPage && showAdd && (
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={handleAddClick}
-                                sx={{
-                                    textTransform: "none",
-                                    fontWeight: "bold",
-                                    borderRadius: "8px",
-                                    boxShadow: "none",
-                                }}
-                                data-cy={getAddButtonDataCy()}
-                            >
-                                {getButtonLabel()}
-                            </Button>
-                        )}
-                    </Box>
-                )}
+                            {!isLeaseHistoryPage && showAdd && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={handleAddClick}
+                                    sx={{
+                                        textTransform: "none",
+                                        fontWeight: "bold",
+                                        borderRadius: "8px",
+                                        boxShadow: "none",
+                                    }}
+                                    data-cy={getAddButtonDataCy()}
+                                >
+                                    {getButtonLabel()}
+                                </Button>
+                            )}
+                        </>
+                    )}
+                </Box>
 
                 {/* This box will wrap the currently active component */}
                 <Box data-cy="home-nav-bar-active-component-container">
