@@ -22,7 +22,6 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
     const currentPageLabel = currentItem.label || '';
     const isLeaseHistoryPage = currentPageLabel === "ประวัติสัญญาเช่า";
     const isDashboardPage = currentPageLabel === "สรุปภาพรวม";
-    const isUserManagementPage = currentPageLabel === "จัดการบัญชีผู้ใช้";
     const signalMap = {
         addRoomSignal,
         addInvoiceSignal,
