@@ -221,14 +221,7 @@ const SupplyInventoryPage = ({ supplyInventoryAddSignal, ...props }) => {
 
     return (
         <Box sx={{ p: 3 }} {...props} data-cy="supply-inventory-page">
-            <Typography
-                variant="h4"
-                gutterBottom
-                data-cy="supply-inventory-title"
-            >
-                คลังอพาร์ทเมนต์
-            </Typography>
-
+            
             {error && (
                 <Alert
                     severity="error"
