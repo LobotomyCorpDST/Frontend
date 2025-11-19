@@ -678,14 +678,6 @@ const SummaryReport = (props) => { // Accept props
 
     return (
         <Box sx={{ p: 2 }} {...props} data-cy="summary-report-page">
-            <Typography
-                variant="h4"
-                gutterBottom
-                sx={{ fontWeight: 'bold', color: 'primary.main', mb: 3 }}
-                data-cy="summary-report-title"
-            >
-                รายงานสรุป
-            </Typography>
 
             {/* Filter Controls */}
             <Paper sx={{ p: 3, mb: 3 }} data-cy="summary-report-filters-container">

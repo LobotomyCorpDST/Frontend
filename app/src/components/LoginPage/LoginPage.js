@@ -179,7 +179,7 @@ export default function LoginPage(props) {
                             mb: 3,
                             fontWeight: 700,
                             fontFamily: 'inherit',
-                            fontSize: isVerySmallScreen ? '1.75rem' : '2.125rem'
+                            fontSize: isVerySmallScreen ? '1.125rem' : '1.5rem'
                         }}
                         data-cy="login-title"
                     >

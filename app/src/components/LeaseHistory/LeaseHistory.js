@@ -1,5 +1,5 @@
 // src/components/LeaseHistory/LeaseHistory.js
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Box, Paper, Typography, Button, Table, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip, TableRow, TableCell
 } from '@mui/material';
@@ -33,7 +33,12 @@ const translateSettled = (settled, settledDate) => {
     return 'ยังไม่คืนเงิน';
 };
 
-const LeaseHistory = ({ ...props }) => {
+const LeaseHistory = ({
+    leaseHistoryReloadSignal,
+    leaseHistoryCreateSignal,
+    onLeaseHistoryLoadingChange = () => {},
+    ...props
+}) => {
     const [allRows, setAllRows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState('');
@@ -64,8 +69,9 @@ const LeaseHistory = ({ ...props }) => {
     const [bulkPrinting, setBulkPrinting] = useState(false);
     const [bulkError, setBulkError] = useState('');
 
-    const loadAll = async () => {
+    const loadAll = useCallback(async () => {
         setLoading(true);
+        onLeaseHistoryLoadingChange(true);
         setErr('');
         try {
             const data = await getAllLeases();
@@ -74,10 +80,29 @@ const LeaseHistory = ({ ...props }) => {
             setErr(e?.message || 'Load leases failed');
         } finally {
             setLoading(false);
+            onLeaseHistoryLoadingChange(false);
         }
-    };
+    }, [onLeaseHistoryLoadingChange]);
 
-    useEffect(() => { loadAll(); }, []);
+    useEffect(() => { loadAll(); }, [loadAll]);
+
+    const reloadSignalRef = useRef(leaseHistoryReloadSignal);
+    useEffect(() => {
+        if (leaseHistoryReloadSignal == null) return;
+        if (reloadSignalRef.current !== leaseHistoryReloadSignal) {
+            reloadSignalRef.current = leaseHistoryReloadSignal;
+            loadAll();
+        }
+    }, [leaseHistoryReloadSignal, loadAll]);
+
+    const createSignalRef = useRef(leaseHistoryCreateSignal);
+    useEffect(() => {
+        if (leaseHistoryCreateSignal == null) return;
+        if (createSignalRef.current !== leaseHistoryCreateSignal) {
+            createSignalRef.current = leaseHistoryCreateSignal;
+            setOpenCreate(true);
+        }
+    }, [leaseHistoryCreateSignal]);
 
     // Sorting logic
     const handleRequestSort = (property) => {
@@ -255,33 +280,6 @@ const LeaseHistory = ({ ...props }) => {
 
     return (
         <Box sx={{ p: 3 }} {...props} data-cy="lease-history-page">
-            <Typography
-                variant="h4"
-                sx={{ mb: 2 }}
-                data-cy="lease-history-title"
-            >
-                ประวัติสัญญาเช่า
-            </Typography>
-
-            {/* Action toolbar */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                <Button
-                    variant="contained"
-                    onClick={loadAll}
-                    disabled={loading}
-                    data-cy="lease-history-reload-button"
-                >
-                    โหลดทั้งหมด
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={() => setOpenCreate(true)}
-                    data-cy="lease-history-create-lease-button"
-                >
-                    + เพิ่มสัญญาเช่า
-                </Button>
-            </Box>
-
             {/* Bulk action toolbar */}
             {selectedIds.size > 0 && (
                 <Toolbar
