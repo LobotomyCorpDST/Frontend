@@ -145,7 +145,7 @@ const HomeNavBar = ({ navigationItems, activeIndex, onTabChange, ...props }) => 
                 <Typography
                     variant="h4"
                     gutterBottom
-                    sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                    sx={{ fontWeight: 'bold', color: 'primary.main', mt: 2 }}
                     data-cy={getTitleDataCy()}
                 >
                     {currentPageLabel}
