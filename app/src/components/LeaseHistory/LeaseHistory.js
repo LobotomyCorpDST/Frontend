@@ -1,9 +1,10 @@
 // src/components/LeaseHistory/LeaseHistory.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Box, Paper, Typography, Button, Table, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip, TableRow, TableCell
+    Box, Paper, Typography, Button, Table, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip, TableRow, TableCell, IconButton
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import EditIcon from '@mui/icons-material/Edit';
 import { getAllLeases, settleLease, openLease, bulkPrintLeases, updateLease } from '../../api/lease';
 import CreateLeaseModal from '../Lease/CreateLeaseModal';
 import LeaseEditModal from './LeaseEditModal';
@@ -36,7 +37,7 @@ const translateSettled = (settled, settledDate) => {
 const LeaseHistory = ({
     leaseHistoryReloadSignal,
     leaseHistoryCreateSignal,
-    onLeaseHistoryLoadingChange = () => {},
+    onLeaseHistoryLoadingChange = () => { },
     ...props
 }) => {
     const [allRows, setAllRows] = useState([]);
@@ -393,7 +394,8 @@ const LeaseHistory = ({
                         <StandardTableHeader
                             data-cy="lease-history-table-header"
                             columns={[
-                                { id: 'select', label: '', disableSorting: true, renderHeader: () => (
+                                {
+                                    id: 'select', label: '', disableSorting: true, renderHeader: () => (
                                         <Checkbox
                                             indeterminate={selectedIds.size > 0 && !paginatedLeases.every(l => selectedIds.has(l.id))}
                                             checked={paginatedLeases.length > 0 && paginatedLeases.every(l => selectedIds.has(l.id))}
@@ -401,7 +403,8 @@ const LeaseHistory = ({
                                             sx={{ color: '#f8f9fa', '&.Mui-checked': { color: '#f8f9fa' } }}
                                             data-cy="lease-history-header-select-all-checkbox"
                                         />
-                                    )},
+                                    )
+                                },
                                 { id: 'roomNumber', label: 'ห้อง' },
                                 { id: 'tenant', label: 'ผู้เช่าอาศัย' },
                                 { id: 'startDate', label: 'เริ่ม' },
@@ -443,32 +446,33 @@ const LeaseHistory = ({
                                         </Typography>
                                     </TableCell>
                                     <TableCell
-                                        align="right"
                                         onClick={(e) => e.stopPropagation()}
                                         data-cy={`lease-history-row-actions-${l.id}`}
                                     >
-                                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                            <Button
-                                                size="small"
-                                                onClick={(e) => onPrint(l.id, e)}
-                                                disabled={printingId === l.id}
-                                                data-cy={`lease-history-row-print-button-${l.id}`}
-                                            >
-                                                {printingId === l.id ? 'กำลังเปิด' : 'พิมพ์'}
-                                            </Button>
-
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                color="primary"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openForEdit(l.id);
-                                                }}
-                                                data-cy={`lease-history-row-edit-button-${l.id}`}
-                                            >
-                                                แก้ไข
-                                            </Button>
+                                        <Stack direction="row" spacing={1}>
+                                            <Tooltip title="แก้ไขใบสัญญาเช่า">
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openForEdit(l.id);
+                                                    }}
+                                                    data-cy={`lease-history-row-edit-button-${l.id}`}
+                                                >
+                                                    <EditIcon fontSize="inherit" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title={printingId === l.id ? 'กำลังเปิด' : 'พิมพ์'}>
+                                                <span>
+                                                    <IconButton
+                                                        onClick={(e) => onPrint(l.id, e)}
+                                                        disabled={printingId === l.id}
+                                                        data-cy={`lease-history-row-print-button-${l.id}`}
+                                                    >
+                                                        <PrintIcon fontSize="inherit" />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
                                         </Stack>
                                     </TableCell>
                                 </TableRow>

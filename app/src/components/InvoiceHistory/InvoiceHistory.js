@@ -480,7 +480,7 @@ const InvoiceHistory = ({ addInvoiceSignal }) => {
                                     <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }} data-cy={`invoice-history-row-total-${invoice.id}`}>{formatCurrency(invoice.totalBaht)}</TableCell>
                                     <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }} data-cy={`invoice-history-row-status-${invoice.id}`}>{renderStatusChip(invoice)}</TableCell>
                                     <TableCell sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }} data-cy={`invoice-history-row-actions-${invoice.id}`}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
                                             <Tooltip title="แก้ไขใบแจ้งหนี้">
                                                 <IconButton onClick={() => handleEdit(invoice)} size="small" data-cy={`invoice-history-row-edit-button-${invoice.id}`}>
                                                     <EditIcon />
