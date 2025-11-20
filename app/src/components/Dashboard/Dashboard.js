@@ -138,7 +138,7 @@ const Dashboard = ({ isGuest = false, ...props }) => {
             >
                 <CircularProgress />
                 <Typography
-                    sx={{ ml: 2 }}
+                    sx={{ mt: 0, ml: 2 }}
                     data-cy="dashboard-loading-text"
                 >
                     กำลังโหลด หน้าสรุปภาพรวม...
@@ -170,15 +170,6 @@ const Dashboard = ({ isGuest = false, ...props }) => {
         <Box sx={{ p: 3 }} {...props} data-cy="dashboard-page">
             {/* แจ้งเตือนงานซ่อมถึงกำหนดวันนี้ - Hide for GUEST */}
             {!isGuest && <MaintenanceToastPanel data-cy="dashboard-maintenance-toast" />}
-
-            <Typography
-                variant="h4"
-                gutterBottom
-                sx={{ fontWeight: 'bold', color: 'primary.main' }}
-                data-cy="dashboard-title"
-            >
-                สรุปภาพรวม
-            </Typography>
 
             {/* Guest welcome message */}
             {isGuest && rooms.length === 0 && (

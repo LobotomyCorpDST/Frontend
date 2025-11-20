@@ -23,8 +23,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: mmmmnl/lobotomy_but_front:v.1.6
-          imagePullPolicy: IfNotPresent
+          image: mmmmnl/lobotomy_but_front:latest 
+          imagePullPolicy: Always
           env:
             - name: REACT_APP_API
               value: "/api"

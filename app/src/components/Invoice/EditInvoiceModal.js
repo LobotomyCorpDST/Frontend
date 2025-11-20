@@ -120,100 +120,101 @@ export default function EditInvoiceModal({ open, onClose, invoiceId, onSaved, ..
                     </Alert>
                 )}
                 {!loading && invoice && (
-                    <Grid container spacing={2} data-cy="edit-invoice-modal-form-grid">
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Billing Year"
-                                type="number"
-                                fullWidth
-                                value={invoice.billingYear || ''}
-                                onChange={handleChange('billingYear')}
-                                data-cy="edit-invoice-billingYear-input"
-                            />
+                    <>
+                        <Grid container spacing={2} data-cy="edit-invoice-modal-form-grid">
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Billing Year"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.billingYear || ''}
+                                    onChange={handleChange('billingYear')}
+                                    data-cy="edit-invoice-billingYear-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Billing Month"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.billingMonth || ''}
+                                    onChange={handleChange('billingMonth')}
+                                    data-cy="edit-invoice-billingMonth-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6} sx={{ minWidth: 211 }}>
+                                <TextField
+                                    label="Issue Date"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    value={invoice.issueDate || ''}
+                                    onChange={handleChange('issueDate')}
+                                    data-cy="edit-invoice-issueDate-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6} sx={{ minWidth: 211 }}>
+                                <TextField
+                                    label="Due Date"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    value={invoice.dueDate || ''}
+                                    onChange={handleChange('dueDate')}
+                                    data-cy="edit-invoice-dueDate-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Electricity Units"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.electricityUnits || ''}
+                                    onChange={handleChange('electricityUnits')}
+                                    data-cy="edit-invoice-electricityUnits-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Electricity Rate"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.electricityRate || ''}
+                                    onChange={handleChange('electricityRate')}
+                                    data-cy="edit-invoice-electricityRate-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Water Units"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.waterUnits || ''}
+                                    onChange={handleChange('waterUnits')}
+                                    data-cy="edit-invoice-waterUnits-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Water Rate"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.waterRate || ''}
+                                    onChange={handleChange('waterRate')}
+                                    data-cy="edit-invoice-waterRate-input"
+                                />
+                            </Grid>
+                            <Grid item xs={12} >
+                                <TextField
+                                    label="Other (Baht)"
+                                    type="number"
+                                    fullWidth
+                                    value={invoice.otherBaht || ''}
+                                    onChange={handleChange('otherBaht')}
+                                    data-cy="edit-invoice-otherBaht-input"
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Billing Month"
-                                type="number"
-                                fullWidth
-                                value={invoice.billingMonth || ''}
-                                onChange={handleChange('billingMonth')}
-                                data-cy="edit-invoice-billingMonth-input"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Issue Date"
-                                type="date"
-                                fullWidth
-                                InputLabelProps={{ shrink: true }}
-                                value={invoice.issueDate || ''}
-                                onChange={handleChange('issueDate')}
-                                data-cy="edit-invoice-issueDate-input"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Due Date"
-                                type="date"
-                                fullWidth
-                                InputLabelProps={{ shrink: true }}
-                                value={invoice.dueDate || ''}
-                                onChange={handleChange('dueDate')}
-                                data-cy="edit-invoice-dueDate-input"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Electricity Units"
-                                type="number"
-                                fullWidth
-                                value={invoice.electricityUnits || ''}
-                                onChange={handleChange('electricityUnits')}
-                                data-cy="edit-invoice-electricityUnits-input"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Electricity Rate"
-                                type="number"
-                                fullWidth
-                                value={invoice.electricityRate || ''}
-                                onChange={handleChange('electricityRate')}
-                                data-cy="edit-invoice-electricityRate-input"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Water Units"
-                                type="number"
-                                fullWidth
-                                value={invoice.waterUnits || ''}
-                                onChange={handleChange('waterUnits')}
-                                data-cy="edit-invoice-waterUnits-input"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Water Rate"
-                                type="number"
-                                fullWidth
-                                value={invoice.waterRate || ''}
-                                onChange={handleChange('waterRate')}
-                                data-cy="edit-invoice-waterRate-input"
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="Other (Baht)"
-                                type="number"
-                                fullWidth
-                                value={invoice.otherBaht || ''}
-                                onChange={handleChange('otherBaht')}
-                                data-cy="edit-invoice-otherBaht-input"
-                            />
-                        </Grid>
-
                         {/* Document Upload Section */}
                         <Grid item xs={12}>
                             <Divider sx={{ my: 2 }} />
@@ -224,7 +225,7 @@ export default function EditInvoiceModal({ open, onClose, invoiceId, onSaved, ..
                                 data-cy="edit-invoice-document-upload"
                             />
                         </Grid>
-                    </Grid>
+                    </>
                 )}
             </DialogContent>
 

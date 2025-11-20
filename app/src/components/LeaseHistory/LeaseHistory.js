@@ -1,9 +1,10 @@
 // src/components/LeaseHistory/LeaseHistory.js
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Box, Paper, Typography, Button, Table, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip, TableRow, TableCell
+    Box, Paper, Typography, Button, Table, TableBody, CircularProgress, Alert, Stack, Checkbox, Toolbar, Tooltip, TableRow, TableCell, IconButton
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import EditIcon from '@mui/icons-material/Edit';
 import { getAllLeases, settleLease, openLease, bulkPrintLeases, updateLease } from '../../api/lease';
 import CreateLeaseModal from '../Lease/CreateLeaseModal';
 import LeaseEditModal from './LeaseEditModal';
@@ -33,7 +34,12 @@ const translateSettled = (settled, settledDate) => {
     return 'ยังไม่คืนเงิน';
 };
 
-const LeaseHistory = ({ ...props }) => {
+const LeaseHistory = ({
+    leaseHistoryReloadSignal,
+    leaseHistoryCreateSignal,
+    onLeaseHistoryLoadingChange = () => { },
+    ...props
+}) => {
     const [allRows, setAllRows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState('');
@@ -64,8 +70,9 @@ const LeaseHistory = ({ ...props }) => {
     const [bulkPrinting, setBulkPrinting] = useState(false);
     const [bulkError, setBulkError] = useState('');
 
-    const loadAll = async () => {
+    const loadAll = useCallback(async () => {
         setLoading(true);
+        onLeaseHistoryLoadingChange(true);
         setErr('');
         try {
             const data = await getAllLeases();
@@ -74,10 +81,29 @@ const LeaseHistory = ({ ...props }) => {
             setErr(e?.message || 'Load leases failed');
         } finally {
             setLoading(false);
+            onLeaseHistoryLoadingChange(false);
         }
-    };
+    }, [onLeaseHistoryLoadingChange]);
 
-    useEffect(() => { loadAll(); }, []);
+    useEffect(() => { loadAll(); }, [loadAll]);
+
+    const reloadSignalRef = useRef(leaseHistoryReloadSignal);
+    useEffect(() => {
+        if (leaseHistoryReloadSignal == null) return;
+        if (reloadSignalRef.current !== leaseHistoryReloadSignal) {
+            reloadSignalRef.current = leaseHistoryReloadSignal;
+            loadAll();
+        }
+    }, [leaseHistoryReloadSignal, loadAll]);
+
+    const createSignalRef = useRef(leaseHistoryCreateSignal);
+    useEffect(() => {
+        if (leaseHistoryCreateSignal == null) return;
+        if (createSignalRef.current !== leaseHistoryCreateSignal) {
+            createSignalRef.current = leaseHistoryCreateSignal;
+            setOpenCreate(true);
+        }
+    }, [leaseHistoryCreateSignal]);
 
     // Sorting logic
     const handleRequestSort = (property) => {
@@ -255,33 +281,6 @@ const LeaseHistory = ({ ...props }) => {
 
     return (
         <Box sx={{ p: 3 }} {...props} data-cy="lease-history-page">
-            <Typography
-                variant="h4"
-                sx={{ mb: 2 }}
-                data-cy="lease-history-title"
-            >
-                ประวัติสัญญาเช่า
-            </Typography>
-
-            {/* Action toolbar */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                <Button
-                    variant="contained"
-                    onClick={loadAll}
-                    disabled={loading}
-                    data-cy="lease-history-reload-button"
-                >
-                    โหลดทั้งหมด
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={() => setOpenCreate(true)}
-                    data-cy="lease-history-create-lease-button"
-                >
-                    + เพิ่มสัญญาเช่า
-                </Button>
-            </Box>
-
             {/* Bulk action toolbar */}
             {selectedIds.size > 0 && (
                 <Toolbar
@@ -395,7 +394,8 @@ const LeaseHistory = ({ ...props }) => {
                         <StandardTableHeader
                             data-cy="lease-history-table-header"
                             columns={[
-                                { id: 'select', label: '', disableSorting: true, renderHeader: () => (
+                                {
+                                    id: 'select', label: '', disableSorting: true, renderHeader: () => (
                                         <Checkbox
                                             indeterminate={selectedIds.size > 0 && !paginatedLeases.every(l => selectedIds.has(l.id))}
                                             checked={paginatedLeases.length > 0 && paginatedLeases.every(l => selectedIds.has(l.id))}
@@ -403,7 +403,8 @@ const LeaseHistory = ({ ...props }) => {
                                             sx={{ color: '#f8f9fa', '&.Mui-checked': { color: '#f8f9fa' } }}
                                             data-cy="lease-history-header-select-all-checkbox"
                                         />
-                                    )},
+                                    )
+                                },
                                 { id: 'roomNumber', label: 'ห้อง' },
                                 { id: 'tenant', label: 'ผู้เช่าอาศัย' },
                                 { id: 'startDate', label: 'เริ่ม' },
@@ -445,32 +446,33 @@ const LeaseHistory = ({ ...props }) => {
                                         </Typography>
                                     </TableCell>
                                     <TableCell
-                                        align="right"
                                         onClick={(e) => e.stopPropagation()}
                                         data-cy={`lease-history-row-actions-${l.id}`}
                                     >
-                                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                            <Button
-                                                size="small"
-                                                onClick={(e) => onPrint(l.id, e)}
-                                                disabled={printingId === l.id}
-                                                data-cy={`lease-history-row-print-button-${l.id}`}
-                                            >
-                                                {printingId === l.id ? 'กำลังเปิด' : 'พิมพ์'}
-                                            </Button>
-
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                color="primary"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openForEdit(l.id);
-                                                }}
-                                                data-cy={`lease-history-row-edit-button-${l.id}`}
-                                            >
-                                                แก้ไข
-                                            </Button>
+                                        <Stack direction="row" spacing={1}>
+                                            <Tooltip title="แก้ไขใบสัญญาเช่า">
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openForEdit(l.id);
+                                                    }}
+                                                    data-cy={`lease-history-row-edit-button-${l.id}`}
+                                                >
+                                                    <EditIcon fontSize="inherit" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title={printingId === l.id ? 'กำลังเปิด' : 'พิมพ์'}>
+                                                <span>
+                                                    <IconButton
+                                                        onClick={(e) => onPrint(l.id, e)}
+                                                        disabled={printingId === l.id}
+                                                        data-cy={`lease-history-row-print-button-${l.id}`}
+                                                    >
+                                                        <PrintIcon fontSize="inherit" />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
                                         </Stack>
                                     </TableCell>
                                 </TableRow>

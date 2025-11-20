@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
     Box,
     Paper,
@@ -22,7 +22,6 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 
 import { getAllUsers, deleteUser } from '../../api/user';
 import CreateUserModal from './CreateUserModal';
@@ -39,7 +38,7 @@ const headCells = [
     { id: 'actions', label: 'การดำเนินการ', disableSorting: true, align: 'center' },
 ];
 
-const UserManagement = (props) => {
+const UserManagement = ({ userManagementCreateSignal, ...props }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -76,6 +75,15 @@ const UserManagement = (props) => {
     useEffect(() => {
         loadUsers();
     }, []);
+
+    const createSignalRef = useRef(userManagementCreateSignal);
+    useEffect(() => {
+        if (userManagementCreateSignal == null) return;
+        if (createSignalRef.current !== userManagementCreateSignal) {
+            createSignalRef.current = userManagementCreateSignal;
+            setOpenCreate(true);
+        }
+    }, [userManagementCreateSignal]);
 
     const handleDeleteClick = (user) => {
         setUserToDelete(user);
@@ -196,24 +204,6 @@ const UserManagement = (props) => {
 
     return (
         <Box sx={{ p: 3 }} {...props} data-cy="user-management-page">
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography
-                    variant="h5"
-                    component="h2"
-                    data-cy="user-management-title"
-                >
-                    จัดการผู้ใช้
-                </Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpenCreate(true)}
-                    sx={{ borderRadius: 2 }}
-                    data-cy="user-management-create-user-button"
-                >
-                    สร้างผู้ใช้ใหม่
-                </Button>
-            </Box>
 
             {error && (
                 <Alert
@@ -314,7 +304,7 @@ const UserManagement = (props) => {
                                         sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}
                                         data-cy={`user-management-cell-actions-${user.id}`}
                                     >
-                                        <Stack direction="row" spacing={1} justifyContent="center">
+                                        <Stack direction="row" spacing={1}>
                                             <IconButton
                                                 size="small"
                                                 color="primary"

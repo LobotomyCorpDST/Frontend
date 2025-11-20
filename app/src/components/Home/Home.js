@@ -37,15 +37,24 @@ function HomePage() {
         { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} />, signalKeys: ['addMaintenanceSignal'] },
         { label: "ห้องทั้งหมด", component: <RoomList />, signalKeys: ['addRoomSignal'] },
         { label: "ใบแจ้งหนี้", component: <InvoiceHistory />, signalKeys: ['addInvoiceSignal'] },
-        { label: "ประวัติสัญญาเช่า", component: <LeaseHistory /> },
+        {
+            label: "ประวัติสัญญาเช่า",
+            component: <LeaseHistory />,
+            signalKeys: ['leaseHistoryReloadSignal', 'leaseHistoryCreateSignal', 'onLeaseHistoryLoadingChange'],
+        },
         { label: "ผู้เช่าทั้งหมด", component: <TenantList />, signalKeys: ['addTenantSignal'] },
         { label: "รายงานสรุป", component: <SummaryReport /> },
-        { label: "คลังวัสดุ", component: <SupplyInventoryPage /> },
-        { label: "จัดการบัญชีผู้ใช้", component: <UserManagement /> },
+        { label: "คลังวัสดุ", component: <SupplyInventoryPage />, signalKeys: ['supplyInventoryAddSignal'] },
+        {
+            label: "จัดการบัญชีผู้ใช้",
+            component: <UserManagement />,
+            signalKeys: ['userManagementCreateSignal'],
+        },
     ] : userRole === 'STAFF' ? [
         // STAFF: Dashboard + Maintenance
         { label: "สรุปภาพรวม", component: <Dashboard isGuest={false} /> },
         { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} />, signalKeys: ['addMaintenanceSignal'] },
+        { label: "คลังวัสดุ", component: <SupplyInventoryPage />, signalKeys: ['supplyInventoryAddSignal'] },
     ] : [
         // USER, GUEST: Dashboard only
         { label: "สรุปภาพรวม", component: <Dashboard isGuest={isGuest} /> },
