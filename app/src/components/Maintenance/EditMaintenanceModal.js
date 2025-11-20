@@ -3,20 +3,18 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, MenuItem, Button, Alert, CircularProgress, Stack, Divider
 } from '@mui/material';
-import { getMaintenanceByID, updateMaintenance, deleteMaintenance } from '../../api/maintenance';
+import { getMaintenanceByID, updateMaintenance } from '../../api/maintenance';
 import DocumentUploadComponent from '../Common/DocumentUploadComponent';
 
 export default function EditMaintenanceModal({ open, onClose, maintenanceId, onSaved, ...props }) {
     const [maintenance, setMaintenance] = useState(null);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState('');
 
-    // Check user role - only STAFF and ADMIN can edit responsiblePerson/Phone, only ADMIN can delete
+    // Check user role - only STAFF and ADMIN can edit responsiblePerson/Phone
     const userRole = (localStorage.getItem('role') || 'GUEST').toUpperCase();
     const canEditResponsible = userRole === 'ADMIN' || userRole === 'STAFF';
-    const canDelete = userRole === 'ADMIN';
 
     useEffect(() => {
         if (!open || !maintenanceId) return;
@@ -55,32 +53,6 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
             setError(e?.message || 'Update failed.');
         } finally {
             setSaving(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!maintenanceId) return;
-        if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการซ่อมบำรุงนี้?')) return;
-
-        setDeleting(true);
-        setError('');
-        try {
-            await deleteMaintenance(maintenanceId);
-            onSaved?.();
-            onClose?.();
-        } catch (e) {
-            let msg = e?.message || 'Delete failed.';
-            // Handle foreign key constraint errors
-            if (
-                msg.includes('foreign key constraint fails') ||
-                msg.includes('Cannot delete or update a parent row') ||
-                msg.includes('constraint [null]')
-            ) {
-                msg = 'ไม่สามารถลบรายการซ่อมบำรุงนี้ได้ เนื่องจากมีข้อมูลอื่นที่เกี่ยวข้อง';
-            }
-            setError(msg);
-        } finally {
-            setDeleting(false);
         }
     };
 
@@ -199,20 +171,9 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
                 )}
             </DialogContent>
             <DialogActions>
-                {canDelete && (
-                    <Button
-                        color="error"
-                        onClick={handleDelete}
-                        disabled={saving || deleting || loading}
-                        data-cy="edit-maintenance-modal-delete-button"
-                        sx={{ mr: 'auto' }}
-                    >
-                        {deleting ? 'กำลังลบ...' : 'ลบรายการ'}
-                    </Button>
-                )}
                 <Button
                     onClick={onClose}
-                    disabled={saving || deleting}
+                    disabled={saving}
                     data-cy="edit-maintenance-modal-cancel-button"
                 >
                     ยกเลิก
@@ -220,7 +181,7 @@ export default function EditMaintenanceModal({ open, onClose, maintenanceId, onS
                 <Button
                     variant="contained"
                     onClick={handleSave}
-                    disabled={saving || deleting}
+                    disabled={saving}
                     data-cy="edit-maintenance-modal-save-button"
                 >
                     {saving ? 'กำลังบันทึก...' : 'บันทึก'}
