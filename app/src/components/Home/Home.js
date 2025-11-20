@@ -54,6 +54,7 @@ function HomePage() {
         // STAFF: Dashboard + Maintenance
         { label: "สรุปภาพรวม", component: <Dashboard isGuest={false} /> },
         { label: "บำรุงรักษา", component: <MaintenanceHistory userRole={userRole} />, signalKeys: ['addMaintenanceSignal'] },
+        { label: "คลังวัสดุ", component: <SupplyInventoryPage />, signalKeys: ['supplyInventoryAddSignal'] },
     ] : [
         // USER, GUEST: Dashboard only
         { label: "สรุปภาพรวม", component: <Dashboard isGuest={isGuest} /> },
