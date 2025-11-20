@@ -250,7 +250,7 @@ export default function LoginPage(props) {
                             }}
                             data-cy="login-submit-button"
                         >
-                            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+                            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ (Login)'}
                         </Button>
 
                         {/* Guest Login */}
