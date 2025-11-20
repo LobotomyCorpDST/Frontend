@@ -12,19 +12,37 @@ describe('Maintenance page test', () => {
         cy.wait('@getHistory');
     });
     it('link to room detail', ()=>{
-        cy.get('[data-cy="maintenance-history-room-link-button-300"]').click(); // cannot find element
+        cy.get('[data-cy="maintenance-history-room-link-button-300"]').click();
         cy.get('[data-cy="room-detail-title-room-number"]').should('be.visible');
         cy.get('[data-cy="room-detail-back-button"]').click();
     });
 
-    it('smart search to room detail', () =>{
+    it('sort test (desc)', () =>{
+        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-room-link-button-"]').first().should('contain', 'C1020317');
+    })
+    it('sort test (asc)', () =>{
+        cy.get('[data-cy="standard-table-header-cell-id"]').click();
+        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-room-link-button-"]').first().should('contain', 'C20101');
+    })
+
+    it('smart search by room number', () =>{
         cy.get('[data-cy="smart-search-input-field"]').type('201');
         cy.get('li[data-option-index="0"]').should('contain', '201');
         cy.get('li[data-option-index="0"]').click();
-        cy.get('[data-cy="maintenance-history-cell-ref-1"]').should('contain', '201');
-        cy.get('[data-cy="maintenance-history-cell-ref-1"]').click();
+        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-cell-ref-"]').first().should('contain', '201');
+        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-cell-ref-"]').first().click();
         cy.get('[data-cy="room-detail-title-room-number"]').should('be.visible');
         cy.get('[data-cy="room-detail-back-button"]').click();
+    })
+
+    it('smart search by maintenance id', () =>{
+        cy.get('[data-cy="smart-search-input-field"]').type('C3010301{enter}');
+        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-cell-ref-"]').first().should('contain', 'C3010301');
+    })
+
+    it('smart search by description', () =>{
+        cy.get('[data-cy="smart-search-input-field"]').type('Door Lock{enter}');
+        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-cell-desc-"]').should('contain', 'Door lock');
     })
 
     it('test create maintenance', ()=>{

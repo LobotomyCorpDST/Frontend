@@ -445,7 +445,7 @@ const InvoiceHistory = ({ addInvoiceSignal }) => {
                             ))}
                         </TableRow>
                     </TableHead>
-                    <TableBody>
+                    <TableBody data-cy="invoice-history-table-body">
                         {paginatedInvoices.length > 0 ? (
                             paginatedInvoices.map((invoice) => (
                                 <TableRow

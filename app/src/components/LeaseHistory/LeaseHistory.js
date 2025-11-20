@@ -415,7 +415,7 @@ const LeaseHistory = ({ ...props }) => {
                             sortConfig={sortConfig}
                             onRequestSort={handleRequestSort}
                         />
-                        <TableBody>
+                        <TableBody data-cy="lease-history-table-body">
                             {paginatedLeases.map((l) => (
                                 <TableRow
                                     key={l.id}
