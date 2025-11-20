@@ -34,11 +34,13 @@ jobs:
     
     - name: '🧪 Run Cypress E2E Tests'
       uses: cypress-io/github-action@v6
+      env:
+        # FORCE the correct URL here to override any defaults
+        CYPRESS_API_BASE_URL: https://apt.krentiz.dev/api
+        CYPRESS_baseUrl: https://apt.krentiz.dev
       with:
         working-directory: app
-        start: npm start
-        wait-on: 'http://localhost:3000'
-        wait-on-timeout: 120
+        browser: chrome
 
     - name: '🐳 Build the Docker image'
       run: docker build --file app/Dockerfile -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} app
