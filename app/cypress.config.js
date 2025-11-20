@@ -1,6 +1,8 @@
 // cypress.config.js
 const { defineConfig } = require("cypress");
 
+const apiBaseUrl = process.env.CYPRESS_API_BASE_URL || 'https://apt.krentiz.dev';
+
 module.exports = defineConfig({
   e2e: {
     baseUrl: 'http://localhost:3000',
@@ -8,7 +10,7 @@ module.exports = defineConfig({
       // implement node event listeners here
     },
     env: {
-      API_BASE_URL: 'http://localhost:8080'
+      API_BASE_URL: apiBaseUrl,
     },
     viewportWidth: 1280,
     viewportHeight: 720,

@@ -1,7 +1,7 @@
 // cypress/e2e/apartment-management.cy.js
 
 describe('Apartment Management System - E2E Tests', () => {
-  const API_BASE = 'https://apt.krentiz.dev/api';
+  const API_BASE = (Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev').replace(/\/+$/, '');
   const createdTestData = {
     rooms: [],
     leases: [],
@@ -13,7 +13,7 @@ describe('Apartment Management System - E2E Tests', () => {
   beforeEach(() => {
     // Bypass login and navigate to home
     cy.visit('/');
-    cy.get('button').contains('Login').click();
+    cy.get('[data-cy=login-submit-button]').click();
     cy.url().should('include', '/home');
     
     // Wait for dashboard to load

@@ -10,7 +10,7 @@ describe('Apartment Management System E2E Tests', () => {
     it('should bypass the login page on button click', () => {
       // Assuming your login button has a unique identifier like 'login-button'
       // If not, you can use other selectors like the button text
-      cy.get('button').contains('Login').click();
+      cy.get('[data-cy=login-submit-button]').click();
 
       // After clicking login, the URL should change to the dashboard page
       // Replace '/dashboard' with the actual path to your dashboard
@@ -21,7 +21,7 @@ describe('Apartment Management System E2E Tests', () => {
   context('Dashboard', () => {
     it('should display the main dashboard elements', () => {
       // First, perform the login action to get to the dashboard
-      cy.get('button').contains('Login').click();
+      cy.get('[data-cy=login-submit-button]').click();
       cy.url().should('include', '/home');
 
       // Now, check for the presence of key elements on the dashboard
@@ -37,7 +37,7 @@ describe('Apartment Management System E2E Tests', () => {
     // To implement this, you will need to provide the UI flows for these actions.
     it.skip('should create new data and then delete it', () => {
       // 1. Login
-      cy.get('button').contains('Login').click();
+      cy.get('[data-cy=login-submit-button]').click();
       cy.url().should('include', '/home');
 
       // 2. Navigate to the page for creating new data (e.g., a "Tenants" page)
