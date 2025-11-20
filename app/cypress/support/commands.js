@@ -13,7 +13,7 @@ Cypress.Commands.add('bypassLogin', () => {
 
 // Command to wait for API to be ready
 Cypress.Commands.add('waitForApi', () => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   cy.request({
     method: 'GET',
     url: `${apiBaseUrl}/api/rooms/ping`,
@@ -38,7 +38,7 @@ Cypress.Commands.add('waitForApi', () => {
 
 // Command to clean up test data by type
 Cypress.Commands.add('cleanupData', (dataType, ids) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   const apiEndpoints = {
     invoices: '/api/invoices',
     maintenance: '/api/maintenance',
@@ -62,10 +62,10 @@ Cypress.Commands.add('cleanupData', (dataType, ids) => {
 Cypress.Commands.add('navigateTo', (section) => {
   // Click the menu button to open the drawer
   cy.get('button[aria-label="open drawer"]').click();
-  
+
   // Wait for the drawer to be visible with timeout
   cy.get('.MuiDrawer-paper', { timeout: 10000 }).should('be.visible');
-  
+
   // Map section names to actual Thai text used in the app
   const sectionMap = {
     'dashboard': 'Dashboard',
@@ -80,12 +80,12 @@ Cypress.Commands.add('navigateTo', (section) => {
     'บำรุงรักษา': 'บำรุงรักษา',
     'ประวัติสัญญาเช่า': 'ประวัติสัญญาเช่า'
   };
-  
+
   const targetText = sectionMap[section] || section;
-  
+
   // Click on the navigation item
   cy.get('.MuiDrawer-paper').contains(targetText).click();
-  
+
   // Wait for drawer to close
   cy.get('.MuiDrawer-paper').should('not.be.visible');
 });
@@ -121,7 +121,7 @@ Cypress.Commands.add('fillMuiField', (label, value) => {
     const formControl = $body.find('.MuiFormControl-root').filter((index, element) => {
       return Cypress.$(element).find('label').text().includes(label);
     });
-    
+
     if (formControl.length > 0) {
       cy.wrap(formControl.first()).find('input, textarea').clear().type(value);
     } else {
@@ -145,7 +145,7 @@ Cypress.Commands.add('selectMuiDropdown', (label, value) => {
     .parent()
     .find('.MuiSelect-select, [role="button"]')
     .click();
-  
+
   // Wait for dropdown options and click the desired value
   cy.get('.MuiMenuItem-root, [role="option"]', { timeout: 5000 })
     .contains(value)
@@ -154,7 +154,7 @@ Cypress.Commands.add('selectMuiDropdown', (label, value) => {
 
 // API helper commands with better error handling
 Cypress.Commands.add('createTestRoom', (roomData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   const defaultData = {
     number: Math.floor(Math.random() * 9000) + 1000,
     status: 'FREE'
@@ -168,33 +168,33 @@ Cypress.Commands.add('createTestRoom', (roomData) => {
 });
 
 Cypress.Commands.add('createTestTenant', (tenantData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   const defaultData = {
     name: 'Test Tenant ' + Date.now(),
     phone: '000-000-0000',
     lineId: 'test_line_' + Date.now()
   };
-  return cy.request('POST', `${apiBaseUrl}/api/tenants`, { 
-    ...defaultData, 
-    ...tenantData 
+  return cy.request('POST', `${apiBaseUrl}/api/tenants`, {
+    ...defaultData,
+    ...tenantData
   });
 });
 
 Cypress.Commands.add('createTestLease', (leaseData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   const defaultData = {
     startDate: new Date().toISOString().split('T')[0],
     monthlyRent: 7000,
     depositBaht: 14000
   };
-  return cy.request('POST', `${apiBaseUrl}/api/leases`, { 
-    ...defaultData, 
-    ...leaseData 
+  return cy.request('POST', `${apiBaseUrl}/api/leases`, {
+    ...defaultData,
+    ...leaseData
   });
 });
 
 Cypress.Commands.add('createTestInvoice', (invoiceData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   const today = new Date();
   const dueDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   const defaultData = {
@@ -205,22 +205,22 @@ Cypress.Commands.add('createTestInvoice', (invoiceData) => {
     rentBaht: 7000,
     tenantId: 2 // Include tenantId to avoid API errors
   };
-  return cy.request('POST', `${apiBaseUrl}/api/invoices`, { 
-    ...defaultData, 
-    ...invoiceData 
+  return cy.request('POST', `${apiBaseUrl}/api/invoices`, {
+    ...defaultData,
+    ...invoiceData
   });
 });
 
 Cypress.Commands.add('createTestMaintenance', (maintenanceData) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'http://localhost:8080';
   const defaultData = {
     description: 'Test maintenance task ' + Date.now(),
     scheduledDate: new Date().toISOString().split('T')[0],
     costBaht: 500
   };
-  return cy.request('POST', `${apiBaseUrl}/api/maintenance`, { 
-    ...defaultData, 
-    ...maintenanceData 
+  return cy.request('POST', `${apiBaseUrl}/api/maintenance`, {
+    ...defaultData,
+    ...maintenanceData
   });
 });
 
@@ -257,12 +257,12 @@ Cypress.Commands.add('waitForPageLoad', (expectedContent) => {
 Cypress.Commands.add('shouldContainOneOf', { prevSubject: true }, (subject, expectedValues) => {
   const text = subject.text();
   const found = expectedValues.some(value => text.includes(value));
-  
+
   if (!found) {
     cy.log(`Text content: ${text}`);
     cy.log(`Expected one of: ${expectedValues.join(', ')}`);
   }
-  
+
   expect(found, `Expected to find one of [${expectedValues.join(', ')}] in "${text.substring(0, 200)}..."`).to.be.true;
   return cy.wrap(subject);
 });
@@ -271,7 +271,7 @@ Cypress.Commands.add('shouldContainOneOf', { prevSubject: true }, (subject, expe
 Cypress.Commands.add('clickWithRetry', (selector, options = {}) => {
   const maxRetries = options.maxRetries || 3;
   const delay = options.delay || 1000;
-  
+
   function attemptClick(retryCount = 0) {
     cy.get('body').then(() => {
       cy.get(selector).then($el => {
@@ -286,7 +286,7 @@ Cypress.Commands.add('clickWithRetry', (selector, options = {}) => {
       });
     });
   }
-  
+
   attemptClick();
 });
 
@@ -294,16 +294,16 @@ Cypress.Commands.add('clickWithRetry', (selector, options = {}) => {
 Cypress.Commands.add('waitForStable', (selector, options = {}) => {
   const timeout = options.timeout || 5000;
   const interval = options.interval || 100;
-  
+
   cy.get(selector, { timeout }).should('be.visible').then($el => {
     const initialRect = $el[0].getBoundingClientRect();
-    
+
     cy.wait(interval).then(() => {
       cy.get(selector).then($newEl => {
         const newRect = $newEl[0].getBoundingClientRect();
-        
-        if (Math.abs(initialRect.top - newRect.top) > 1 || 
-            Math.abs(initialRect.left - newRect.left) > 1) {
+
+        if (Math.abs(initialRect.top - newRect.top) > 1 ||
+          Math.abs(initialRect.left - newRect.left) > 1) {
           // Element moved, wait again
           cy.waitForStable(selector, options);
         }

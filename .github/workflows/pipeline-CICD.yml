@@ -15,6 +15,14 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    services:
+      backend:
+        image: mmmmnl/lobotomycorp:latest 
+        ports:
+          - 8080:8080
+        env:
+          SPRING_PROFILES_ACTIVE: dev 
     
     permissions:
        contents: 'read'
@@ -24,6 +32,14 @@ jobs:
     - name: '📥 Check out code'
       uses: actions/checkout@v4
     
+    - name: '🧪 Run Cypress E2E Tests'
+      uses: cypress-io/github-action@v6
+      with:
+        working-directory: app
+        start: npm start
+        wait-on: 'http://localhost:3000'
+        wait-on-timeout: 120
+
     - name: '🐳 Build the Docker image'
       run: docker build --file app/Dockerfile -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} app
       
