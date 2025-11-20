@@ -18,11 +18,13 @@ describe('Apartment Management System - E2E Tests', () => {
   beforeEach(() => {
     // Bypass login and navigate to home
     cy.visit('/');
+    cy.get('[data-cy=login-username-input]').type('admin');
+    cy.get('[data-cy=login-password-input]').type('1234');
     cy.get('[data-cy=login-submit-button]').click();
     cy.url().should('include', '/home');
     
     // Wait for dashboard to load with more specific selector
-    cy.get('[data-testid="dashboard"], h4, .MuiTypography-h4', { timeout: 10000 }).should('be.visible');
+    cy.get('[data-cy=dashboard-title]', { timeout: 10000 }).should('be.visible');
   });
 
   afterEach(() => {
