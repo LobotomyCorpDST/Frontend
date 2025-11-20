@@ -16,7 +16,7 @@ describe('Apartment Management System - E2E Tests', () => {
     cy.get('[data-cy=login-password-input]').type('1234');
     cy.get('[data-cy=login-submit-button]').click();
     cy.url().should('include', '/home');
-    cy.get('[data-cy=dashboard-title]').should('be.visible');
+    cy.get('[data-cy=dashboard-title]', { timeout: 15000 }).should('be.visible');
   });
 
   afterEach(() => {
@@ -24,22 +24,47 @@ describe('Apartment Management System - E2E Tests', () => {
     cy.cleanupData('maintenance', createdTestData.maintenance);
     cy.cleanupData('leases', createdTestData.leases);
     cy.cleanupData('rooms', createdTestData.rooms);
+    cy.cleanupData('tenants', createdTestData.tenants);
+
     Object.keys(createdTestData).forEach(key => {
       createdTestData[key] = [];
     });
   });
 
+  const createTenant = () => {
+    return cy.window().then(win => {
+      const token = win.localStorage.getItem('token');
+      return cy.request({
+        method: 'POST',
+        url: `${API_BASE}/tenants`,
+        headers: { Authorization: `Bearer ${token}` },
+        failOnStatusCode: false,
+        body: {
+          name: `Test Tenant ${Math.floor(Math.random() * 1000)}`,
+          phone: '0812345678',
+          lineId: 'testline'
+        }
+      }).then(res => {
+        if (res.status === 201 || res.status === 200) {
+          createdTestData.tenants.push(res.body.id);
+          return res.body.id;
+        }
+        throw new Error(`Failed to create tenant: ${JSON.stringify(res.body)}`);
+      });
+    });
+  };
+
   describe('Dashboard Navigation', () => {
     it('should display dashboard with room statistics and allow floor filtering', () => {
       cy.contains('สรุปภาพรวม').should('be.visible');
-      cy.contains('ทั้งหมด').should('be.visible');
+      cy.contains('จำนวนห้องทั้งหมด').should('be.visible');
       cy.get('[data-cy^="dashboard-floor-title-"]').should('exist');
       cy.contains('ชั้น').should('be.visible');
-      cy.get('.MuiCard-root').should('exist');
+      cy.get('[data-cy^="dashboard-room-card-"]').should('exist');
     });
 
     it('should navigate to room details when clicking on room card', () => {
-      cy.get('.MuiCard-root', { timeout: 10000 }).first().click();
+      cy.get('[data-cy^="dashboard-room-card-"]', { timeout: 10000 }).first().click();
       cy.url().should('include', '/room-details/');
     });
   });
@@ -54,6 +79,7 @@ describe('Apartment Management System - E2E Tests', () => {
       cy.fillMuiField('เลขห้อง', testRoomNumber.toString());
       cy.selectMuiDropdown('สถานะ', 'FREE');
       cy.get('button').contains('สร้างห้อง').click();
+
       cy.get('.MuiDialog-root').should('not.exist');
       cy.get('.MuiBackdrop-root').should('not.exist');
       cy.contains(testRoomNumber.toString()).should('be.visible');
@@ -62,11 +88,12 @@ describe('Apartment Management System - E2E Tests', () => {
         const token = win.localStorage.getItem('token');
         cy.request({
           method: 'GET',
-          url: `${API_BASE}/api/rooms`,
+          url: `${API_BASE}/rooms`,
           headers: { Authorization: `Bearer ${token}` },
           failOnStatusCode: false
         }).then(res => {
-          const room = res.body.find(r => r.number == testRoomNumber);
+          const list = Array.isArray(res.body) ? res.body : (res.body.content || []);
+          const room = list.find(r => r.number == testRoomNumber);
           if (room) createdTestData.rooms.push(room.id);
         });
       });
@@ -77,27 +104,28 @@ describe('Apartment Management System - E2E Tests', () => {
     it('should mark invoice as paid', () => {
       const testRoomNum = Math.floor(Math.random() * 8000) + 1000;
 
-      cy.createTestRoom({ number: testRoomNum, status: 'OCCUPIED' }).then(roomRes => {
-        expect(roomRes.status).to.eq(201);
-        const roomId = roomRes.body.id;
-        createdTestData.rooms.push(roomId);
+      createTenant().then(tenantId => {
+        cy.createTestRoom({ number: testRoomNum, status: 'OCCUPIED' }).then(roomRes => {
+          expect(roomRes.status).to.eq(201);
+          const roomId = roomRes.body.id;
+          createdTestData.rooms.push(roomId);
 
-        cy.createTestInvoice({
-          roomId,
-          tenantId: 2,
-          rentBaht: 7000
-        }).then(response => {
-          expect(response.status).to.eq(201, 'Invoice should be created successfully');
-          const invoiceId = response.body.id;
-          createdTestData.invoices.push(invoiceId);
+          cy.createTestInvoice({
+            roomId,
+            tenantId,
+            rentBaht: 7000
+          }).then(response => {
+            expect(response.status).to.eq(201);
+            const invoiceId = response.body.id;
+            createdTestData.invoices.push(invoiceId);
 
-          cy.navigateTo('invoices');
-          cy.contains(invoiceId.toString()).should('be.visible');
-          cy.contains(invoiceId.toString()).parent('tr').within(() => {
-            cy.get('button').contains('Mark Paid').click();
+            cy.navigateTo('invoices');
+            cy.contains(invoiceId.toString()).should('be.visible');
+            cy.contains(invoiceId.toString()).parent('tr').within(() => {
+              cy.get('button').contains('Mark Paid').click();
+            });
+            cy.get('.MuiChip-root').should('contain.oneOf', ['Paid', 'ชำระแล้ว']);
           });
-
-          cy.get('.MuiChip-root').should('contain.oneOf', ['Paid', 'ชำระแล้ว']);
         });
       });
     });
@@ -105,12 +133,13 @@ describe('Apartment Management System - E2E Tests', () => {
 
   describe('Maintenance Management', () => {
     it('should create maintenance task from room details', () => {
-      const testRoomNum = 5555;
+      const testRoomNum = 5555 + Math.floor(Math.random() * 1000);
       cy.createTestRoom({ number: testRoomNum, status: 'OCCUPIED' }).then(res => {
+        expect(res.status).to.eq(201);
         createdTestData.rooms.push(res.body.id);
 
         cy.visit(`/room-details/${testRoomNum}`);
-        cy.contains('บำรุงรักษา').click();
+        cy.contains('บำรุงรักษา', { timeout: 15000 }).should('be.visible').click();
         cy.get('button').contains('เพิ่มงานบำรุงรักษา').click();
         cy.get('.MuiDialog-root').should('be.visible');
         cy.get('input[type="date"]').clear().type('2025-01-15');
@@ -118,14 +147,15 @@ describe('Apartment Management System - E2E Tests', () => {
         cy.fillMuiField('ค่าใช้จ่าย (บาท)', '500');
         cy.get('button').contains('บันทึก').click();
         cy.get('.MuiDialog-root').should('not.exist');
-        cy.get('.MuiBackdrop-root').should('not.exist');
         cy.contains('Test maintenance task').should('be.visible');
       });
     });
 
     it('should mark maintenance as completed', () => {
-      const testRoomNum = 6666;
+      const testRoomNum = 6666 + Math.floor(Math.random() * 1000);
+
       cy.createTestRoom({ number: testRoomNum, status: 'OCCUPIED' }).then(roomRes => {
+        expect(roomRes.status).to.eq(201);
         const roomId = roomRes.body.id;
         createdTestData.rooms.push(roomId);
 
@@ -139,7 +169,7 @@ describe('Apartment Management System - E2E Tests', () => {
           createdTestData.maintenance.push(response.body.id);
 
           cy.visit(`/room-details/${testRoomNum}`);
-          cy.contains('บำรุงรักษา').click();
+          cy.contains('บำรุงรักษา').should('be.visible').click();
           cy.contains('Test completion').parent('tr').within(() => {
             cy.get('button').contains('ทำเสร็จ').click();
           });

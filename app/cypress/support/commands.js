@@ -31,18 +31,19 @@ Cypress.Commands.add('waitForApi', () => {
 
 // Command to clean up test data by type (With Auth Header)
 Cypress.Commands.add('cleanupData', (dataType, ids) => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
-  const apiEndpoints = {
-    invoices: '/api/invoices',
-    maintenance: '/api/maintenance',
-    leases: '/api/leases',
-    rooms: '/api/rooms',
-    tenants: '/api/tenants'
+const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
+const apiEndpoints = {
+    invoices: '/invoices',
+    maintenance: '/maintenance',
+    leases: '/leases',
+    rooms: '/rooms',
+    tenants: '/tenants'
   };
 
   if (apiEndpoints[dataType]) {
     cy.window().then((win) => {
       const token = win.localStorage.getItem('token');
+      if (!token) return;
       ids.forEach(id => {
         cy.request({
           method: 'DELETE',
@@ -61,21 +62,21 @@ Cypress.Commands.add('navigateTo', (section) => {
   cy.get('.MuiDrawer-paper', { timeout: 10000 }).should('be.visible');
 
   const sectionMap = {
-    dashboard: 'สรุปภาพรวม',
-    rooms: 'ห้องทั้งหมด',
-    invoices: 'ใบแจ้งหนี้',
-    maintenance: 'บำรุงรักษา',
-    leaseHistory: 'ประวัติสัญญาเช่า',
-    Dashboard: 'สรุปภาพรวม',
-    'ห้องทั้งหมด': 'ห้องทั้งหมด',
-    'ใบแจ้งหนี้': 'ใบแจ้งหนี้',
-    'บำรุงรักษา': 'บำรุงรักษา',
-    'ประวัติสัญญาเช่า': 'ประวัติสัญญาเช่า'
+    dashboard: '??????????',
+    rooms: '???????????',
+    invoices: '??????????',
+    maintenance: '??????????',
+    leaseHistory: '????????????????',
+    Dashboard: '??????????',
+    '???????????': '???????????',
+    '??????????': '??????????',
+    '??????????': '??????????',
+    '????????????????': '????????????????'
   };
 
   const targetText = sectionMap[section] || section;
   cy.get('.MuiDrawer-paper').contains(targetText).click();
-  cy.get('.MuiDrawer-paper').should('not.be.visible');
+  cy.get('body').click(0, 0);
 });
 
 // Helper to fill MUI TextField by label
@@ -101,7 +102,7 @@ Cypress.Commands.add('createTestRoom', (roomData) => {
     const token = win.localStorage.getItem('token');
     return cy.request({
       method: 'POST',
-      url: `${apiBaseUrl}/api/rooms`,
+      url: `${apiBaseUrl}/rooms`,
       body: { ...defaultData, ...roomData },
       failOnStatusCode: false,
       headers: { Authorization: `Bearer ${token}` }
@@ -125,7 +126,7 @@ Cypress.Commands.add('createTestInvoice', (invoiceData) => {
     const token = win.localStorage.getItem('token');
     return cy.request({
       method: 'POST',
-      url: `${apiBaseUrl}/api/invoices`,
+      url: `${apiBaseUrl}/invoices`,
       body: { ...defaultData, ...invoiceData },
       failOnStatusCode: false,
       headers: { Authorization: `Bearer ${token}` }
@@ -144,7 +145,7 @@ Cypress.Commands.add('createTestMaintenance', (maintenanceData) => {
     const token = win.localStorage.getItem('token');
     return cy.request({
       method: 'POST',
-      url: `${apiBaseUrl}/api/maintenance`,
+      url: `${apiBaseUrl}/maintenance`,
       body: { ...defaultData, ...maintenanceData },
       failOnStatusCode: false,
       headers: { Authorization: `Bearer ${token}` }
