@@ -13,25 +13,15 @@ Cypress.Commands.add('bypassLogin', () => {
 
 // Command to wait for API to be ready
 Cypress.Commands.add('waitForApi', () => {
-  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev';
+  const apiBaseUrl = Cypress.env('API_BASE_URL') || 'https://apt.krentiz.dev/api';
   cy.request({
     method: 'GET',
-    url: `${apiBaseUrl}/api/rooms/ping`,
+    url: `${apiBaseUrl.replace(/\/+$/, '')}/health`,
     failOnStatusCode: false,
     timeout: 10000
   }).then((response) => {
     if (response.status !== 200) {
-      // Try alternative endpoint if ping doesn't exist
-      cy.request({
-        method: 'GET',
-        url: `${apiBaseUrl}/api/rooms`,
-        failOnStatusCode: false,
-        timeout: 10000
-      }).then((altResponse) => {
-        if (altResponse.status !== 200) {
-          throw new Error(`Backend API is not responding. Please ensure the service at ${apiBaseUrl} is reachable.`);
-        }
-      });
+      throw new Error(`Backend API is reachable but returned status ${response.status}. Expected 200 OK from health check.`);
     }
   });
 });
