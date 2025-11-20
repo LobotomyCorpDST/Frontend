@@ -18,8 +18,6 @@ export default function LoginPage(props) {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
     const isVerySmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-    const isCypressEnv = typeof window !== 'undefined' && Boolean(window.Cypress);
-
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [loading, setLoading] = React.useState(false);
@@ -36,14 +34,8 @@ export default function LoginPage(props) {
         e?.preventDefault?.();
         setError('');
 
-        if (isCypressEnv) {
-            // Bypass network auth when running Cypress E2E to keep specs fast/stable
-            localStorage.setItem('token', 'cypress-test-token');
-            localStorage.setItem('username', 'cypress-admin');
-            localStorage.setItem('role', 'admin');
-            navigate('/home');
-            return;
-        }
+        // REMOVED: The block that bypassed network auth for Cypress
+        // Now the code will flow directly to the real http.post below
 
         const u = username.trim();
         const p = password;
@@ -251,7 +243,7 @@ export default function LoginPage(props) {
                             type="submit"
                             disabled={
                                 loading ||
-                                (!isCypressEnv && (!username.trim() || !password))
+                                (!username.trim() || !password) // Cleaned up logic
                             }
                             variant="contained"
                             sx={{

@@ -45,22 +45,22 @@ describe('Room list page test', () => {
         cy.get('[data-cy="room-list-table-body"]').find('[data-cy^="room-list-cell-number-"]').first().should('contain', '102');
     })
 
-    // it('test create room test 601', ()=>{
-    //     cy.get('[data-cy="home-nav-bar-add-button"]').click();
-    //     cy.get('[data-cy="create-room-modal-number-input"]').type('701');
-    //
-    //     cy.get('[data-cy="create-room-modal-submit-button"]').click();
-    //
-    // })
+    it('test create room test 601', ()=>{
+        cy.get('[data-cy="home-nav-bar-add-button"]').click();
+        cy.get('[data-cy="create-room-modal-number-input"]').type('701');
 
-    // it('test delete room test 601', () =>{
-    //     cy.get('[data-cy="smart-search-input-field"]').type('701{enter}');
-    //     cy.get('[data-cy="room-list-table-body"]').find('[data-cy^="room-list-cell-number-"]').first().should('contain', '701').click();
-    //     cy.get('[data-cy="room-detail-title-room-number"]').should('be.visible');
-    //     cy.get('[data-cy="room-detail-edit-room-button"]').click();
-    //     cy.get('[data-cy="room-edit-modal-number-input"]').should('be.visible');
-    //
-    //     cy.get('[data-cy="room-edit-modal-delete-button"]').click();
-    // })
+        cy.get('[data-cy="create-room-modal-submit-button"]').click();
+
+    })
+
+    it('test delete room test 601', () =>{
+        cy.get('[data-cy="smart-search-input-field"]').type('701{enter}');
+        cy.get('[data-cy="room-list-table-body"]').find('[data-cy^="room-list-cell-number-"]').first().should('contain', '701').click();
+        cy.get('[data-cy="room-detail-title-room-number"]').should('be.visible');
+        cy.get('[data-cy="room-detail-edit-room-button"]').click();
+        cy.get('[data-cy="room-edit-modal-number-input"]').should('be.visible');
+
+        cy.get('[data-cy="room-edit-modal-delete-button"]').click();
+    })
 
 });

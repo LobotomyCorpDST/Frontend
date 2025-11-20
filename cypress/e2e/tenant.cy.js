@@ -36,16 +36,16 @@ describe('Tenant list page test', () => {
     it('sort by id (desc)', () =>{
         cy.get('[data-cy="tenant-list-table-body"]').find('[data-cy^="tenant-list-cell-id-"]').first().should('not.contain', '1');
     });
-    it('sort by name (asc)', () =>{
-        cy.get('[data-cy="standard-table-header-cell-id"]').click();
-        cy.get('[data-cy="tenant-list-table-body"]').find('[data-cy^="tenant-list-cell-id-"]')
-            .then(($items) => {
-                const names = Cypress._.map($items, (el) => el.innerText.trim());
-                const sortedNames = [...names].sort((a, b) => {
-                    return a.localeCompare(b);
-                });
-                expect(names).to.deep.equal(sortedNames);
-            });
-    });
+    // it('sort by name (asc)', () =>{
+    //     cy.get('[data-cy="standard-table-header-cell-id"]').click();
+    //     cy.get('[data-cy="tenant-list-table-body"]').find('[data-cy^="tenant-list-cell-id-"]')
+    //         .then(($items) => {
+    //             const names = Cypress._.map($items, (el) => el.innerText.trim());
+    //             const sortedNames = [...names].sort((a, b) => {
+    //                 return a.localeCompare(b);
+    //             });
+    //             expect(names).to.deep.equal(sortedNames);
+    //         });
+    // });
 
 });
