@@ -304,7 +304,7 @@ const UserManagement = ({ userManagementCreateSignal, ...props }) => {
                                         sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}
                                         data-cy={`user-management-cell-actions-${user.id}`}
                                     >
-                                        <Stack direction="row" spacing={1} justifyContent="center">
+                                        <Stack direction="row" spacing={1}>
                                             <IconButton
                                                 size="small"
                                                 color="primary"

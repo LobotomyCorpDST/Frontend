@@ -2,8 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Button, Stack, Box, Table, TableBody, TableCell, TableContainer, TableRow, Paper,
-    CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions
+    CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
+    Tooltip
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CreateTenantModal from './CreateTenantModal';
 import EditTenantModal from '../TenantDetail/EditTenantModal';
 import { listTenantsWithRooms, deleteTenant } from '../../api/tenant';
@@ -267,24 +270,29 @@ const TenantList = ({ addTenantSignal, ...props }) => {
                                         onClick={(e) => e.stopPropagation()} // Prevent row click on actions
                                         data-cy={`tenant-list-cell-actions-${tenant.id}`}
                                     >
-                                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                onClick={(e) => handleEditClick(tenant.id, e)}
-                                                data-cy={`tenant-list-edit-button-${tenant.id}`}
-                                            >
-                                                แก้ไข
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                color="error"
-                                                size="small"
-                                                onClick={(e) => handleDeleteClick(tenant, e)}
-                                                data-cy={`tenant-list-delete-button-${tenant.id}`}
-                                            >
-                                                ลบ
-                                            </Button>
+                                        <Stack direction="row" spacing={1} >
+                                            <Tooltip title="แก้ไขข้อมูลผู้เช่า">
+                                                <IconButton
+                                                    size="small"
+                                                    color="primary"
+                                                    onClick={(e) => handleEditClick(tenant.id, e)}
+                                                    data-cy={`tenant-list-edit-button-${tenant.id}`}
+                                                    aria-label="edit tenant"
+                                                >
+                                                    <EditIcon fontSize="inherit" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="ลบข้อมูลผู้เช่า">
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={(e) => handleDeleteClick(tenant, e)}
+                                                    data-cy={`tenant-list-delete-button-${tenant.id}`}
+                                                    aria-label="delete tenant"
+                                                >
+                                                    <DeleteIcon fontSize="inherit" />
+                                                </IconButton>
+                                            </Tooltip>
                                         </Stack>
                                     </TableCell>
                                 </TableRow>
