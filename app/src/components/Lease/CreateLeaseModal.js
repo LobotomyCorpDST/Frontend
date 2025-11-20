@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Grid, Alert, Box, CircularProgress,
-    InputAdornment, IconButton, Typography, Paper, Stack
+    InputAdornment, IconButton, Typography, Paper, Stack, Divider
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { createLease } from '../../api/lease';
@@ -80,7 +80,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
             endDate:
                 form.endDate && form.endDate.trim() !== ''
                     ? form.endDate
-                    : null, // ✅ fixed: always include date or null
+                    : null,
             monthlyRent: form.monthlyRent ? Number(form.monthlyRent) : undefined,
             depositBaht: form.depositBaht ? Number(form.depositBaht) : undefined,
             customIdCard: form.customIdCard || undefined,
@@ -108,17 +108,13 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
 
             <DialogContent dividers>
                 {err && (
-                    <Alert
-                        severity="error"
-                        sx={{ mb: 2 }}
-                        data-cy="create-lease-modal-error-alert"
-                    >
+                    <Alert severity="error" sx={{ mb: 2 }} data-cy="create-lease-modal-error-alert">
                         {err}
                     </Alert>
                 )}
 
-                <Grid container spacing={2}>
-                    {/* Room Number */}
+                <Grid container spacing={2} sx={{ mt: 0 }}>
+                    {/* --- Row 1: ข้อมูลหลัก (เลขห้อง + ผู้เช่า) --- */}
                     <Grid item xs={12} sm={4}>
                         <TextField
                             label="เลขห้อง *"
@@ -133,8 +129,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                         />
                     </Grid>
 
-                    {/* Tenant ID */}
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={8}>
                         <TextField
                             label="Tenant ID *"
                             value={form.tenantId}
@@ -142,32 +137,16 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                                 setForm(f => ({ ...f, tenantId: e.target.value.replace(/\D/g, '') }))
                             }
                             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); fetchTenant(); } }}
-                            onBlur={() => { if (!tenantPreview) fetchTenant(); }}
+                            onBlur={() => { if (!tenantPreview && form.tenantId) fetchTenant(); }}
                             fullWidth size="small"
                             placeholder="เช่น 1"
                             disabled={saving}
                             data-cy="create-lease-tenant-id-input"
-                            helperText={
-                                tenantLoading
-                                    ? 'กำลังดึงข้อมูลผู้เช่า...'
-                                    : tenantErr
-                                        ? tenantErr
-                                        : tenantPreview
-                                            ? `พบผู้เช่า: ${tenantPreview.name || '-'}`
-                                            : 'กรอก Tenant ID แล้วกด Enter / คลิกไอคอนแว่น / หรือเลื่อนโฟกัสออกเพื่อเช็คผู้เช่า'
-                            }
-                            FormHelperTextProps={{
-                                sx: { minHeight: 20 },
-                                'data-cy': 'create-lease-tenant-id-helper'
-                            }}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         {tenantLoading ? (
-                                            <CircularProgress
-                                                size={18}
-                                                data-cy="create-lease-fetch-tenant-spinner"
-                                            />
+                                            <CircularProgress size={18} data-cy="create-lease-fetch-tenant-spinner" />
                                         ) : (
                                             <IconButton
                                                 onClick={fetchTenant}
@@ -181,11 +160,48 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                                     </InputAdornment>
                                 ),
                             }}
+                            helperText={
+                                tenantErr ? (
+                                    <span style={{ color: '#d32f2f' }}>{tenantErr}</span>
+                                ) : tenantLoading ? (
+                                    'กำลังค้นหา...'
+                                ) : (
+                                    'พิมพ์ ID แล้วกด Enter หรือคลิกแว่นขยาย'
+                                )
+                            }
                         />
                     </Grid>
 
-                    {/* Start & End Dates */}
-                    <Grid item xs={12} sm={4}>
+                    {/* Tenant Preview Section (แทรกตรงนี้เพื่อให้เห็นผลลัพธ์ทันที) */}
+                    {tenantPreview && (
+                        <Grid item xs={12}>
+                            <Paper
+                                variant="outlined"
+                                sx={{ p: 2, bgcolor: '#f5f5f5', borderColor: '#e0e0e0', borderRadius: 2 }}
+                                data-cy="create-lease-tenant-preview-container"
+                            >
+                                <Typography variant="subtitle2" color="primary" gutterBottom>
+                                    ข้อมูลผู้เช่าที่พบ:
+                                </Typography>
+                                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="center">
+                                    <Typography variant="body2" data-cy="create-lease-tenant-preview-name">
+                                        ชื่อ: <b>{tenantPreview.name || '-'}</b>
+                                    </Typography>
+                                    <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                                    <Typography variant="body2" data-cy="create-lease-tenant-preview-phone">
+                                        เบอร์: <b>{tenantPreview.phone || '-'}</b>
+                                    </Typography>
+                                    <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                                    <Typography variant="body2" data-cy="create-lease-tenant-preview-line">
+                                        LINE: <b>{tenantPreview.lineId || '-'}</b>
+                                    </Typography>
+                                </Stack>
+                            </Paper>
+                        </Grid>
+                    )}
+
+                    {/* --- Row 2: ระยะเวลาสัญญา --- */}
+                    <Grid item xs={12} sm={6}>
                         <TextField
                             label="วันที่เริ่มสัญญา *"
                             type="date"
@@ -197,8 +213,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                             data-cy="create-lease-start-date-input"
                         />
                     </Grid>
-
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                         <TextField
                             label="วันที่สิ้นสุดสัญญา"
                             type="date"
@@ -211,8 +226,8 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                         />
                     </Grid>
 
-                    {/* Rent + Deposit */}
-                    <Grid item xs={12} sm={4}>
+                    {/* --- Row 3: ข้อมูลการเงิน --- */}
+                    <Grid item xs={12} sm={6}>
                         <TextField
                             label="ค่าเช่าต่อเดือน (บาท)"
                             value={form.monthlyRent}
@@ -220,13 +235,12 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                                 setForm(f => ({ ...f, monthlyRent: e.target.value.replace(/[^\d.]/g, '') }))
                             }
                             fullWidth size="small"
-                            placeholder="7000"
+                            placeholder="เช่น 7000"
                             disabled={saving}
                             data-cy="create-lease-monthly-rent-input"
                         />
                     </Grid>
-
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6} sx={{ minWidth: 247 }}>
                         <TextField
                             label="เงินมัดจำ (บาท)"
                             value={form.depositBaht}
@@ -234,16 +248,16 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                                 setForm(f => ({ ...f, depositBaht: e.target.value.replace(/[^\d.]/g, '') }))
                             }
                             fullWidth size="small"
-                            placeholder="7000"
+                            placeholder="เช่น 14000"
                             disabled={saving}
                             data-cy="create-lease-deposit-input"
                         />
                     </Grid>
 
-                    {/* Tenant Info fields */}
-                    <Grid item xs={12}>
+                    {/* --- Row 4-6: ข้อมูลเพิ่มเติม --- */}
+                    <Grid item xs={12} sx={{ minWidth: 356 }}>
                         <TextField
-                            label="เลขบัตรประชาชน (สำหรับสัญญา)"
+                            label="เลขบัตรประชาชน (ระบุเฉพาะสัญญานี้)"
                             value={form.customIdCard}
                             onChange={setField('customIdCard')}
                             fullWidth size="small"
@@ -252,70 +266,39 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                         />
                     </Grid>
 
-                    <Grid item xs={12}>
-                        <TextField
-                            label="ที่อยู่อาศัยผู้เช่า"
-                            value={form.customAddress}
-                            onChange={setField('customAddress')}
-                            fullWidth size="small"
-                            multiline
-                            rows={3}
-                            disabled={saving}
-                            data-cy="create-lease-custom-address-input"
-                        />
-                    </Grid>
 
-                    <Grid item xs={12}>
-                        <TextField
-                            label="กฏอื่นๆ"
-                            value={form.customRules}
-                            onChange={setField('customRules')}
-                            fullWidth size="small"
-                            multiline
-                            rows={3}
-                            disabled={saving}
-                            data-cy="create-lease-custom-rules-input"
-                        />
-                    </Grid>
-
-                    {/* Tenant preview */}
-                    {tenantPreview && (
-                        <Grid item xs={12}>
-                            <Paper
-                                variant="outlined"
-                                sx={{ p: 2, bgcolor: '#fafafa' }}
-                                data-cy="create-lease-tenant-preview-container"
-                            >
-                                <Typography variant="subtitle2" sx={{ mb: 1 }}>ข้อมูลผู้เช่า</Typography>
-                                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                                    <Typography
-                                        variant="body2"
-                                        data-cy="create-lease-tenant-preview-name"
-                                    >
-                                        ชื่อ: <b>{tenantPreview.name || '-'}</b>
-                                    </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        data-cy="create-lease-tenant-preview-phone"
-                                    >
-                                        เบอร์: <b>{tenantPreview.phone || '-'}</b>
-                                    </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        data-cy="create-lease-tenant-preview-line"
-                                    >
-                                        LINE: <b>{tenantPreview.lineId || '-'}</b>
-                                    </Typography>
-                                </Stack>
-                            </Paper>
-                        </Grid>
-                    )}
                 </Grid>
 
-                <Box sx={{ mt: 1 }}>
-                    <small style={{ color: '#666' }}>
-                        * ต้องกรอก เลขห้อง, Tenant ID และ วันที่เริ่ม
-                    </small>
+                <Grid item xs={12} sm={6} sx={{ my: 2 }}>
+                    <TextField
+                        label="ที่อยู่อาศัยผู้เช่า"
+                        value={form.customAddress}
+                        onChange={setField('customAddress')}
+                        fullWidth size="small"
+                        multiline
+                        rows={3}
+                        disabled={saving}
+                        data-cy="create-lease-custom-address-input"
+                    />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                    <TextField
+                        label="กฏระเบียบเพิ่มเติม"
+                        value={form.customRules}
+                        onChange={setField('customRules')}
+                        fullWidth size="small"
+                        multiline
+                        rows={3}
+                        disabled={saving}
+                        data-cy="create-lease-custom-rules-input"
+                    />
+                </Grid>
+
+                <Box sx={{ mt: 2 }}>
+                    <Typography variant="caption" color="textSecondary">
+                        * จำเป็นต้องกรอก: เลขห้อง, Tenant ID และ วันที่เริ่มสัญญา
+                    </Typography>
                 </Box>
             </DialogContent>
 
@@ -323,6 +306,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                 <Button
                     onClick={resetAndClose}
                     disabled={saving}
+                    color="inherit"
                     data-cy="create-lease-modal-cancel-button"
                 >
                     ยกเลิก
@@ -333,7 +317,7 @@ const CreateLeaseModal = ({ open, onClose, onSuccess, ...props }) => {
                     disabled={saving}
                     data-cy="create-lease-modal-submit-button"
                 >
-                    {saving ? 'กำลังบันทึก…' : 'สร้างสัญญา'}
+                    {saving ? 'กำลังบันทึก...' : 'สร้างสัญญา'}
                 </Button>
             </DialogActions>
         </Dialog>

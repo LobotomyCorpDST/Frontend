@@ -336,7 +336,7 @@ const SupplyInventoryPage = ({ supplyInventoryAddSignal, ...props }) => {
                                     </TableCell>
                                     <TableCell align="center" data-cy={`supply-inventory-cell-actions-${supply.id}`}>
                                         {editingId === supply.id ? (
-                                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
                                                 <Button
                                                     size="small"
                                                     variant="contained"
@@ -355,9 +355,10 @@ const SupplyInventoryPage = ({ supplyInventoryAddSignal, ...props }) => {
                                                 </Button>
                                             </Box>
                                         ) : (
-                                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                                            <Box sx={{ display: 'flex', gap: 1}}>
                                                 <IconButton
                                                     size="small"
+                                                    color="primary"
                                                     onClick={() => startEditing(supply)}
                                                     data-cy={`supply-inventory-edit-button-${supply.id}`}
                                                 >

@@ -199,109 +199,143 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved, ...props }) => {
                             <CircularProgress size={22} /> กำลังโหลดสัญญา...
                         </Stack>
                     ) : (
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    label="เลขห้อง *"
-                                    value={form.roomNumber}
-                                    onChange={(e) => setForm(f => ({ ...f, roomNumber: e.target.value.replace(/\D/g, '') }))}
-                                    fullWidth size="small"
-                                    placeholder="เช่น 101"
-                                    disabled={saving || deleting}
-                                    data-cy="lease-edit-room-number-input"
-                                />
-                            </Grid>
+                        <>
+                            {tenantPreview && (
+                                <Grid item xs={12} sx={{ mb: 2 }}>
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{ p: 2, bgcolor: '#fafafa' }}
+                                        data-cy="lease-edit-tenant-preview-container"
+                                    >
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>ข้อมูลผู้เช่า</Typography>
+                                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                                            <Typography
+                                                variant="body2"
+                                                data-cy="lease-edit-tenant-preview-name"
+                                            >
+                                                ชื่อ: <b>{tenantPreview.name || '-'}</b>
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                data-cy="lease-edit-tenant-preview-phone"
+                                            >
+                                                เบอร์: <b>{tenantPreview.phone || '-'}</b>
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                data-cy="lease-edit-tenant-preview-line"
+                                            >
+                                                LINE: <b>{tenantPreview.lineId || '-'}</b>
+                                            </Typography>
+                                        </Stack>
+                                    </Paper>
+                                </Grid>
+                            )}
 
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    label="ID ผู้เช่า *"
-                                    value={form.tenantId}
-                                    onChange={(e) => setForm(f => ({ ...f, tenantId: e.target.value.replace(/\D/g, '') }))}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); fetchTenant(); } }}
-                                    onBlur={() => { if (!tenantPreview) fetchTenant(); }}
-                                    helperText={tenantLoading ? 'กำลังดึงข้อมูลผู้เช่า...' : tenantErr ? tenantErr : tenantPreview ? `พบผู้เช่า: ${tenantPreview.name || '-'}` : 'กรอก Tenant ID แล้วกด Enter / คลิกไอคอนแว่น / หรือละโฟกัสออก'}
-                                    FormHelperTextProps={{
-                                        sx: { minHeight: 20 },
-                                        'data-cy': 'lease-edit-tenant-id-helper'
-                                    }}
-                                    fullWidth size="small"
-                                    disabled={saving || deleting}
-                                    data-cy="lease-edit-tenant-id-input"
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                {tenantLoading ? (
-                                                    <CircularProgress
-                                                        size={18}
-                                                        data-cy="lease-edit-fetch-tenant-spinner"
-                                                    />
-                                                ) : (
-                                                    <IconButton
-                                                        onClick={fetchTenant}
-                                                        edge="end"
-                                                        aria-label="fetch-tenant"
-                                                        data-cy="lease-edit-fetch-tenant-button"
-                                                    >
-                                                        <SearchIcon />
-                                                    </IconButton>
-                                                )}
-                                            </InputAdornment>
-                                        )
-                                    }}
-                                />
-                            </Grid>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField
+                                        label="เลขห้อง *"
+                                        value={form.roomNumber}
+                                        onChange={(e) => setForm(f => ({ ...f, roomNumber: e.target.value.replace(/\D/g, '') }))}
+                                        fullWidth size="small"
+                                        placeholder="เช่น 101"
+                                        disabled={saving || deleting}
+                                        data-cy="lease-edit-room-number-input"
+                                    />
+                                </Grid>
 
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    label="วันที่เริ่มสัญญา *"
-                                    type="date"
-                                    value={form.startDate}
-                                    onChange={(e) => setForm(f => ({ ...f, startDate: e.target.value }))}
-                                    fullWidth size="small"
-                                    InputLabelProps={{ shrink: true }}
-                                    disabled={saving || deleting}
-                                    data-cy="lease-edit-start-date-input"
-                                />
-                            </Grid>
+                                <Grid item xs={12} sm={4} sx={{ maxWidth: 211 }}>
+                                    <TextField
+                                        label="ID ผู้เช่า *"
+                                        value={form.tenantId}
+                                        onChange={(e) => setForm(f => ({ ...f, tenantId: e.target.value.replace(/\D/g, '') }))}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); fetchTenant(); } }}
+                                        onBlur={() => { if (!tenantPreview) fetchTenant(); }}
+                                        helperText={tenantLoading ? 'กำลังดึงข้อมูลผู้เช่า...' : tenantErr ? tenantErr : tenantPreview ? `พบผู้เช่า: ${tenantPreview.name || '-'}` : 'กรอก Tenant ID แล้วกด Enter / คลิกไอคอนแว่น / หรือละโฟกัสออก'}
+                                        FormHelperTextProps={{
+                                            sx: { minHeight: 20 },
+                                            'data-cy': 'lease-edit-tenant-id-helper'
+                                        }}
+                                        fullWidth size="small"
+                                        disabled={saving || deleting}
+                                        data-cy="lease-edit-tenant-id-input"
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    {tenantLoading ? (
+                                                        <CircularProgress
+                                                            size={18}
+                                                            data-cy="lease-edit-fetch-tenant-spinner"
+                                                        />
+                                                    ) : (
+                                                        <IconButton
+                                                            onClick={fetchTenant}
+                                                            edge="end"
+                                                            aria-label="fetch-tenant"
+                                                            data-cy="lease-edit-fetch-tenant-button"
+                                                        >
+                                                            <SearchIcon />
+                                                        </IconButton>
+                                                    )}
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                </Grid>
 
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    label="วันที่สิ้นสุดสัญญา"
-                                    type="date"
-                                    value={form.endDate}
-                                    onChange={(e) => setForm(f => ({ ...f, endDate: e.target.value }))}
-                                    fullWidth size="small"
-                                    InputLabelProps={{ shrink: true }}
-                                    disabled={saving || deleting}
-                                    data-cy="lease-edit-end-date-input"
-                                />
-                            </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField
+                                        label="วันที่เริ่มสัญญา *"
+                                        type="date"
+                                        value={form.startDate}
+                                        onChange={(e) => setForm(f => ({ ...f, startDate: e.target.value }))}
+                                        fullWidth size="small"
+                                        InputLabelProps={{ shrink: true }}
+                                        disabled={saving || deleting}
+                                        data-cy="lease-edit-start-date-input"
+                                    />
+                                </Grid>
 
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    label="ค่าเช่าต่อเดือน (บาท)"
-                                    value={form.monthlyRent}
-                                    onChange={(e) => setForm(f => ({ ...f, monthlyRent: e.target.value.replace(/[^\d.]/g, '') }))}
-                                    fullWidth size="small"
-                                    placeholder="7000"
-                                    disabled={saving || deleting}
-                                    data-cy="lease-edit-monthly-rent-input"
-                                />
-                            </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField
+                                        label="วันที่สิ้นสุดสัญญา"
+                                        type="date"
+                                        value={form.endDate}
+                                        onChange={(e) => setForm(f => ({ ...f, endDate: e.target.value }))}
+                                        fullWidth size="small"
+                                        InputLabelProps={{ shrink: true }}
+                                        disabled={saving || deleting}
+                                        data-cy="lease-edit-end-date-input"
+                                    />
+                                </Grid>
 
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="เงินมัดจำ (บาท)"
-                                    value={form.depositBaht}
-                                    onChange={(e) => setForm(f => ({ ...f, depositBaht: e.target.value.replace(/[^\d.]/g, '') }))}
-                                    fullWidth size="small"
-                                    placeholder="7000"
-                                    disabled={saving || deleting}
-                                    data-cy="lease-edit-deposit-input"
-                                />
-                            </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <TextField
+                                        label="ค่าเช่าต่อเดือน (บาท)"
+                                        value={form.monthlyRent}
+                                        onChange={(e) => setForm(f => ({ ...f, monthlyRent: e.target.value.replace(/[^\d.]/g, '') }))}
+                                        fullWidth size="small"
+                                        placeholder="7000"
+                                        disabled={saving || deleting}
+                                        data-cy="lease-edit-monthly-rent-input"
+                                    />
+                                </Grid>
 
-                            <Grid item xs={12}>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        label="เงินมัดจำ (บาท)"
+                                        value={form.depositBaht}
+                                        onChange={(e) => setForm(f => ({ ...f, depositBaht: e.target.value.replace(/[^\d.]/g, '') }))}
+                                        fullWidth size="small"
+                                        placeholder="7000"
+                                        disabled={saving || deleting}
+                                        data-cy="lease-edit-deposit-input"
+                                    />
+                                </Grid>
+
+                            </Grid>
+                            <Grid item xs={12} sx={{ my: 2}}>
                                 <TextField
                                     label="ที่อยู่อาศัยผู้เช่า"
                                     value={form.customAddress}
@@ -326,7 +360,6 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved, ...props }) => {
                                     data-cy="lease-edit-custom-rules-input"
                                 />
                             </Grid>
-
                             {/* Manual Status and Settled Controls */}
                             <Grid item xs={12}>
                                 <Divider sx={{ my: 2 }} />
@@ -397,39 +430,7 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved, ...props }) => {
                                     data-cy="lease-edit-document-upload"
                                 />
                             </Grid>
-
-                            {tenantPreview && (
-                                <Grid item xs={12}>
-                                    <Paper
-                                        variant="outlined"
-                                        sx={{ p: 2, bgcolor: '#fafafa' }}
-                                        data-cy="lease-edit-tenant-preview-container"
-                                    >
-                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>ข้อมูลผู้เช่า</Typography>
-                                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                                            <Typography
-                                                variant="body2"
-                                                data-cy="lease-edit-tenant-preview-name"
-                                            >
-                                                ชื่อ: <b>{tenantPreview.name || '-'}</b>
-                                            </Typography>
-                                            <Typography
-                                                variant="body2"
-                                                data-cy="lease-edit-tenant-preview-phone"
-                                            >
-                                                เบอร์: <b>{tenantPreview.phone || '-'}</b>
-                                            </Typography>
-                                            <Typography
-                                                variant="body2"
-                                                data-cy="lease-edit-tenant-preview-line"
-                                            >
-                                                LINE: <b>{tenantPreview.lineId || '-'}</b>
-                                            </Typography>
-                                        </Stack>
-                                    </Paper>
-                                </Grid>
-                            )}
-                        </Grid>
+                        </>
                     )}
                 </Box>
             </DialogContent>

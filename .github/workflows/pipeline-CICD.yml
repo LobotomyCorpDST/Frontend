@@ -15,6 +15,14 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    services:
+      backend:
+        image: mmmmnl/lobotomycorp:latest 
+        ports:
+          - 8080:8080
+        env:
+          SPRING_PROFILES_ACTIVE: dev 
     
     permissions:
        contents: 'read'
@@ -24,6 +32,16 @@ jobs:
     - name: '📥 Check out code'
       uses: actions/checkout@v4
     
+    # - name: '🧪 Run Cypress E2E Tests'
+    #   uses: cypress-io/github-action@v6
+    #   env:
+    #     # FORCE the correct URL here to override any defaults
+    #     CYPRESS_API_BASE_URL: https://apt.krentiz.dev/api
+    #     CYPRESS_baseUrl: https://apt.krentiz.dev
+    #   with:
+    #     working-directory: app
+    #     browser: chrome
+
     - name: '🐳 Build the Docker image'
       run: docker build --file app/Dockerfile -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} app
       
