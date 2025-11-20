@@ -48,8 +48,3 @@ export async function adminEditMaintenance(id, payload) {
   // payload รองรับ { status?, scheduledDate?, completedDate?, description?, costBaht? }
   return http.patch(`/api/maintenance/${id}/edit`, payload);
 }
-
-// ---------------- Delete ----------------
-export async function deleteMaintenance(id) {
-  return http.delete(`/api/maintenance/${id}`);
-}
