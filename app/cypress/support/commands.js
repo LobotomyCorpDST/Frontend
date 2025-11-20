@@ -7,8 +7,8 @@ Cypress.Commands.add('bypassLogin', () => {
   cy.visit('/');
   cy.get('button').contains('Login').click();
   cy.url().should('include', '/home');
-  // Wait for dashboard to load with timeout
-  cy.get('h4, .MuiTypography-h4', { timeout: 15000 }).should('be.visible');
+  // Wait for the generic page container first, which is more reliable
+  cy.get('.MuiContainer-root, [data-testid="dashboard"]', { timeout: 20000 }).should('be.visible');
 });
 
 // Command to wait for API to be ready

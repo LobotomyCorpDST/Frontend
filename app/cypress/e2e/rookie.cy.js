@@ -26,7 +26,7 @@ describe('Apartment Management System E2E Tests', () => {
 
       // Now, check for the presence of key elements on the dashboard
       // Replace these selectors with the actual selectors for your dashboard elements
-      cy.get('h1').should('contain', 'Home'); // Checks for a heading with the text "Dashboard"
+      cy.get('h1, h2, h3, h4').contains('สรุปภาพรวม'); // Checks for a heading with the text "สรุปภาพรวม"
       cy.get('.some-container-class').should('be.visible'); // Checks for a visible container
       cy.get('[data-testid="some-element"]').should('exist'); // Checks for an element with a specific data-testid attribute
     });
