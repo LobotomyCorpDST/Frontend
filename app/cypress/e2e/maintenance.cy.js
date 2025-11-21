@@ -40,6 +40,75 @@ describe('Maintenance page test', () => {
         });
     });
 
+    it('should sort by scheduled date (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-scheduledDate"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-scheduledDate"]').click();
+
+        cy.get('[data-cy^="maintenance-history-cell-date-"]').then(($items) => {
+            const dates = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedDates = [...dates].sort((a, b) => b - a);
+
+            expect(dates).to.deep.equal(sortedDates);
+        });
+    });
+    it('should sort by scheduled date (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-scheduledDate"]').click();
+
+        cy.get('[data-cy^="maintenance-history-cell-date-"]').then(($items) => {
+            const dates = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedDates = [...dates].sort((a, b) => a - b);
+
+            expect(dates).to.deep.equal(sortedDates);
+        });
+    });
+
+    it('should sort by status (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-status"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-status"]').click();
+
+        cy.get('[data-cy^="maintenance-history-cell-status-"]').then(($items) => {
+            const statuses = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedStatuses = [...statuses].sort((a, b) => b - a);
+
+            expect(statuses).to.deep.equal(sortedStatuses);
+        });
+    });
+    it('should sort by status (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-status"]').click();
+
+        cy.get('[data-cy^="maintenance-history-cell-status-"]').then(($items) => {
+            const statuses = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedStatuses = [...statuses].sort((a, b) => a - b);
+
+            expect(statuses).to.deep.equal(sortedStatuses);
+        });
+    });
+
+    it('should sort by description (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-description"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-description"]').click();
+
+        cy.get('[data-cy^="maintenance-history-cell-desc-"]').then(($items) => {
+            const descs = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedDescs = [...descs].sort((a, b) => b - a);
+
+            expect(descs).to.deep.equal(sortedDescs);
+        });
+    });
+    it('should sort by description (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-description"]').click();
+
+        cy.get('[data-cy^="maintenance-history-cell-desc-"]').then(($items) => {
+            const descs = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedDescs = [...descs].sort((a, b) => a - b);
+
+            expect(descs).to.deep.equal(sortedDescs);
+        });
+    });
+
     it('smart search by room number', () =>{
         cy.get('[data-cy="smart-search-input-field"]').type('201');
         cy.get('li[data-option-index="0"]').should('contain', '201');
@@ -136,6 +205,18 @@ describe('Maintenance page test', () => {
         cy.get('[data-cy="doc-upload-list-container"]').should('not.be.empty');
         cy.get('[data-cy="doc-upload-list-container"]').find('[data-cy^="doc-upload-list-item-name-"]').last().should('contain', 'Maintenance_test_pic.jpg');
         cy.get('[data-cy="edit-maintenance-modal-save-button"]').click();
+    })
+
+    it('test create maintenance in room detail', ()=>{
+        cy.get('[data-cy="maintenance-history-edit-button-303"]').click();
+        cy.get('[data-cy="room-detail-tab-maintenance"]').click();
+        cy.get('[data-cy="room-detail-add-maintenance-button"]').click();
+        cy.get('[data-cy="create-maintenance-description-input"]').type('new table');
+        cy.get('[data-cy="create-maintenance-cost-input"]').type('30');
+        cy.get('[data-cy="create-maintenance-modal-submit-button"]').click();
+
+        cy.get('[data-cy="maintenance-table-body"]')
+            .find('[data-cy^="maintenance-table-cell-desc-"]').first().should('contain', 'new table');
     })
 
     it('test download pictures', () => {

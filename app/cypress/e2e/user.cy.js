@@ -1,4 +1,4 @@
-describe('Room list page test', () => {
+describe('User list page test', () => {
 
     beforeEach(() => {
         cy.intercept('GET', '/api/user**').as('getHistory');

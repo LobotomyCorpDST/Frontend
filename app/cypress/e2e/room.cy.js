@@ -57,6 +57,98 @@ describe('Room list page test', () => {
         });
     });
 
+    it('should sort by tenant name (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-occupantName"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-occupantName"]').click();
+
+        cy.get('[data-cy^="room-list-cell-tenant-"]').then(($items) => {
+            const names = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedNames = [...names].sort((a, b) => b - a);
+
+            expect(names).to.deep.equal(sortedNames);
+        });
+    });
+    it('should sort by tenant name (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-occupantName"]').click();
+
+        cy.get('[data-cy^="room-list-cell-tenant-"]').then(($items) => {
+            const names = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedNames = [...names].sort((a, b) => a - b);
+
+            expect(names).to.deep.equal(sortedNames);
+        });
+    });
+
+    it('should sort by lease end date (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-leaseEndDate"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-leaseEndDate"]').click();
+
+        cy.get('[data-cy^="room-list-cell-lease-end-"]').then(($items) => {
+            const endDates = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedEndDates = [...endDates].sort((a, b) => b - a);
+
+            expect(endDates).to.deep.equal(sortedEndDates);
+        });
+    });
+    it('should sort by lease end date (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-leaseEndDate"]').click();
+
+        cy.get('[data-cy^="room-list-cell-lease-end-"]').then(($items) => {
+            const endDates = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedEndDates = [...endDates].sort((a, b) => a - b);
+
+            expect(endDates).to.deep.equal(sortedEndDates);
+        });
+    });
+
+    it('should sort by room status (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-roomStatus"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-roomStatus"]').click();
+
+        cy.get('[data-cy^="room-list-cell-status-"]').then(($items) => {
+            const statuses = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedStatuses = [...statuses].sort((a, b) => b - a);
+
+            expect(statuses).to.deep.equal(sortedStatuses);
+        });
+    });
+    it('should sort by room status (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-roomStatus"]').click();
+
+        cy.get('[data-cy^="room-list-cell-status-"]').then(($items) => {
+            const statuses = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedStatuses = [...statuses].sort((a, b) => a - b);
+
+            expect(statuses).to.deep.equal(sortedStatuses);
+        });
+    });
+
+    it('should sort by maintenance status (desc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-maintenanceStatus"]').click();
+        cy.get('[data-cy="standard-table-header-sort-label-maintenanceStatus"]').click();
+
+        cy.get('[data-cy^="room-list-cell-maintenance-"]').then(($items) => {
+            const maintenances = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedMaintenances = [...maintenances].sort((a, b) => b - a);
+
+            expect(maintenances).to.deep.equal(sortedMaintenances);
+        });
+    });
+    it('should sort by maintenance status (asc)', () => {
+        cy.get('[data-cy="standard-table-header-sort-label-maintenanceStatus"]').click();
+
+        cy.get('[data-cy^="room-list-cell-maintenance-"]').then(($items) => {
+            const maintenances = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedMaintenances = [...maintenances].sort((a, b) => a - b);
+
+            expect(maintenances).to.deep.equal(sortedMaintenances);
+        });
+    });
+
     it('test create room test 701', ()=>{
         cy.get('[data-cy="home-nav-bar-add-button"]').click();
         cy.get('[data-cy="create-room-modal-number-input"]').type('701');
