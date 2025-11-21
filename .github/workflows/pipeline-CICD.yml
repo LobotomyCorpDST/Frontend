@@ -72,6 +72,7 @@ jobs:
     - name: '🧪 Run Cypress E2E Tests'
       uses: cypress-io/github-action@v6
       env:
+        CI: false
         CYPRESS_API_BASE_URL: https://apt.krentiz.dev/api
         CYPRESS_baseUrl: https://apt.krentiz.dev
       with:
