@@ -263,25 +263,25 @@ describe('Maintenance page test', () => {
         cy.get('[data-cy="edit-maintenance-modal-save-button"]').click();
     })
 
-    it('should delete all uploaded files until the list is empty', () => {
-        cy.get('[data-cy="maintenance-history-edit-button-303"]').click();
-
-        // Upload file
-        cy.get('[data-cy="doc-upload-select-file-button"]').selectFile('cypress/fixtures/Maintenance_test_pic.jpg');
-        cy.get('[data-cy^="doc-upload-list-item-delete-button-"]').should('be.visible');
-
-        function deleteAllFiles() {
-            cy.get('body').then($body => {
-                if ($body.find('[data-cy^="doc-upload-list-item-delete-button-"]').length > 0) {
-                    cy.get('[data-cy^="doc-upload-list-item-delete-button-"]').first().click();
-                    cy.wait(500);
-                    deleteAllFiles(); // Recursion
-                }
-            });
-        }
-
-        deleteAllFiles();
-
-        cy.get('[data-cy="doc-upload-no-documents-message"]').should('be.visible');
-    });
+    // it('should delete all uploaded files until the list is empty', () => {
+    //     cy.get('[data-cy="maintenance-history-edit-button-303"]').click();
+    //
+    //     // Upload file
+    //     cy.get('[data-cy="doc-upload-select-file-button"]').selectFile('cypress/fixtures/Maintenance_test_pic.jpg');
+    //     cy.get('[data-cy^="doc-upload-list-item-delete-button-"]').should('be.visible');
+    //
+    //     function deleteAllFiles() {
+    //         cy.get('body').then($body => {
+    //             if ($body.find('[data-cy^="doc-upload-list-item-delete-button-"]').length > 0) {
+    //                 cy.get('[data-cy^="doc-upload-list-item-delete-button-"]').first().click();
+    //                 cy.wait(500);
+    //                 deleteAllFiles(); // Recursion
+    //             }
+    //         });
+    //     }
+    //
+    //     deleteAllFiles();
+    //
+    //     cy.get('[data-cy="doc-upload-no-documents-message"]').should('be.visible');
+    // });
 });

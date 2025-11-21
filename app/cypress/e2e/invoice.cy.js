@@ -141,7 +141,7 @@ describe('Invoice list page test', () => {
                 action: 'drag-drop'
             });
 
-        cy.get('[data-cy="csv-import-modal-selected-file-alert"]').should('be.visible');
+        cy.get('[data-cy="csv-import-modal-selected-file-alert"]').should('contain','test_csv.csv');
     });
 
     it('should sort by status (desc)', () => {
