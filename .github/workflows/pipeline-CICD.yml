@@ -31,16 +31,6 @@ jobs:
     steps:
     - name: '📥 Check out code'
       uses: actions/checkout@v4
-    
-    - name: '🧪 Run Cypress E2E Tests'
-      uses: cypress-io/github-action@v6
-      env:
-        CYPRESS_API_BASE_URL: https://apt.krentiz.dev/api
-        CYPRESS_baseUrl: https://apt.krentiz.dev
-      with:
-        working-directory: .
-        install-command: npm ci --prefix app
-        command: npx --prefix app cypress run --config-file cypress.config.js
 
     - name: '🐳 Build the Docker image'
       run: docker build --file app/Dockerfile -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} app
@@ -78,3 +68,14 @@ jobs:
         
     - name: '⏳ Wait for Deployment Rollout'
       run: kubectl rollout status deployment/frontend-deployment --namespace=doomed-apt --timeout=5m
+
+    - name: '🧪 Run Cypress E2E Tests'
+      uses: cypress-io/github-action@v6
+      env:
+        CYPRESS_API_BASE_URL: https://apt.krentiz.dev/api
+        CYPRESS_baseUrl: https://apt.krentiz.dev
+      with:
+        working-directory: app
+        build: npm run build
+        wait-on-timeout: 120
+
