@@ -647,9 +647,9 @@ const SummaryReport = (props) => {
                                 label="ประเภทการกรอง"
                                 data-cy="summary-report-filter-type-select"
                             >
-                                <MenuItem value="room">ตามห้อง</MenuItem>
-                                <MenuItem value="tenant">ตามผู้เช่า</MenuItem>
-                                <MenuItem value="month">ตามเดือน</MenuItem>
+                                <MenuItem value="room" data-cy="summary-report-filter-room">ตามห้อง</MenuItem>
+                                <MenuItem value="tenant" data-cy="summary-report-filter-tenant">ตามผู้เช่า</MenuItem>
+                                <MenuItem value="month" data-cy="summary-report-filter-month">ตามเดือน</MenuItem>
                             </Select>
                         </FormControl>
                     </Grid>
