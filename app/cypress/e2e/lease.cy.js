@@ -12,24 +12,23 @@ describe('Room list page test', () => {
         cy.wait('@getHistory');
     });
     it('link to room detail (click room no.)', ()=>{
-        cy.get('[data-cy="lease-history-table-container"]').find('[data-cy^="lease-history-row-room-"]').first().click();
+        cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-room-"]').first().click();
         cy.get('[data-cy="room-detail-title-room-number"]').should('be.visible');
-        cy.get('[data-cy="room-detail-back-button"]').click();
     })
-    // it('smart search by room number', () =>{
-    //     cy.get('[data-cy="smart-search-input-field"]').type('201{enter}');
-    //     cy.get('[data-cy="lease-history-table-container"]').find('[data-cy^="lease-history-row-room-"]').first().should('contain', '201');
-    //     cy.get('[data-cy="lease-history-table-container"]').find('[data-cy^="lease-history-row-room-"]').first().click();
-    // })
-    //
-    // it('smart search by invoice id', () =>{
-    //     cy.get('[data-cy="smart-search-input-field"]').type('43{enter}');
-    //     cy.get('[data-cy="lease-history-table-container"]').find('[data-cy^="lease-history-row-room-"]').first().should('contain', '1101');
-    // })
-    //
-    // it('smart search by room number', () =>{
-    //     cy.get('[data-cy="smart-search-input-field"]').type('สมชาย{enter}');
-    //     cy.get('[data-cy="lease-history-table-container"]').find('[data-cy^="lease-history-tenant--"]').first().should('contain', 'สมชาย');
-    // })
+    it('smart search by room number', () =>{
+        cy.get('[data-cy="smart-search-input-field"]').type('201{enter}');
+        cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-room-"]').first().should('contain', '201');
+        cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-room-"]').first().click();
+    })
+
+    it('smart search by invoice id', () =>{
+        cy.get('[data-cy="smart-search-input-field"]').type('43{enter}');
+        cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-room-"]').first().should('contain', '1101');
+    })
+
+    it('smart search by name', () =>{
+        cy.get('[data-cy="smart-search-input-field"]').type('สมชาย{enter}');
+        cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-tenant-"]').first().should('contain', 'สมชาย');
+    })
 
 });
