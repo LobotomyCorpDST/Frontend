@@ -12,7 +12,7 @@ describe('Invoice list page test', () => {
         cy.wait('@getHistory');
     });
     it('link to room detail (click room no.)', ()=>{
-        cy.get('[data-cy="invoice-history-table-body"]').find('[data-cy^="invoice-history-row-room-"]').first().click();
+        cy.get('[data-cy="invoice-history-table-body"]').find('[data-cy^="invoice-history-row-room-link-"]').first().click();
         cy.get('[data-cy="room-detail-title-room-number"]').should('be.visible');
     })
     it('smart search by room number', () =>{
@@ -25,7 +25,7 @@ describe('Invoice list page test', () => {
         cy.get('[data-cy="invoice-history-table-body"]').find('[data-cy^="invoice-history-row-id-"]').first().should('contain', '184');
     })
 
-    it('smart search by room number', () =>{
+    it('smart search by total due', () =>{
         cy.get('[data-cy="smart-search-input-field"]').type('4004{enter}');
         cy.get('[data-cy="invoice-history-table-body"]').find('[data-cy^="invoice-history-row-total-"]').first().should('contain', '4,004');
     })

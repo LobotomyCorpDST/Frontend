@@ -10,6 +10,13 @@ describe('Room list page test', () => {
         cy.get('[data-cy="home-page-drawer-nav-item-2"]').click();
 
         cy.wait('@getHistory');
+
+        // ensure its loaded
+        cy.contains('กำลังโหลดห้อง...', { timeout: 10000 }).should('not.exist');
+        cy.get('[data-cy="room-list-table-body"]')
+            .should('be.visible')
+            .find('[data-cy^="room-list-row-"]')
+            .should('have.length.gt', 0);
     });
     it('link to room detail (click row)', ()=>{
         cy.get('[data-cy="room-list-table-body"]').find('[data-cy^="room-list-row-"]').first().click();
