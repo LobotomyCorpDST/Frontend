@@ -1,3 +1,5 @@
+import cy from "../../src/api/http";
+
 describe('Room list page test', () => {
 
     beforeEach(() => {
@@ -27,4 +29,9 @@ describe('Room list page test', () => {
         cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-tenant-"]').first().should('contain', 'สมชาย');
     })
 
+    it('open edit modal (click row)', () =>{
+        cy.get('[data-cy="lease-history-table-body"]').find('[data-cy^="lease-history-row-"]').first().click();
+        cy.get('[data-cy="lease-edit-modal-title"]').should('be.visible');
+    })
+    
 });

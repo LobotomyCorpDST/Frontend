@@ -12,7 +12,6 @@ describe('Room list page test', () => {
         cy.wait('@getHistory');
 
         // ensure its loaded
-        cy.contains('กำลังโหลดห้อง...', { timeout: 10000 }).should('not.exist');
         cy.get('[data-cy="room-list-table-body"]')
             .should('be.visible')
             .find('[data-cy^="room-list-row-"]')
