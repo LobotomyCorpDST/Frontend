@@ -11,9 +11,10 @@
 //         cy.wait('@getReport');
 //     });
 //
-//     it('link to tenant detail (click row)', () => {
+//     it('report filter by room', () => {
 //         cy.get('[data-cy="summary-report-filter-type-select"]').click();
-//         cy.get('[data-cy="tenant-detail-tenant-name-title"]').should('be.visible');
-//         cy.get('[data-cy="tenant-detail-back-button"]').click();
+//         cy.get('[data-cy="summary-report-filter-room"]').click();
+//         cy.get('[data-cy="smart-search-input-field"]').type('201{enter}');
+//
 //     });
 // });

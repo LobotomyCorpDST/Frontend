@@ -3,15 +3,15 @@ import { Autocomplete, TextField, InputAdornment, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
 const SmartSearchAutocomplete = ({
-    options = [],
-    label,
-    value,
-    onChange,
-    placeholder = 'พิมพ์เพื่อค้นหา...',
-    onPartialMatch,
-    sx,
-    ...props
-}) => {
+                                     options = [],
+                                     label,
+                                     value,
+                                     onChange,
+                                     placeholder = 'พิมพ์เพื่อค้นหา...',
+                                     onPartialMatch,
+                                     sx,
+                                     ...props
+                                 }) => {
     const [inputValue, setInputValue] = useState('');
 
     const fuzzyMatch = (text, searchTerm) => {
@@ -47,9 +47,8 @@ const SmartSearchAutocomplete = ({
         }
     };
 
-    // --- ไม้ตาย: ห่อ Box เพื่อบังคับ Width 100% ---
     return (
-        <Box sx={{ width: '100%' }}> 
+        <Box sx={{ width: '100%' }}>
             <Autocomplete
                 {...props}
                 options={options}
@@ -66,13 +65,24 @@ const SmartSearchAutocomplete = ({
                 getOptionLabel={(option) => option.label || ''}
                 filterOptions={filterOptions}
                 freeSolo={false}
-                fullWidth={true} // ย้ำ fullWidth
-                
-                // บังคับ CSS ที่ตัว Root ของ Autocomplete
-                sx={{ 
+                fullWidth={true}
+
+                sx={{
                     width: '100%',
-                    display: 'flex', // ช่วยเรื่องการขยายใน Flex container
-                    ...(sx || {}) 
+                    display: 'flex',
+                    ...(sx || {})
+                }}
+
+                renderOption={(props, option) => {
+                    return (
+                        <li
+                            {...props}
+                            // Creates a selector like: [data-cy="smart-search-option-52"]
+                            data-cy={`smart-search-option-${option.value}`}
+                        >
+                            {option.label}
+                        </li>
+                    );
                 }}
 
                 renderInput={(params) => (
@@ -82,16 +92,16 @@ const SmartSearchAutocomplete = ({
                         placeholder={placeholder}
                         variant="outlined"
                         size="small"
-                        fullWidth={true} // ย้ำ fullWidth ที่ Input
+                        fullWidth={true}
                         onKeyDown={handleKeyDown}
                         sx={{
-                            width: '100%', // บังคับ Width 100% ที่ Input
+                            width: '100%',
                             backgroundColor: "#f0f4fa",
                             borderRadius: "8px",
                             "& .MuiOutlinedInput-notchedOutline": { border: 0 },
                             "& .MuiInputBase-root": {
                                 paddingRight: "39px !important",
-                                width: '100%' // บังคับลึกลงไปถึงไส้ใน
+                                width: '100%'
                             }
                         }}
                         data-cy="smart-search-input-field"
