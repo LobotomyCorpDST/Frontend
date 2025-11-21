@@ -64,7 +64,6 @@ describe('Room list page test', () => {
         cy.get('[data-cy="create-room-modal-submit-button"]').click();
 
     })
-
     it('test delete room test 701', () =>{
         cy.get('[data-cy="smart-search-input-field"]').type('701{enter}');
         cy.get('[data-cy="room-list-table-body"]').find('[data-cy^="room-list-cell-number-"]').first().should('contain', '701').click();
