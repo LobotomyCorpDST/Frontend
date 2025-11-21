@@ -134,16 +134,15 @@ describe('Invoice list page test', () => {
             expect(totals).to.deep.equal(sortedTotals);
         });
     });
-    // it('should sort by total baht (asc)', () => {
-    //     cy.get('[data-cy="invoice-history-header-sort-label-totalBaht"]').click();
-    //
-    //     cy.get('[data-cy^="invoice-history-row-total-"]').then(($items) => {
-    //         const totals = Cypress._.map($items, (el) => parseInt(el.innerText));
-    //         const sortedTotals = [...totals].sort((a, b) => a - b);
-    //
-    //         expect(totals).to.deep.equal(sortedTotals);
-    //     });
-    // });
+    it('test upload a csv', () => {
+        cy.get('[data-cy="invoice-history-import-csv-button"]').click();
+        cy.get('[data-cy="csv-import-modal-dropzone"]')
+            .selectFile('cypress/fixtures/test_csv.csv', {
+                action: 'drag-drop'
+            });
+
+        cy.get('[data-cy="csv-import-modal-selected-file-alert"]').should('be.visible');
+    });
 
     it('should sort by status (desc)', () => {
         cy.get('[data-cy="invoice-history-header-sort-label-status"]').click();
