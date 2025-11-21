@@ -35,6 +35,7 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved, ...props }) => {
         customRules: '',
         settled: false,
         settledDate: null,
+        status: '',
     });
 
     // tenant preview similar to CreateLeaseModal
@@ -75,6 +76,7 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved, ...props }) => {
                     customRules: l.customRules ?? '',
                     settled: !!l.settled,
                     settledDate: l.settledDate ?? null,
+                    status: l.status ?? 'ACTIVE',
                 });
                 if (l.tenant?.id) {
                     // warm preview
@@ -141,6 +143,7 @@ const LeaseEditModal = ({ open, onClose, leaseId, onSaved, ...props }) => {
             customRules: form.customRules || undefined,
             settled: form.settled,
             settledDate: form.settledDate || undefined,
+            status: form.status || undefined,
         };
 
         try {
