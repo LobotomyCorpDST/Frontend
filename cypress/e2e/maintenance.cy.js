@@ -17,13 +17,28 @@ describe('Maintenance page test', () => {
         cy.get('[data-cy="room-detail-back-button"]').click();
     });
 
-    it('sort test (desc)', () =>{
-        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-room-link-button-"]').first().should('contain', 'C1020317');
-    })
-    it('sort test (asc)', () =>{
+    it('should sort by ID (desc)', () => {
         cy.get('[data-cy="standard-table-header-cell-id"]').click();
-        cy.get('[data-cy="maintenance-history-table-body"]').find('[data-cy^="maintenance-history-room-link-button-"]').first().should('contain', 'C20101');
-    })
+        cy.get('[data-cy="standard-table-header-cell-id"]').click();
+
+        cy.get('[data-cy^="maintenance-history-room-link-button-"]').then(($items) => {
+            const ids = Cypress._.map($items, (el) => parseInt(el.innerText));
+
+            const sortedIds = [...ids].sort((a, b) => b - a);
+
+            expect(ids).to.deep.equal(sortedIds);
+        });
+    });
+    it('should sort by name (asc)', () => {
+        cy.get('[data-cy="standard-table-header-cell-name"]').click();
+
+        cy.get('[data-cy^="maintenance-history-room-link-button-"]').then(($items) => {
+            const names = Cypress._.map($items, (el) => parseInt(el.innerText));
+            const sortedNames = [...names].sort((a, b) => a - b);
+
+            expect(names).to.deep.equal(sortedNames);
+        });
+    });
 
     it('smart search by room number', () =>{
         cy.get('[data-cy="smart-search-input-field"]').type('201');
