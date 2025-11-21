@@ -53,9 +53,9 @@ function formatCurrency(n) {
 function renderStatusChip(inv) {
     const statusEn = computeDisplayStatus(inv); // 'Paid' | 'Overdue' | 'Not yet paid'
     const statusMap = {
-        'paid': { label: 'ชำระแล้ว', color: 'success' },
-        'overdue': { label: 'เกินกำหนด', color: 'error' },
-        'not yet paid': { label: 'รอชำระ', color: 'warning' }
+        'ชำระแล้ว': { label: 'ชำระแล้ว', color: 'success' },
+        'ค้างชำระ': { label: 'เกินกำหนด', color: 'error' },
+        'ยังไม่ชำระ': { label: 'รอชำระ', color: 'warning' }
     };
     const key = (statusEn || '').toLowerCase();
     const status = statusMap[key] || { label: statusEn, color: 'default' };
