@@ -75,6 +75,7 @@ jobs:
         CYPRESS_API_BASE_URL: https://apt.krentiz.dev/api
         CYPRESS_baseUrl: https://apt.krentiz.dev
       with:
-        working-directory: .
-        install-command: npm ci --prefix app
-        command: npx --prefix app cypress run --config-file cypress.config.js
+        working-directory: app
+        build: npm run build
+        wait-on-timeout: 120
+
