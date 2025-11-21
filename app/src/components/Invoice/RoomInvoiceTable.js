@@ -168,7 +168,7 @@ export default function RoomInvoiceTable({
                         data-cy="room-invoice-table-header"
                     />
 
-                    <TableBody>
+                    <TableBody data-cy="room-invoice-table-body">
                         {loading ? (
                             <TableRow data-cy="room-invoice-table-loading-state">
                                 <TableCell colSpan={4} align="center">
