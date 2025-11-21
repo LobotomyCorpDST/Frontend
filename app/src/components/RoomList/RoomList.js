@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Table, TableBody, TableCell, TableContainer, TableRow, Paper,
-    Box, Link
+    Box, Link, Chip // <--- 1. Added Chip Import
 } from '@mui/material';
 import CreateRoomModal from './CreateRoomModal';
 import EnhancedSearchBar from '../Common/EnhancedSearchBar';
@@ -26,7 +26,7 @@ const translateMaintenanceStatus = (status) => {
 const RoomList = ({ addRoomSignal, ...props }) => {
     const navigate = useNavigate();
     const [rooms, setRooms] = useState([]);
-    const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'descending' }); // Changed default
+    const [sortConfig, setSortConfig] = useState({ key: 'roomNumber', direction: 'descending' });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [openCreate, setOpenCreate] = useState(false);
@@ -82,15 +82,12 @@ const RoomList = ({ addRoomSignal, ...props }) => {
                     try {
                         const maintenanceList = await listMaintenanceByRoomNumber(r.number);
                         if (maintenanceList && maintenanceList.length > 0) {
-                            // Find the most recent maintenance record
                             const sortedByDate = [...maintenanceList].sort((a, b) => {
                                 const dateA = new Date(a.scheduledDate || 0);
                                 const dateB = new Date(b.scheduledDate || 0);
                                 return dateB - dateA;
                             });
                             const latest = sortedByDate[0];
-
-                            // Show status and scheduled date (with Thai translation)
                             maintenanceStatus = `${translateMaintenanceStatus(latest.status)} ในวันที่ ${latest.scheduledDate || '-'}`;
                         }
                     } catch {
@@ -149,10 +146,9 @@ const RoomList = ({ addRoomSignal, ...props }) => {
     const handleRequestSort = (property) => {
         const isAsc = sortConfig.key === property && sortConfig.direction === 'ascending';
         setSortConfig({ key: property, direction: isAsc ? 'descending' : 'ascending' });
-        setPage(0); // Reset to first page when sorting changes
+        setPage(0);
     };
 
-    // Convert rooms to searchable options for smart search
     const searchOptions = useMemo(() => {
         return sortedRooms.map((room) => ({
             id: room.roomId,
@@ -162,16 +158,13 @@ const RoomList = ({ addRoomSignal, ...props }) => {
         }));
     }, [sortedRooms]);
 
-    // Filter rooms based on unified search
     const filteredRooms = useMemo(() => {
         let result = sortedRooms;
 
         if (searchTerm) {
             if (searchType === 'exact') {
-                // Exact match (from SmartSearch autocomplete)
                 result = result.filter((room) => room.roomNumber === searchTerm);
             } else if (searchType === 'partial') {
-                // Partial match (from QuickSearch text input)
                 const searchLower = String(searchTerm).toLowerCase();
                 result = result.filter((room) => {
                     const roomNum = String(room.roomNumber || '');
@@ -187,7 +180,6 @@ const RoomList = ({ addRoomSignal, ...props }) => {
         return result;
     }, [sortedRooms, searchTerm, searchType]);
 
-    // Paginated rooms (apply after filtering and sorting)
     const paginatedRooms = useMemo(() => {
         const start = page * rowsPerPage;
         return filteredRooms.slice(start, start + rowsPerPage);
@@ -198,25 +190,18 @@ const RoomList = ({ addRoomSignal, ...props }) => {
     };
 
     if (loading) return (
-        <Box
-            sx={{ p: 3, textAlign: 'center' }}
-            data-cy="room-list-loading-state"
-        >
+        <Box sx={{ p: 3, textAlign: 'center' }} data-cy="room-list-loading-state">
             กำลังโหลดห้อง…
         </Box>
     );
     if (error) return (
-        <Box
-            sx={{ p: 3, textAlign: 'center', color: 'error.main' }}
-            data-cy="room-list-error-state"
-        >
+        <Box sx={{ p: 3, textAlign: 'center', color: 'error.main' }} data-cy="room-list-error-state">
             เกิดข้อผิดพลาด: {error}
         </Box>
     );
 
     return (
         <Box sx={{ p: 3 }} {...props} data-cy="room-list-page">
-            {/* Enhanced Search (Unified Quick + Smart) */}
             <EnhancedSearchBar
                 onSearch={({ type, value }) => {
                     setSearchTerm(value);
@@ -292,7 +277,12 @@ const RoomList = ({ addRoomSignal, ...props }) => {
                                         sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}
                                         data-cy={`room-list-cell-status-${room.roomId}`}
                                     >
-                                        {room.roomStatus}
+                                        {/* 2. Implemented Chip with Logic */}
+                                        <Chip 
+                                            label={room.roomStatus}
+                                            color={room.roomStatus === 'มีผู้เช่า' ? 'error' : 'success'}
+                                            size="small"
+                                        />
                                     </TableCell>
                                     <TableCell
                                         sx={{ padding: '12px', borderBottom: '1px solid #e0e6eb' }}
@@ -312,7 +302,6 @@ const RoomList = ({ addRoomSignal, ...props }) => {
                     </TableBody>
                 </Table>
 
-                {/* Pagination */}
                 {filteredRooms.length > 0 && (
                     <StandardPagination
                         count={filteredRooms.length}
