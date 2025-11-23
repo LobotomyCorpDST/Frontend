@@ -9,7 +9,7 @@ A full-stack apartment management system with Spring Boot backend and React fron
 - **Backend:** Spring Boot 3.5.5, Java 21, MySQL 8.0, JWT Authentication
 - **Frontend:** React 19.1.1, Material-UI 7.3.1
 - **Deployment:** Docker, Kubernetes (Docker Desktop), Docker Hub
-- **CI/CD:** Jenkins (Windows agents)
+- **CI/CD:** Github Acitons
 
 ## Table of Contents
 
